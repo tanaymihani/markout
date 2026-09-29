@@ -1,0 +1,22 @@
+# data never leaves this machine (Kaggle and LOBSTER terms); scripts/ re-downloads it
+data/
+*.parquet
+*.csv.zip
+
+# environments and tooling
+.venv/
+.idea/
+.vscode/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+build/
+dist/
+.DS_Store
+
+# compiled extension (built by `make cpp`)
+*.so
+
+# private application notes
+PLAN.md
