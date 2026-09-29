@@ -33,6 +33,23 @@ def num(x: float | int | None, digits: int = 3, signed: bool = False, pct: bool 
     return f"{sign}{s}{'%' if pct else ''}"
 
 
+def prob(p: float | None) -> str:
+    """Probabilities and p-values: never print 0.99999 as "1" or 1e-48 as a long float."""
+    if p is None or (isinstance(p, float) and not math.isfinite(p)):
+        return "n/a"
+    if p < 0.001:
+        return "< 0.001"
+    if p > 0.999:
+        return "> 0.999"
+    return f"{p:.3f}"
+
+
+def usd(x: float | None) -> str:
+    if x is None or (isinstance(x, float) and not math.isfinite(x)):
+        return "n/a"
+    return f"{'-' if x < 0 else ''}${abs(x):,.0f}"
+
+
 def table(rows: Sequence[Mapping], columns: Sequence[str] | None = None,
           formats: Mapping[str, str] | None = None, headers: Mapping[str, str] | None = None) -> str:
     """GitHub-flavoured markdown table from a list of dicts."""

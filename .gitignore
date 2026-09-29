@@ -20,3 +20,8 @@ dist/
 
 # private application notes
 PLAN.md
+
+# development runs on synthetic data (python -m markout.auction.report --synthetic)
+reports/dev_*
+reports/figures/dev_*
+reports/results/dev_*
