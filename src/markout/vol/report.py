@@ -278,8 +278,8 @@ def straddle_section(sd: dict) -> list[str]:
                 formats={"VIX": "{:.1f}", "realized vol": "{:.1f}", "gamma-weighted vol": "{:.1f}",
                          "gamma exposure": "{:.2f}", "variance swap": "{:.1f}", "straddle": "{:.1f}"}), "",
         "Gamma-weighted vol weights each day's move by the straddle's dollar gamma that day. Gamma exposure is the "
-        "month's total dollar gamma relative to an average month; below 1, the index spent the month away from the "
-        "strike.", "",
+        "month's total dollar gamma relative to the average for a path that moves at the implied vol: about 2 if "
+        "the index sat on the strike all month, below 1 if it spent more of the month far from the strike.", "",
         f"In the month from {w0['date']}, VIX was {n(w0['vix'])} and the index then realized {n(w0['realized'])}. The "
         f"variance swap lost {n(-w0['var_swap'])} and the straddle {n(-w0['straddle'])}, {why}.{worse}", "",
         f"The milder tail raises the growth-optimal size {n(st['kelly']['v_star'] / vs['kelly']['v_star'])}x, to "

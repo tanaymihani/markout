@@ -17,7 +17,7 @@ average path: along a diffusion the expected dollar gamma is flat at its startin
 and half the vega-normalized weight a path pinned at the strike would carry. So the
 straddle earns up to twice as much in a month that stays pinned, and loses less when the
 index leaves the strike. The `exposure` column measures this: realized dollar-gamma weight
-over the average-path value (1 = average; 2 = pinned at the strike all month).
+over its average for a path moving at the implied vol (about 2 = pinned at the strike all month).
 """
 
 from __future__ import annotations

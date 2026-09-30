@@ -107,7 +107,7 @@ The two move together (correlation 0.767) until the index runs. The five worst m
 | 2020-03-11 | 53.9 | 89.2 | 75.3 | 1.22 | -47.4 | -33.0 |
 | 2025-03-17 | 20.5 | 45.9 | 34.6 | 0.80 | -41.6 | -11.8 |
 
-Gamma-weighted vol weights each day's move by the straddle's dollar gamma that day. Gamma exposure is the month's total dollar gamma relative to an average month; below 1, the index spent the month away from the strike.
+Gamma-weighted vol weights each day's move by the straddle's dollar gamma that day. Gamma exposure is the month's total dollar gamma relative to the average for a path that moves at the implied vol: about 2 if the index sat on the strike all month, below 1 if it spent more of the month far from the strike.
 
 In the month from 2020-02-10, VIX was 15.0 and the index then realized 50.9. The variance swap lost 78.9 and the straddle 5.09, because the big days came after the index had left the strike (gamma-weighted vol 23.7). The straddle is not always the safer side: from 2018-01-08 the big days came while its gamma was high (gamma-weighted vol 28.6 against 19.4 realized), and it lost 20.4 to the variance swap's 15.5.
 

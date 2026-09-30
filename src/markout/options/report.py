@@ -616,6 +616,10 @@ Over each rebalance interval the hedged book earns ½ΓS²(σ_imp² Δt − R²)
 {every(daily)}. The residual comes from third-order Taylor terms{", and it shrinks as the interval does" if shrinking else ""}:
 
 {rp.table(rows_attr)}
+
+Real prices have far larger daily moves than these lognormal paths, so the same daily hedge is attributed less
+cleanly on them. [Report 06](06_vol_premium.md#collecting-the-premium-with-options-instead) runs it on every month
+of S&P 500 data since 1993, as a short straddle against a variance swap.
 """
 
 
