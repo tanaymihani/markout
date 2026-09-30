@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PYBIND11_DIR := $(shell $(PY) -m pybind11 --cmakedir 2>/dev/null)
 
-.PHONY: install test test-fast data lobster optiver options cpp bench report all clean
+.PHONY: install test test-fast data lobster optiver options cpp bench report readme all clean
 
 install:
 	.venv/bin/pip install -e ".[dev,data,cpp]"
@@ -35,11 +35,16 @@ bench: cpp
 
 # ---- reports: every number in reports/ comes from these commands ------------
 report:
-	$(PY) -m markout.auction.report
+	@if [ -f data/processed/optiver/train.parquet ]; then $(PY) -m markout.auction.report; \
+	  else echo "skipping report 01: run 'make optiver' first (needs a Kaggle login)"; fi
 	$(PY) -m markout.lob.report
 	$(PY) -m markout.games.report
 	$(PY) -m markout.options.report
 	$(PY) -m markout.decision.contest
+	$(PY) -m markout.readme
+
+readme:
+	$(PY) -m markout.readme
 
 all: data cpp test report
 

@@ -1,0 +1,535 @@
+{
+  "method": "median of 5 timed runs after one warm-up, time.perf_counter around markout.lob.fills.simulate(engine=...); messages replayed = messages from the first placement to the last order's end; the order set of report 02",
+  "machine": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.11.7"
+  },
+  "compiler": {
+    "flags": "-O3 -ffp-contract=off (no -ffast-math), C++17, CMAKE_BUILD_TYPE=Release",
+    "cmake_build_type": "Release",
+    "cmake_cxx_compiler": "/Library/Developer/CommandLineTools/usr/bin/c++",
+    "cmake_osx_sysroot": "/Library/Developer/CommandLineTools/SDKs/MacOSX27.0.sdk"
+  },
+  "rows": [
+    {
+      "ticker": "AAPL",
+      "model": "touch",
+      "orders": 9074,
+      "messages_in_file": 400391,
+      "messages_replayed": 378554,
+      "python_median_s": 0.4332377910031937,
+      "cpp_median_s": 0.012613374987267889,
+      "python_runs_s": [
+        0.4341335000062827,
+        0.429898125003092,
+        0.4331921249977313,
+        0.4332377910031937,
+        0.493601458001649
+      ],
+      "cpp_runs_s": [
+        0.012544083001557738,
+        0.011999458001810126,
+        0.012715000004391186,
+        0.012613374987267889,
+        0.012974666999070905
+      ],
+      "python_msgs_per_s": 873778.8066074074,
+      "cpp_msgs_per_s": 30012110.1911358,
+      "cpp_orders_per_s": 719395.0872910238,
+      "speedup": 34.34749156673054,
+      "identical": true
+    },
+    {
+      "ticker": "AAPL",
+      "model": "fifo",
+      "orders": 9074,
+      "messages_in_file": 400391,
+      "messages_replayed": 378658,
+      "python_median_s": 0.45658212499984074,
+      "cpp_median_s": 0.014272875007009134,
+      "python_runs_s": [
+        0.4612736249982845,
+        0.45658212499984074,
+        0.4473147500102641,
+        0.45905625000887085,
+        0.45621495800151024
+      ],
+      "cpp_runs_s": [
+        0.014273916996899061,
+        0.014119750005193055,
+        0.01447337499121204,
+        0.014272332991822623,
+        0.014272875007009134
+      ],
+      "python_msgs_per_s": 829331.6344789715,
+      "cpp_msgs_per_s": 26529903.737967882,
+      "cpp_orders_per_s": 635751.3812419666,
+      "speedup": 31.98949929678653,
+      "identical": true
+    },
+    {
+      "ticker": "AAPL",
+      "model": "through",
+      "orders": 9074,
+      "messages_in_file": 400391,
+      "messages_replayed": 378658,
+      "python_median_s": 0.4498494170111371,
+      "cpp_median_s": 0.013096667011268437,
+      "python_runs_s": [
+        0.450920249990304,
+        0.4488556660071481,
+        0.4498494170111371,
+        0.44120541599113494,
+        0.4503969580109697
+      ],
+      "cpp_runs_s": [
+        0.012986625006305985,
+        0.013096667011268437,
+        0.013279834005516022,
+        0.012824333010939881,
+        0.013644374994328246
+      ],
+      "python_msgs_per_s": 841743.8940253765,
+      "cpp_msgs_per_s": 28912546.961314723,
+      "cpp_orders_per_s": 692848.0347093414,
+      "speedup": 34.348389298138564,
+      "identical": true
+    },
+    {
+      "ticker": "AMZN",
+      "model": "touch",
+      "orders": 9074,
+      "messages_in_file": 269748,
+      "messages_replayed": 259120,
+      "python_median_s": 0.3228183750034077,
+      "cpp_median_s": 0.009606666004401632,
+      "python_runs_s": [
+        0.323385916010011,
+        0.3228183750034077,
+        0.32210191700141877,
+        0.31352691698702984,
+        0.3232597089954652
+      ],
+      "cpp_runs_s": [
+        0.00982395799655933,
+        0.009606666004401632,
+        0.009462791989790276,
+        0.009703750009066425,
+        0.009552584000630304
+      ],
+      "python_msgs_per_s": 802680.4545969996,
+      "cpp_msgs_per_s": 26972937.320947252,
+      "cpp_orders_per_s": 944552.459286336,
+      "speedup": 33.603580561195436,
+      "identical": true
+    },
+    {
+      "ticker": "AMZN",
+      "model": "fifo",
+      "orders": 9074,
+      "messages_in_file": 269748,
+      "messages_replayed": 259120,
+      "python_median_s": 0.34569954199832864,
+      "cpp_median_s": 0.011910000001080334,
+      "python_runs_s": [
+        0.3427088750031544,
+        0.34569954199832864,
+        0.34458420900045894,
+        0.35157341600279324,
+        0.3463928749988554
+      ],
+      "cpp_runs_s": [
+        0.01156645899754949,
+        0.011910000001080334,
+        0.011757125001167879,
+        0.011940457989112474,
+        0.012191166999400593
+      ],
+      "python_msgs_per_s": 749552.6274120802,
+      "cpp_msgs_per_s": 21756507.134886287,
+      "cpp_orders_per_s": 761880.7723910088,
+      "speedup": 29.025990089586134,
+      "identical": true
+    },
+    {
+      "ticker": "AMZN",
+      "model": "through",
+      "orders": 9074,
+      "messages_in_file": 269748,
+      "messages_replayed": 259722,
+      "python_median_s": 0.3318359580007382,
+      "cpp_median_s": 0.010049457996501587,
+      "python_runs_s": [
+        0.32596120800008066,
+        0.3246041249949485,
+        0.33695716700458433,
+        0.3318359580007382,
+        0.33213850000174716
+      ],
+      "cpp_runs_s": [
+        0.01014900000882335,
+        0.010089458999573253,
+        0.00996395800029859,
+        0.010049457996501587,
+        0.009933542009093799
+      ],
+      "python_msgs_per_s": 782681.9057367564,
+      "cpp_msgs_per_s": 25844378.879976843,
+      "cpp_orders_per_s": 902934.2680131443,
+      "speedup": 33.020284090570534,
+      "identical": true
+    },
+    {
+      "ticker": "GOOG",
+      "model": "touch",
+      "orders": 9074,
+      "messages_in_file": 147916,
+      "messages_replayed": 141631,
+      "python_median_s": 0.19008112499432173,
+      "cpp_median_s": 0.006540791000588797,
+      "python_runs_s": [
+        0.18700825000996701,
+        0.1833986670098966,
+        0.19008112499432173,
+        0.1924356249946868,
+        0.19047662500815932
+      ],
+      "cpp_runs_s": [
+        0.0066205420007463545,
+        0.006379750004271045,
+        0.006509583006845787,
+        0.0066765420051524416,
+        0.006540791000588797
+      ],
+      "python_msgs_per_s": 745108.1742294556,
+      "cpp_msgs_per_s": 21653497.2585503,
+      "cpp_orders_per_s": 1387293.9831257665,
+      "speedup": 29.060877343001906,
+      "identical": true
+    },
+    {
+      "ticker": "GOOG",
+      "model": "fifo",
+      "orders": 9074,
+      "messages_in_file": 147916,
+      "messages_replayed": 141631,
+      "python_median_s": 0.2011777500010794,
+      "cpp_median_s": 0.0078074590128380805,
+      "python_runs_s": [
+        0.20386125000368338,
+        0.20280970899329986,
+        0.2011777500010794,
+        0.20098487500217743,
+        0.19540799999958836
+      ],
+      "cpp_runs_s": [
+        0.007827417008229531,
+        0.00749533400812652,
+        0.007807917005266063,
+        0.0078074590128380805,
+        0.007563542007119395
+      ],
+      "python_msgs_per_s": 704009.2654343738,
+      "cpp_msgs_per_s": 18140473.074160382,
+      "cpp_orders_per_s": 1162221.9194592377,
+      "speedup": 25.7673783071132,
+      "identical": true
+    },
+    {
+      "ticker": "GOOG",
+      "model": "through",
+      "orders": 9074,
+      "messages_in_file": 147916,
+      "messages_replayed": 141631,
+      "python_median_s": 0.1931674999941606,
+      "cpp_median_s": 0.006801750001613982,
+      "python_runs_s": [
+        0.1939541250030743,
+        0.19487179099814966,
+        0.1931674999941606,
+        0.19308812500094064,
+        0.1899895409878809
+      ],
+      "cpp_runs_s": [
+        0.006853792001493275,
+        0.006651207993854769,
+        0.006845374999102205,
+        0.006801750001613982,
+        0.006559125002240762
+      ],
+      "python_msgs_per_s": 733203.0491893381,
+      "cpp_msgs_per_s": 20822729.43968721,
+      "cpp_orders_per_s": 1334068.437953003,
+      "speedup": 28.39967654623061,
+      "identical": true
+    },
+    {
+      "ticker": "INTC",
+      "model": "touch",
+      "orders": 9074,
+      "messages_in_file": 624040,
+      "messages_replayed": 574518,
+      "python_median_s": 0.6241900000022724,
+      "cpp_median_s": 0.013620333993458189,
+      "python_runs_s": [
+        0.6293500000028871,
+        0.6241900000022724,
+        0.6243127080088016,
+        0.6232864579942543,
+        0.6056902919954155
+      ],
+      "cpp_runs_s": [
+        0.013711874998989515,
+        0.013118082992150448,
+        0.01361862498742994,
+        0.013620333993458189,
+        0.013888041998143308
+      ],
+      "python_msgs_per_s": 920421.6664764069,
+      "cpp_msgs_per_s": 42180903.954039566,
+      "cpp_orders_per_s": 666209.8010488009,
+      "speedup": 45.82780424489365,
+      "identical": true
+    },
+    {
+      "ticker": "INTC",
+      "model": "fifo",
+      "orders": 9074,
+      "messages_in_file": 624040,
+      "messages_replayed": 575144,
+      "python_median_s": 0.8242815830017207,
+      "cpp_median_s": 0.03227291700022761,
+      "python_runs_s": [
+        0.8242815830017207,
+        0.8425004579912638,
+        0.8184740830038209,
+        0.8344827079999959,
+        0.7747121669963235
+      ],
+      "cpp_runs_s": [
+        0.031629875011276454,
+        0.032373041001847014,
+        0.03227291700022761,
+        0.03381879201333504,
+        0.032250167001620866
+      ],
+      "python_msgs_per_s": 697751.850654656,
+      "cpp_msgs_per_s": 17821258.61123566,
+      "cpp_orders_per_s": 281164.54425040056,
+      "speedup": 25.54096932099157,
+      "identical": true
+    },
+    {
+      "ticker": "INTC",
+      "model": "through",
+      "orders": 9074,
+      "messages_in_file": 624040,
+      "messages_replayed": 575144,
+      "python_median_s": 0.6443231670127716,
+      "cpp_median_s": 0.013697166999918409,
+      "python_runs_s": [
+        0.6550893329986138,
+        0.634690833001514,
+        0.6331536250072531,
+        0.6443231670127716,
+        0.64894179199473
+      ],
+      "cpp_runs_s": [
+        0.013641791010741144,
+        0.013697166999918409,
+        0.013806750008370727,
+        0.013820332998875529,
+        0.013472457998432219
+      ],
+      "python_msgs_per_s": 892632.811367777,
+      "cpp_msgs_per_s": 41989996.90983004,
+      "cpp_orders_per_s": 662472.7580567611,
+      "speedup": 47.04061555331914,
+      "identical": true
+    },
+    {
+      "ticker": "MSFT",
+      "model": "touch",
+      "orders": 9074,
+      "messages_in_file": 668765,
+      "messages_replayed": 633523,
+      "python_median_s": 0.6672154999978375,
+      "cpp_median_s": 0.014365875002113171,
+      "python_runs_s": [
+        0.6666820829996141,
+        0.6538329169998178,
+        0.6690037920052418,
+        0.6672154999978375,
+        0.6700920409930404
+      ],
+      "cpp_runs_s": [
+        0.015056749994982965,
+        0.014365875002113171,
+        0.01450575000490062,
+        0.014100250002229586,
+        0.014313332998426631
+      ],
+      "python_msgs_per_s": 949502.8218050291,
+      "cpp_msgs_per_s": 44099158.589839526,
+      "cpp_orders_per_s": 631635.7338947502,
+      "speedup": 46.44447344138052,
+      "identical": true
+    },
+    {
+      "ticker": "MSFT",
+      "model": "fifo",
+      "orders": 9074,
+      "messages_in_file": 668765,
+      "messages_replayed": 633769,
+      "python_median_s": 0.7942319580033654,
+      "cpp_median_s": 0.029127875008271076,
+      "python_runs_s": [
+        0.8672279579914175,
+        0.7942319580033654,
+        0.7926979170006234,
+        0.7919277499895543,
+        0.800183500003186
+      ],
+      "cpp_runs_s": [
+        0.029362624991335906,
+        0.029106791989761405,
+        0.02990995800064411,
+        0.029127875008271076,
+        0.02903170899662655
+      ],
+      "python_msgs_per_s": 797964.6167767459,
+      "cpp_msgs_per_s": 21758161.20537583,
+      "cpp_orders_per_s": 311522.8967929645,
+      "speedup": 27.267075190958398,
+      "identical": true
+    },
+    {
+      "ticker": "MSFT",
+      "model": "through",
+      "orders": 9074,
+      "messages_in_file": 668765,
+      "messages_replayed": 633769,
+      "python_median_s": 0.6977959999931045,
+      "cpp_median_s": 0.015945291001116857,
+      "python_runs_s": [
+        0.7054489169968292,
+        0.6977959999931045,
+        0.7324316250014817,
+        0.6897455409925897,
+        0.687077374997898
+      ],
+      "cpp_runs_s": [
+        0.016432624994195066,
+        0.01608470900100656,
+        0.01587320800172165,
+        0.015945291001116857,
+        0.01578391699877102
+      ],
+      "python_msgs_per_s": 908243.9566954565,
+      "cpp_msgs_per_s": 39746468.09240477,
+      "cpp_orders_per_s": 569070.8309659843,
+      "speedup": 43.76188555882917,
+      "identical": true
+    }
+  ],
+  "all_identical": true,
+  "speedup_min": 25.54096932099157,
+  "speedup_max": 47.04061555331914,
+  "speedup_median": 33.020284090570534,
+  "fifo_speedup_median": 27.267075190958398,
+  "profile": {
+    "ticker": "MSFT",
+    "model": "fifo",
+    "total_s": 1.962046833,
+    "function_calls": 4104345,
+    "rows": [
+      {
+        "function": "fills.py:168(simulate_python)",
+        "ncalls": 1,
+        "tottime_s": 1.332740767,
+        "cumtime_s": 1.931574125,
+        "share_of_total": 0.6792604256862812
+      },
+      {
+        "function": "~(<method 'tolist' of 'numpy.ndarray' objects>)",
+        "ncalls": 15,
+        "tottime_s": 0.108580165,
+        "cumtime_s": 0.108580165,
+        "share_of_total": 0.0553402514016341
+      },
+      {
+        "function": "fills.py:295(<listcomp>)",
+        "ncalls": 558302,
+        "tottime_s": 0.069658652,
+        "cumtime_s": 0.069658652,
+        "share_of_total": 0.03550305264298449
+      },
+      {
+        "function": "fills.py:293(<listcomp>)",
+        "ncalls": 558302,
+        "tottime_s": 0.06782255400000001,
+        "cumtime_s": 0.06782255400000001,
+        "share_of_total": 0.03456724521519105
+      },
+      {
+        "function": "fills.py:231(<lambda>)",
+        "ncalls": 9074,
+        "tottime_s": 0.06336045800000001,
+        "cumtime_s": 0.06336045800000001,
+        "share_of_total": 0.03229304058105529
+      },
+      {
+        "function": "fills.py:286(<listcomp>)",
+        "ncalls": 508099,
+        "tottime_s": 0.061325729,
+        "cumtime_s": 0.061325729,
+        "share_of_total": 0.0312559965279891
+      },
+      {
+        "function": "fills.py:288(<listcomp>)",
+        "ncalls": 508099,
+        "tottime_s": 0.059647252000000005,
+        "cumtime_s": 0.059647252000000005,
+        "share_of_total": 0.030400524083718447
+      },
+      {
+        "function": "fills.py:159(_depth)",
+        "ncalls": 9074,
+        "tottime_s": 0.039802837,
+        "cumtime_s": 0.039802837,
+        "share_of_total": 0.0202863847745881
+      },
+      {
+        "function": "~(<method 'get' of 'dict' objects>)",
+        "ncalls": 633768,
+        "tottime_s": 0.031404241,
+        "cumtime_s": 0.031404241,
+        "share_of_total": 0.01600585698149846
+      },
+      {
+        "function": "fills.py:363(simulate)",
+        "ncalls": 1,
+        "tottime_s": 0.030468792,
+        "cumtime_s": 1.9620429170000002,
+        "share_of_total": 0.01552908497775904
+      },
+      {
+        "function": "~(<method 'add' of 'set' objects>)",
+        "ncalls": 557314,
+        "tottime_s": 0.030424458,
+        "cumtime_s": 0.030424458,
+        "share_of_total": 0.015506489186846032
+      },
+      {
+        "function": "~(<method 'discard' of 'set' objects>)",
+        "ncalls": 446756,
+        "tottime_s": 0.021440854000000002,
+        "cumtime_s": 0.021440854000000002,
+        "share_of_total": 0.010927799295808146
+      }
+    ],
+    "text": "4104345 function calls (4104339 primitive calls) in 1.962 seconds\n\n   Ordered by: internal time\n   List reduced from 68 to 12 due to restriction <12>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    1.333    1.333    1.932    1.932 src/markout/lob/fills.py:168(simulate_python)\n       15    0.109    0.007    0.109    0.007 {method 'tolist' of 'numpy.ndarray' objects}\n   558302    0.070    0.000    0.070    0.000 src/markout/lob/fills.py:295(<listcomp>)\n   558302    0.068    0.000    0.068    0.000 src/markout/lob/fills.py:293(<listcomp>)\n     9074    0.063    0.000    0.063    0.000 src/markout/lob/fills.py:231(<lambda>)\n   508099    0.061    0.000    0.061    0.000 src/markout/lob/fills.py:286(<listcomp>)\n   508099    0.060    0.000    0.060    0.000 src/markout/lob/fills.py:288(<listcomp>)\n     9074    0.040    0.000    0.040    0.000 src/markout/lob/fills.py:159(_depth)\n   633768    0.031    0.000    0.031    0.000 {method 'get' of 'dict' objects}\n        1    0.030    0.030    1.962    1.962 src/markout/lob/fills.py:363(simulate)\n   557314    0.030    0.000    0.030    0.000 {method 'add' of 'set' objects}\n   446756    0.021    0.000    0.021    0.000 {method 'discard' of 'set' objects}"
+  }
+}
