@@ -14,6 +14,13 @@ from markout.paths import FIGURES, ROOT
 
 DOCS = ROOT / "docs"
 REPO = "https://github.com/tanaymihani/markout"
+SITE = "https://tanaymihani.github.io/markout/"
+DESCRIPTION = ("Does a short-horizon trading edge survive the spread, realistic fills, competition and selection bias? "
+               "Six studies, mostly on real market data, and a trading desk for SIG's Predictions Cup.")
+PREVIEW = "h_kelly"  # link-preview image (about the 1.91:1 shape preview cards use)
+ICON = ("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+        "<rect width='32' height='32' rx='7' fill='%232a78d6'/><polyline points='6,22 12,15 17,19 26,9' fill='none' "
+        "stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>")
 FIGS = [("b_voi", "Net edge per trade against forecast quality (report 01)", "01_auction"),
         ("d_markouts", "Markouts of filled orders under three fill models (report 02)", "02_microstructure"),
         ("e_arena_competition", "Spread and maker profit as market makers compete (report 03)", "03_arena"),
@@ -126,7 +133,7 @@ def build() -> str:
     DOCS.mkdir(parents=True, exist_ok=True)
     img = DOCS / "img"
     img.mkdir(exist_ok=True)
-    for name, _, _ in FIGS:
+    for name in dict.fromkeys([n for n, _, _ in FIGS] + [PREVIEW]):
         for suffix in ("", "_dark"):
             src = FIGURES / f"{name}{suffix}.png"
             if src.exists():
@@ -140,8 +147,11 @@ def build() -> str:
                    for n, alt, rep in FIGS if (FIGURES / f"{n}.png").exists())
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Markout</title><meta name="description" content="Does a short-horizon trading edge survive costs, fills and competition?">
-<link rel="stylesheet" href="site.css"></head>
+<title>Markout</title><meta name="description" content="{html.escape(DESCRIPTION)}">
+<meta property="og:type" content="website"><meta property="og:title" content="Markout">
+<meta property="og:description" content="{html.escape(DESCRIPTION)}"><meta property="og:url" content="{SITE}">
+<meta property="og:image" content="{SITE}img/{PREVIEW}.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="{ICON}"><link rel="stylesheet" href="site.css"></head>
 <body><main>
 <h1>Markout</h1>
 <p class="lede">Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias
