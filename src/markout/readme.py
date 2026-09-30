@@ -139,6 +139,8 @@ def build() -> str:
         "Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias "
         "that comes from trying many strategies? This repo is my attempt to find out, step by step, on real "
         "market data where I could get it.", "",
+        "**Site:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has the main findings and "
+        "a playable market-making game.", "",
         "The name comes from the *markout*, the price move right after a trade, which market makers use to check "
         "whether they got picked off. The same trap shows up at every stage here: the best of many backtests "
         "looks better than it is, and so do the order that happened to get filled and the bet where you disagree "

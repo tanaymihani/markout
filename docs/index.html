@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Markout</title><meta name="description" content="Does a short-horizon trading edge survive costs, fills and competition?">
+<link rel="stylesheet" href="site.css"></head>
+<body><main>
+<h1>Markout</h1>
+<p class="lede">Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias
+that comes from trying many strategies? These are the results of trying to find out, mostly on real market data.</p>
+<div class="links"><a href="https://github.com/tanaymihani/markout">Code on GitHub</a><a href="https://github.com/tanaymihani/markout#results">All results</a>
+<a href="demo/desk.html">Predictions Cup desk (snapshot)</a><a href="#play">Play the market-making game</a></div>
+
+<h2>What came out of it</h2>
+<div class="grid"><div class="card"><h3><a href="https://github.com/tanaymihani/markout/blob/main/reports/01_auction.md">Closing auction</a></h3><p>LightGBM beats a per-stock baseline on every walk-forward day. Traded net of costs it earns an annualized Sharpe of <span class=num>4.8</span>, and <span class=num>4.7</span> on a holdout scored once. At twice the assumed costs it drops to <span class=num>-0.2</span>: the edge is about one spread wide.</p></div><div class="card"><h3><a href="https://github.com/tanaymihani/markout/blob/main/reports/02_microstructure.md">Realistic fills</a></h3><p>Resting orders in INTC look profitable if any trade at your price fills you (<span class=num>+0.33</span> bps ten seconds later). Tracking queue position order by order turns that into <span class=num>-1.64</span> bps: the fills you actually get are the ones the market was about to run over.</p></div><div class="card"><h3><a href="https://github.com/tanaymihani/markout/blob/main/reports/03_arena.md">Competition</a></h3><p>A lone market maker quotes a <span class=num>124</span>-tick spread; one identical rival brings it to <span class=num>13.8</span>, next to the zero-profit level of <span class=num>13.0</span>. Competition removes the rent, not the cost of informed traders.</p></div><div class="card"><h3><a href="https://github.com/tanaymihani/markout/blob/main/reports/06_vol_premium.md">Volatility premium</a></h3><p>VIX sat above the volatility that followed <span class=num>86%</span> of the time since 1990. But the mean/variance Kelly formula asks for <span class=num>3.0x</span> the growth-optimal size, and every Kelly fraction fitted on 1993–2007 was wiped out after 2008.</p></div><div class="card"><h3><a href="https://github.com/tanaymihani/markout/blob/main/reports/02_microstructure.md">C++ core</a></h3><p>The order-book replay was ported to C++17: <span class=num>26–47x</span> faster than Python, with identical fills on every test.</p></div></div>
+
+<h2>A few figures</h2>
+<figure><a href="https://github.com/tanaymihani/markout/blob/main/reports/01_auction.md"><picture><source media="(prefers-color-scheme: dark)" srcset="img/b_voi_dark.png"><img src="img/b_voi.png" alt="Net edge per trade against forecast quality (report 01)" loading="lazy"></picture></a><figcaption>Net edge per trade against forecast quality (report 01)</figcaption></figure><figure><a href="https://github.com/tanaymihani/markout/blob/main/reports/02_microstructure.md"><picture><source media="(prefers-color-scheme: dark)" srcset="img/d_markouts_dark.png"><img src="img/d_markouts.png" alt="Markouts of filled orders under three fill models (report 02)" loading="lazy"></picture></a><figcaption>Markouts of filled orders under three fill models (report 02)</figcaption></figure><figure><a href="https://github.com/tanaymihani/markout/blob/main/reports/03_arena.md"><picture><source media="(prefers-color-scheme: dark)" srcset="img/e_arena_competition_dark.png"><img src="img/e_arena_competition.png" alt="Spread and maker profit as market makers compete (report 03)" loading="lazy"></picture></a><figcaption>Spread and maker profit as market makers compete (report 03)</figcaption></figure><figure><a href="https://github.com/tanaymihani/markout/blob/main/reports/06_vol_premium.md"><picture><source media="(prefers-color-scheme: dark)" srcset="img/h_kelly_dark.png"><img src="img/h_kelly.png" alt="Kelly sizing chosen before 2008, lived through it (report 06)" loading="lazy"></picture></a><figcaption>Kelly sizing chosen before 2008, lived through it (report 06)</figcaption></figure>
+
+<h2 id="play">Play: make a market on five hidden cards</h2>
+<p>Five cards are dealt face down from a standard deck (A = 1 to K = 13). Quote a bid and an ask on their sum, at most
+four apart. Three bots trade against you each round: some know one of the hidden cards and only trade when your quote
+is wrong, the rest trade at random. One card is turned up after every round, and every trade settles at the final sum.
+After each round the game shows the best estimate given everything you have seen, and at the end it replays the same
+cards and bots with two scripted quoters so you can compare.</p>
+
+<div class="game" id="game">
+  <div class="controls"><b id="round"></b><span class="muted" id="known"></span></div>
+  <div class="cards" id="cards"></div>
+  <div class="controls">
+    <label>Bid <input type="number" id="bid" step="0.5"></label>
+    <label>Ask <input type="number" id="ask" step="0.5"></label>
+    <button class="primary" id="quote">Quote</button>
+    <button id="new">New game</button>
+  </div>
+  <div class="err" id="err"></div>
+  <div id="result"></div>
+  <div class="log" id="log"></div>
+</div>
+
+
+<h2>The Predictions Cup desk</h2>
+<p>SIG's student prediction contest allows bots. The desk pools free reference prices (Polymarket, Kalshi,
+option-implied probabilities, earnings history) with the contest's own price, proposes trades sized by Kelly and by
+what the order book can fill, and never trades without a click. <a href="demo/desk.html">Open a read-only snapshot</a>
+or read <a href="https://github.com/tanaymihani/markout/blob/main/docs/demo/DEMO.md">the walkthrough</a>.</p>
+<figure><img src="demo/desk.png" alt="The approval desk" loading="lazy"><figcaption>The approval desk on a paper
+contest</figcaption></figure>
+
+<footer>Markout · <a href="https://github.com/tanaymihani/markout">github.com/tanaymihani/markout</a></footer>
+</main><script src="game.js"></script></body></html>
