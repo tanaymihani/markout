@@ -52,7 +52,9 @@ a{color:var(--accent)}details summary{cursor:pointer;color:var(--ink2);font-size
 <button id="modeBtn" title="Switch sizing mode">Switch mode</button>
 <button id="refreshBtn">Refresh now</button>
 <button id="killBtn" class="danger"></button></div></header>
-<main><section><h2>Proposals awaiting your decision</h2><div id="pending"></div></section>
+<main><section><h2>Proposals awaiting your decision</h2><div id="pending"></div>
+<h2 style="margin-top:22px">All contest markets</h2><div class="card" id="markets"><span class="muted">loading…</span></div>
+<div id="searchbox"></div></section>
 <aside><div class="card"><h2>Account</h2><div class="row" id="acct"></div><svg id="spark" width="100%" height="44" viewBox="0 0 300 44" preserveAspectRatio="none" aria-label="Equity over time"></svg></div>
 <div class="card"><h2>Positions</h2><div id="positions"></div></div>
 <div class="card"><h2>Recent decisions</h2><div id="recent"></div></div>
@@ -97,12 +99,21 @@ $('#acct').innerHTML=`<div class="stat"><span>equity</span><b>${fmt(a.equity,0)}
 $('#pending').innerHTML=s.pending.length?s.pending.map(proposal).join(''):'<div class="card muted">No proposals right now. The desk refreshes on its own.</div>';
 $('#positions').innerHTML=s.positions.length?`<table><tr><th>contract</th><th>qty</th><th>avg</th><th>mid</th><th>PnL</th></tr>${s.positions.map(p=>`<tr><td>${esc(p.market)} · ${esc(p.contract)}</td><td>${fmt(p.qty,0)}</td><td>${fmt(p.avg_price)}</td><td>${fmt(p.mid)}</td><td class="${p.pnl>=0?'pos':'neg'}">${fmt(p.pnl,0)}</td></tr>`).join('')}</table>`:'<div class="muted">None</div>';
 $('#recent').innerHTML=s.recent.length?`<table><tr><th>when</th><th>market</th><th>decision</th><th>stake</th></tr>${s.recent.slice(0,12).map(p=>`<tr><td>${esc((p.decided||'').slice(5,16).replace('T',' '))}</td><td>${esc(p.market_title)}</td><td>${esc(p.status)}</td><td>${fmt(p.decided_stake,0)}</td></tr>`).join('')}</table>`:'<div class="muted">None yet</div>'}
+async function markets(){let ms;try{ms=await (await fetch('/api/markets')).json()}catch(e){return}
+$('#markets').innerHTML=ms.length?`<table><tr><th>market</th><th>contract</th><th>mapped</th><th></th></tr>${ms.map(m=>`<tr><td>${esc(m.title)}</td><td>${esc(m.contract)}</td>
+<td>${m.confirmed?'✓ '+m.confirmed:(m.suggested?m.suggested+' suggested':'<span class="muted">none</span>')}</td><td><button data-act="find" data-cid="${esc(m.contract_id)}" data-q="${esc(m.title)}">Find reference</button></td></tr>`).join('')}</table>`:'<span class="muted">No open markets</span>'}
+async function find(cid,q){const query=prompt('Search the reference markets for:',q);if(query===null)return;
+const r=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json','X-Markout-Token':TOKEN},body:JSON.stringify({contract_id:cid,query})});const j=await r.json();
+$('#searchbox').innerHTML=`<div class="card"><h2>References for “${esc(query)}”</h2><table><tr><th>source</th><th>question → outcome</th><th>p</th><th></th></tr>${(j.results||[]).map(x=>`<tr><td>${esc(x.source)}${safeUrl(x.url)?` · <a href="${safeUrl(x.url)}" target="_blank" rel="noopener noreferrer">open</a>`:''}</td><td>${esc(x.question)} → <b>${esc(x.outcome)}</b>${x.invert?' (inverted)':''}${x.warning?`<div class="sub">⚠ ${esc(x.warning)}</div>`:''}</td><td>${fmt(x.p)}</td>
+<td><button data-act="use" data-cid="${esc(cid)}" data-src="${esc(x.source)}" data-qid="${esc(x.qid)}" data-out="${esc(x.outcome)}" data-inv="${x.invert?1:0}">Use</button></td></tr>`).join('')}</table></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled)return;const d=b.dataset;
+if(d.act==='find'){find(d.cid,d.q);return}
+if(d.act==='use'){post('/api/mapping/add',{contract_id:d.cid,source:d.src,qid:d.qid,outcome:d.out,invert:d.inv==='1'});$('#searchbox').innerHTML='';markets();return}
 if(d.act==='map')post('/api/mapping',{contract_id:d.cid,key:d.key,status:d.status});
 else if(d.act==='approve'){const inp=[...document.querySelectorAll('input[data-stake]')].find(i=>i.dataset.stake===d.id);post('/api/approve',{id:d.id,stake:Number(inp?inp.value:0)})}
 else if(d.act==='forecast')post('/api/approve',{id:d.id,stake:0});
 else if(d.act==='skip')post('/api/skip',{id:d.id,note:prompt('Why skip? (optional)')||''})});
-load();setInterval(load,5000);
+load();markets();setInterval(load,5000);setInterval(markets,30000);
 </script></body></html>"""
 
 
@@ -153,6 +164,8 @@ class Desk:
                     return self._send(200, PAGE.replace("__TOKEN__", desk.token).encode(), "text/html; charset=utf-8")
                 if self.path == "/api/state":
                     return self._json(desk.bot.state())
+                if self.path == "/api/markets":
+                    return self._json(desk.bot.markets_view())
                 return self._json({"ok": False, "message": "not found"}, HTTPStatus.NOT_FOUND)
 
             def do_POST(self):
@@ -171,6 +184,9 @@ class Desk:
                     "/api/mode": lambda: b.set_mode(body["mode"]),
                     "/api/refresh": lambda: {"ok": True, "message": f"refreshed: {b.refresh()}"},
                     "/api/kill": lambda: desk.kill(bool(body.get("on"))),
+                    "/api/search": lambda: b.search(body["contract_id"], body.get("query", "")),
+                    "/api/mapping/add": lambda: b.add_manual_mapping(body["contract_id"], body["source"], body["qid"],
+                                                                    body["outcome"], bool(body.get("invert"))),
                 }
                 if self.path not in routes:
                     return self._json({"ok": False, "message": "not found"}, HTTPStatus.NOT_FOUND)

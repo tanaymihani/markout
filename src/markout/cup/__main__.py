@@ -5,6 +5,7 @@
     python -m markout.cup serve --live                   # the real contest (needs the Oct 1 adapter)
     python -m markout.cup refs "senate 2026"             # search the free reference sources
     python -m markout.cup demo                           # offline scripted demo -> docs/demo/
+    python -m markout.cup dryrun                         # matcher on live markets -> docs/demo/DRYRUN.md
 Open http://127.0.0.1:8765 to review and approve proposals. Nothing trades without approval.
 """
 
@@ -80,6 +81,12 @@ def cmd_refs(a) -> int:
     return 0
 
 
+def cmd_dryrun(a) -> int:
+    from markout.cup.dryrun import main as dry
+
+    return dry()
+
+
 def cmd_demo(a) -> int:
     from markout.cup.demo import run
 
@@ -112,6 +119,7 @@ def main(argv=None) -> int:
     r.add_argument("query", nargs="+")
     r.add_argument("--limit", type=int, default=20)
     r.set_defaults(fn=cmd_refs)
+    sub.add_parser("dryrun", help="matcher dry run on live markets -> docs/demo/DRYRUN.md").set_defaults(fn=cmd_dryrun)
     d = sub.add_parser("demo")
     d.add_argument("--no-screenshot", action="store_true")
     d.set_defaults(fn=cmd_demo)

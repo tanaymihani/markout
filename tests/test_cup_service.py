@@ -181,3 +181,27 @@ def test_kelly_is_a_target_exposure_and_decided_contracts_cool_down(bot):
     assert stake_held < stake_fresh  # what is already held counts toward the target
     assert stake_held == pytest.approx(max(min(target, 0.25 * bot.api.account().equity)
                                            - held[p["contract_id"]] * b.best_ask, 0.0), abs=1e-6) or stake_held == 0
+
+
+def test_manual_mapping_brings_an_unmatched_contract_into_play(bot):
+    from markout.cup.sources.base import ExternalQuote
+
+    bot.refs.set_pool([ExternalQuote("polymarket", "pm-77", "Comets vs Hawks: over 2.5 goals", "Yes", 0.70,
+                                     bid=0.69, ask=0.71, liquidity=5e5, volume_24h=1e5)])
+    bot.refresh()
+    assert all(p["contract_id"] != "m8-yes" for p in bot.store.proposals("pending"))  # no reference yet
+    hits = bot.search("m8-yes", "comets goals")["results"]
+    assert hits and hits[0]["qid"] == "pm-77"
+    assert bot.add_manual_mapping("m8-yes", "polymarket", "pm-77", "Yes", False)["ok"]
+    bot.refresh()
+    p = next(x for x in bot.store.proposals("pending") if x["contract_id"] == "m8-yes")
+    assert p["mapping_confirmed"] and p["p"] > p["ask"]
+    assert bot.add_manual_mapping("m8-yes", "polymarket", "nope", "Yes", False)["ok"] is False
+
+
+def test_desk_markets_and_search_endpoints(desk):
+    d, port = desk
+    code, ms = call(port, "/api/markets")
+    assert code == 200 and any(m["contract_id"] == "m8-yes" for m in ms)
+    code, res = call(port, "/api/search", {"contract_id": "m8-yes", "query": "goals"}, token=d.token)
+    assert code == 200 and res["ok"]

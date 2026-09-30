@@ -4,11 +4,14 @@ Matching is the step most likely to go silently wrong (a "Senate" market matched
 "House" market, "over 4.5" to "over 5.5"), so the matcher only *suggests*: every mapping
 must be confirmed by the user before a proposal that uses it can be approved.
 
-Score = token-set Jaccard on normalized words (with aliases such as GOP -> republican)
-plus character-trigram cosine, then penalties when the numbers in the contest question
-(thresholds, years) are missing from the reference, when the named outcome doesn't
-appear, or when resolution dates are far apart. A "No" contract maps to a "Yes" quote
-with the probability inverted.
+Hard filters first (a dry run on live markets showed soft penalties are not enough: the
+top suggestions matched the other team, another stat line or a different threshold):
+every named entity of the contest question must appear in the reference, the threshold
+numbers must be identical, a measure qualifier present on only one side ("passing",
+"1st half", "innings") rejects, and so do more than a few differing words. Survivors are
+ranked by token-set Jaccard (aliases such as GOP -> republican) plus character-trigram
+cosine, with a bonus or penalty for resolution dates. A "No" contract maps to a "Yes"
+quote with the probability inverted.
 
 Price-threshold questions ("Will AAPL close above $250 on Oct 31?") are parsed instead,
 so the options-implied probability can be used.
@@ -60,6 +63,117 @@ def numbers(s: str) -> set[str]:
     return {n.rstrip(".").replace(",", "") for n in re.findall(r"\d[\d,]*\.?\d*", s)}
 
 
+# Words that change *what* is being measured: a mismatch on any of them means a different
+# market even when everything else agrees ("1+ touchdowns" vs "1+ passing touchdowns").
+QUALIFIERS = set("""passing rushing receiving hit run rbi rbis home homer stolen base strikeout assist rebound point
+three pointer 1st 2nd first second third half quarter inning period set map game goal corner card yard touchdown
+reception sack save shot ace spread total moneyline margin exact popular electoral turnout primary runoff
+increase decrease hike cut raise lower change pause hold up down above below higher highest lowest over under
+more fewer less reach dip drop rise fall before after low high""".split())
+
+MONTHS = {m: i for i, names in enumerate([("jan", "january"), ("feb", "february"), ("mar", "march"), ("apr", "april"),
+                                         ("may",), ("jun", "june"), ("jul", "july"), ("aug", "august"),
+                                         ("sep", "sept", "september"), ("oct", "october"), ("nov", "november"),
+                                         ("dec", "december")], start=1) for m in names}
+DATE = re.compile(r"\b(" + "|".join(sorted(MONTHS, key=len, reverse=True)) + r")\b\.?(?:\s+(\d{1,2})(?:st|nd|rd|th)?\b)?",
+                  re.I)
+
+
+def years(s: str) -> set[int]:
+    return {int(y) for y in re.findall(r"(?<!\d)(?:19|20)\d\d(?!\d)", s)}
+
+
+def dates(s: str) -> set[tuple[int, int | None]]:
+    """(month, day) mentions: 'October 31' -> (10, 31); 'in September' -> (9, None).
+    Whole words only ("decrease" is not December); lowercase "may" without a day is the verb."""
+    out = set()
+    for m in DATE.finditer(s):
+        word, day = m.group(1), m.group(2)
+        if word.lower() == "may" and not day and not word[0].isupper():
+            continue
+        out.add((MONTHS[word.lower()], int(day) if day else None))
+    return out
+
+NUMBER = re.compile(r"(?<![\w.])\$?\d[\d,]*(?:\.\d+)?")
+
+
+def thresholds(s: str) -> set[str]:
+    """Every number that can change what a market asks (4.5, $250, 24°C, 1+, 25 bps), i.e.
+    all numbers except years and the day in a date ("October 31")."""
+    days = {m.group(2) for m in DATE.finditer(s) if m.group(2)}
+    out = set()
+    for m in NUMBER.finditer(s):
+        core = m.group(0).lstrip("$").replace(",", "")
+        if re.fullmatch(r"(19|20)\d\d", core) or core in days:
+            continue
+        out.add(core.rstrip("0").rstrip(".") if "." in core else core)
+    return out
+
+
+CALENDAR = set("monday tuesday wednesday thursday friday saturday sunday january february march april may june "
+               "july august september october november december jan feb mar apr jun jul aug sep sept oct nov dec "
+               "today tomorrow tonight week weekend".split())
+
+
+def entities(s: str) -> set[str]:
+    """Capitalized names and tickers (teams, people, parties, companies, Q3), normalized like
+    tokens. Weekdays and months are capitalized but are dates, not entities."""
+    ents = set()
+    for sentence in re.split(r"[?.!:;]\s+|\s+[-–]\s+", s):
+        ents |= _sentence_entities(sentence)
+    return ents
+
+
+OPENERS = STOP | set("over under above below more less new total exact first any how who what why where "
+                     "if can could should would has have had".split())
+
+
+def _sentence_entities(s: str) -> set[str]:
+    """A capitalized first word is a name ("Atlanta wins ...") unless it is a common opener
+    ("Will ...", "Over 4.5 goals ...", "New album ...")."""
+    words = re.findall(r"[A-Za-z][A-Za-z0-9.'&\-]*", s)
+    ents = set()
+    for i, w in enumerate(words):
+        opener = i == 0 and w.lower() in OPENERS
+        if (w[0].isupper() and not opener) or (w.isupper() and len(w) >= 2 and not opener):
+            t = norm_tokens(w)
+            if t and t[0] not in STOP and t[0] not in {"yes", "no"} and t[0] not in CALENDAR:
+                ents.add(t[0])
+    return ents
+
+
+def hard_reject(a: str, b: str) -> str | None:
+    """Reason the two texts cannot be the same market, or None."""
+    ea = entities(a)
+    if not ea:
+        return "no named entity in the contest question: too ambiguous to match"
+    tb = set(norm_tokens(b))
+    missing = ea - tb
+    if len(missing) > (1 if len(ea) >= 4 else 0):  # long titles carry descriptive capitals ("Midterm")
+        return f"entities {sorted(missing)} not in the reference"
+    extra = entities(b) - set(norm_tokens(a))
+    if len(extra) >= 2:
+        return f"the reference also names {sorted(extra)}"
+    na, nb = thresholds(a), thresholds(b)
+    if na != nb:
+        return f"thresholds differ ({sorted(na)} vs {sorted(nb)})"
+    da, db = dates(a), dates(b)
+    if (da or db) and da != db:
+        return f"dates differ ({sorted(da, key=str)} vs {sorted(db, key=str)})"
+    ya, yb = years(a), years(b)
+    if ya and yb and not ya & yb:
+        return f"years differ ({sorted(ya)} vs {sorted(yb)})"
+    ta = set(norm_tokens(a)) - numbers(a)
+    tb = tb - numbers(b)
+    diff = ta ^ tb
+    q = diff & QUALIFIERS
+    if q:
+        return f"different measure ({', '.join(sorted(q))})"
+    if len(diff - ea) > 4:
+        return "the questions differ in too many words"
+    return None
+
+
 def trigram_cosine(a: str, b: str) -> float:
     def grams(x):
         x = f"  {x.lower()} "
@@ -97,26 +211,27 @@ def score(market: Market, contract: Contract, q: ExternalQuote) -> Candidate:
     binary = cname in YES_NO
     a = market.title if binary else f"{market.title} {contract.name}"
     b = q.question if q.outcome.lower() in YES_NO else f"{q.question} {q.outcome}"
+    reject = hard_reject(a, b)
+    if reject:
+        return Candidate(q, -1.0, False, f"rejected: {reject}")
     s = text_similarity(a, b)
     why = [f"text {s:.2f}"]
-    need = numbers(a) - {str(y) for y in range(2020, 2031)}
-    missing = need - numbers(b)
-    if need and missing:
-        s -= 0.3
-        why.append(f"numbers {sorted(missing)} missing")
     if not binary and q.outcome.lower() not in YES_NO:
         if not set(norm_tokens(contract.name)) & set(norm_tokens(q.outcome)):
             s -= 0.3
             why.append("outcome differs")
     if market.resolves_at and q.end:
-        gap = abs((market.resolves_at - q.end).total_seconds()) / 86400
-        if gap <= 3:
+        lead = (market.resolves_at - q.end).total_seconds() / 86400  # > 0: the reference ends first
+        if lead > 10:  # it closes well before the contest resolves: an earlier event
+            return Candidate(q, -1.0, False, f"rejected: the reference ends {lead:.0f} days earlier")
+        if abs(lead) <= 3:
             s += 0.1
             why.append("dates agree")
-        elif gap > 21:
-            s -= 0.2
-            why.append(f"dates {gap:.0f} days apart")
-    invert = binary and cname == "no" and q.outcome.lower() == "yes"
+        elif lead < -10:  # venues often settle weeks after the event (e.g. after certification)
+            s -= 0.1
+            why.append(f"the reference settles {-lead:.0f} days later")
+    # a binary contract maps onto a Yes/No reference with the probability flipped when the sides differ
+    invert = binary and q.outcome.lower() in YES_NO and cname != q.outcome.lower()
     return Candidate(q, s, invert, ", ".join(why))
 
 

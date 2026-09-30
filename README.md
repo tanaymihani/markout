@@ -27,6 +27,8 @@ A trading desk for SIG's student prediction-market contest (Oct 1 – Nov 4 2026
 
 [Demo walkthrough](docs/demo/DEMO.md): the whole loop on fictional markets, offline (`make demo`). Run the desk yourself with `make desk` and open http://127.0.0.1:8765.
 
+[Matcher dry run on live markets](docs/demo/DRYRUN.md): stand-in contests built from live Polymarket and Kalshi questions, with every cross-venue suggestion listed (`python -m markout.cup dryrun`). The first version's top suggestions were mostly look-alikes (the other team, another stat line, a different threshold); those cases are now regression tests.
+
 ## Results
 
 Every number below is lifted from a generated report; none is typed by hand.
@@ -91,7 +93,7 @@ The order-book replay and FIFO queue simulator is sequential and stateful, the o
 
 ## What keeps it honest
 
-- **327 tests** (`make test`), including a perturbation test that corrupts the future and requires every feature of the past to stay identical, with a negative control that proves the test catches a leak.
+- **352 tests** (`make test`), including a perturbation test that corrupts the future and requires every feature of the past to stay identical, with a negative control that proves the test catches a leak.
 - **Walk-forward by day** with a calibration block, never a random split. Purging is unnecessary because labels never cross a day; the reasoning is in `src/markout/auction/cv.py`.
 - **Every trial is logged** (`data/registry/trials.jsonl`, with git SHA and config hash), losers included, so the Deflated Sharpe and PBO see how much searching was done.
 - **The holdout is guarded**: `HoldoutGuard` refuses a second look and audits forced ones (holdout accessed 1 time).

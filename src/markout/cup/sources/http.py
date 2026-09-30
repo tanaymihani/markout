@@ -27,12 +27,12 @@ class Http:
     def _key(self, url: str) -> Path:
         return self.cache_dir / f"{hashlib.sha256(url.encode()).hexdigest()[:24]}.json"
 
-    def get_json(self, url: str, params: dict | None = None, ttl: float | None = None) -> Any:
+    def get_json(self, url: str, params: dict | None = None, ttl: float | None = None, cache: bool = True) -> Any:
         if params:
             url = f"{url}?{urllib.parse.urlencode(params)}"
         ttl = self.ttl if ttl is None else ttl
         path = self._key(url)
-        if path.exists() and time.time() - path.stat().st_mtime < ttl:
+        if cache and path.exists() and time.time() - path.stat().st_mtime < ttl:
             return json.loads(path.read_text())["body"]
         host = urllib.parse.urlparse(url).netloc
         with self.lock:
@@ -43,9 +43,19 @@ class Http:
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=self.timeout) as r:  # noqa: S310 (fixed https hosts)
             body = json.loads(r.read().decode())
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({"url": url, "fetched": time.time(), "body": body}))
+        if cache:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({"url": url, "fetched": time.time(), "body": body}))
         return body
+
+    def prune(self, max_age: float = 86400.0) -> int:
+        """Delete cache files older than `max_age` seconds (the disk is small)."""
+        n = 0
+        for f in self.cache_dir.glob("*.json"):
+            if time.time() - f.stat().st_mtime > max_age:
+                f.unlink()
+                n += 1
+        return n
 
 
 DEFAULT = Http()

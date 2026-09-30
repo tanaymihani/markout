@@ -31,9 +31,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Iterator
 
+import logging
+
 import matplotlib
 
 matplotlib.use("Agg")
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)  # "semibold" falls back to bold quietly
 
 import matplotlib.pyplot as plt  # noqa: E402
 from cycler import cycler  # noqa: E402

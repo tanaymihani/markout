@@ -152,6 +152,13 @@ def section_desk() -> list[str]:
     if demo.exists():
         out += ["[Demo walkthrough](docs/demo/DEMO.md): the whole loop on fictional markets, offline "
                 "(`make demo`). Run the desk yourself with `make desk` and open http://127.0.0.1:8765.", ""]
+    dry = ROOT / "docs" / "demo" / "DRYRUN.md"
+    if dry.exists():
+        out += ["[Matcher dry run on live markets](docs/demo/DRYRUN.md): stand-in contests built from live "
+                "Polymarket and Kalshi questions, with every cross-venue suggestion listed "
+                "(`python -m markout.cup dryrun`). The first version's top suggestions were mostly look-alikes "
+                "(the other team, another stat line, a different threshold); those cases are now regression tests.",
+                ""]
     return out
 
 

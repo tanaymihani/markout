@@ -15,7 +15,8 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-from markout.cup import engine, risk
+from markout.cup import engine, match, risk
+from markout.cup.match import Candidate
 from markout.cup import proposals as P
 from markout.cup.refs import References
 from markout.cup.store import Store
@@ -67,6 +68,12 @@ class Bot:
                                                {"score": cand.score, "why": cand.why, "question": cand.quote.question,
                                                 "outcome": cand.quote.outcome, "source": cand.quote.source,
                                                 "p": cand.p, "url": cand.quote.url, "invert": cand.invert})
+                known = {x.key for x in cands}
+                for row in self.store.mappings(cid):  # manual mappings chosen by the user in the desk
+                    if row.get("manual") and row["status"] == "confirmed" and row["key"] not in known:
+                        q = self.refs.lookup(row["source"], row["qid"], row["outcome"])
+                        if q is not None:
+                            cands.append(Candidate(q, 1.0, bool(row.get("invert")), "manual mapping"))
                 usable = [x for x in cands if self.store.mapping_status(cid, x.key) != "rejected"]
                 confirmed = [x for x in usable if self.store.mapping_status(cid, x.key) == "confirmed"]
                 refs = confirmed or usable[:1]  # propose from the best suggestion, but it must be confirmed to trade
@@ -194,6 +201,44 @@ class Bot:
                     p.update(status="expired", decided=self.now().isoformat(timespec="seconds"))
                     self.store.put_proposal(p)
             return {"ok": True, "message": f"mapping {status}"}
+
+    def markets_view(self) -> list[dict]:
+        """Every contest contract with its mapping status (for manual mapping in the desk)."""
+        with self.lock:
+            out = []
+            for m in self.api.markets():
+                for c in m.contracts:
+                    rows = self.store.mappings(c.id)
+                    out.append({"market_id": m.id, "title": m.title, "category": m.category, "contract_id": c.id,
+                                "contract": c.name, "confirmed": sum(r["status"] == "confirmed" for r in rows),
+                                "suggested": sum(r["status"] == "suggested" for r in rows)})
+            return out
+
+    def search(self, contract_id: str, query: str) -> dict:
+        with self.lock:
+            _, by_contract = self._market_map()
+            if contract_id not in by_contract:
+                return {"ok": False, "message": "unknown contract"}
+            m, c = by_contract[contract_id]
+            text = m.title if c.name.lower() in match.YES_NO else f"{m.title} {c.name}"
+            res = []
+            for q in self.refs.search(query or text):
+                cand = match.score(m, c, q)
+                res.append({"source": q.source, "qid": q.id, "question": q.question, "outcome": q.outcome,
+                            "p": q.p, "url": q.url, "invert": cand.invert,
+                            "warning": cand.why if cand.score < 0 else ""})
+            return {"ok": True, "message": f"{len(res)} results", "results": res}
+
+    def add_manual_mapping(self, contract_id: str, source: str, qid: str, outcome: str, invert: bool) -> dict:
+        q = self.refs.lookup(source, qid, outcome)
+        if q is None:
+            return {"ok": False, "message": "reference not found in the current pool"}
+        key = f"{source}:{qid}:{outcome}:{int(bool(invert))}"
+        self.store.put_mapping(contract_id, key, "confirmed", {"manual": True, "source": source, "qid": qid,
+                                                               "outcome": outcome, "invert": bool(invert),
+                                                               "question": q.question, "p": q.p, "url": q.url,
+                                                               "score": 1.0, "why": "manual mapping"})
+        return {"ok": True, "message": "mapping confirmed; it is used from the next refresh"}
 
     def set_mode(self, mode: str) -> dict:
         if mode not in ("prize", "steady"):
