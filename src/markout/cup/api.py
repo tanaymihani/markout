@@ -78,7 +78,7 @@ class Limited:
 class LiveAPI:
     """Placeholder for the real Predictions Cup API, written once the docs are available.
 
-    Checklist for the Oct 1 integration (PROGRESS.md task 20):
+    Checklist for connecting the real contest:
     1. authentication from data/cup/credentials.json (never logged, never committed);
     2. map the platform's markets/outcomes/prices onto Market/Contract/Book (prices -> [0, 1]);
     3. place/cancel orders, positions, fills, account (cash, rank if exposed);

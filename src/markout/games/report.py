@@ -808,7 +808,7 @@ def text_summary(res: dict) -> list[str]:
     return [
         "# Arena: game theory under simulated competition",
         "",
-        "**Competition prices adverse selection; it does not remove it.** "
+        "In short: competition takes away the market maker's rents, but not the cost of adverse selection. "
         f"In a Glosten–Milgrom market with elastic noise demand, a lone Bayesian undercutter "
         f"quotes a time-average spread of {_t(k1['quoted_spread']['mean'], tick)} ticks and earns "
         f"{num(k1['maker_pnl']['mean'])} dollars per episode. One identical rival brings the spread "

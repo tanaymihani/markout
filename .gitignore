@@ -18,7 +18,7 @@ dist/
 # compiled extension (built by `make cpp`)
 *.so
 
-# private application notes
+# local notes
 PLAN.md
 
 # development runs on synthetic data (python -m markout.auction.report --synthetic)
@@ -26,6 +26,6 @@ reports/dev_*
 reports/figures/dev_*
 reports/results/dev_*
 
-# autonomous-run watcher (session tooling, not part of the project)
+# local scratch
 .watch/
 PROGRESS.md

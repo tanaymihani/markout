@@ -3540,7 +3540,7 @@
       "noise_participation_zero_profit": 0.801956281915,
       "noise_participation_monopoly": 0.375
     },
-    "sim_seconds": 5.57769227028,
+    "sim_seconds": 5.51503062248,
     "monopoly": {
       "gm": {
         "agent": {
@@ -12341,7 +12341,7 @@
   },
   "kuhn": {
     "iterations": 100000,
-    "seconds": 8.48182201385,
+    "seconds": 8.51789116859,
     "value": -0.0555547010982,
     "exploitability": 0.00135243936059,
     "history": [
@@ -13215,6 +13215,6 @@
   "meta": {
     "seed": 0,
     "n_seeds": 4000,
-    "compute_seconds": 67.3362710476
+    "compute_seconds": 67.7377820015
   }
 }

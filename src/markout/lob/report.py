@@ -332,9 +332,9 @@ def section_data(res: dict) -> list[str]:
         "queue ahead first and the rest fills us; hidden executions are ignored because displayed "
         "orders have priority at the same price. *Trade-through* (pessimistic): we are last in line "
         "behind everyone, so only a print strictly beyond our price reaches us. In all three a print "
-        "through our price or the opposite quote reaching it fills the order. The spec's extra "
-        "trade-through trigger, \"the whole level is executed away\", was dropped: when an aggressor "
-        "exactly clears the level, FIFO leaves us first in line but unfilled, so that trigger made the "
+        "through our price or the opposite quote reaching it fills the order. An earlier version also "
+        "counted \"the whole level is executed away\" as a trade-through fill. That was dropped: when an "
+        "aggressor exactly clears the level, FIFO leaves us first in line but unfilled, so the rule made the "
         "pessimistic model fill *more* often than FIFO for the small-tick stocks. Without it, "
         "trade-through ⊆ FIFO ⊆ touch holds order by order, and a test checks it.",
         f"**Decision rule.** Every {meta['order_every']:g} s, follow the sign of the queue imbalance I: "

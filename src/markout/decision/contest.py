@@ -42,7 +42,7 @@ import numpy as np
 
 from markout.decision import kelly
 
-CONTEST_START_ET = "2026-10-01T12:00:00-04:00"   # registration opens at noon ET (PLAN.md)
+CONTEST_START_ET = "2026-10-01T12:00:00-04:00"   # registration opens at noon ET
 CONTEST_END_ET = "2026-11-04T12:00:00-05:00"     # closes at noon ET
 
 
@@ -719,7 +719,7 @@ def part1_markdown(C: dict) -> str:
                  "allowed), a very different field size or market count (see the table), or rules that differ from the "
                  "assumptions above.")
 
-    return f"""## Part 1 — Pre-registered sizing study (`python -m markout.decision.contest`)
+    return f"""## Part 1: Pre-registered sizing study (`python -m markout.decision.contest`)
 
 *{prereg}*
 
