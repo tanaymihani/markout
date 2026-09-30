@@ -130,6 +130,8 @@ def build() -> str:
     times = (a.get("holdout") or {}).get("accessed")
     lines = [
         "# Markout", "",
+        "[![tests](https://github.com/tanaymihani/markout/actions/workflows/tests.yml/badge.svg)]"
+        "(https://github.com/tanaymihani/markout/actions/workflows/tests.yml)", "",
         "Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias "
         "that comes from trying many strategies? This repo is my attempt to find out, step by step, on real "
         "market data where I could get it.", "",
