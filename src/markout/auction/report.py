@@ -395,9 +395,9 @@ def figures(ctx: Ctx, fc: dict, best: Trial, median_key: str, rob: dict, hon: di
                     textcoords="offset points", fontsize=8.5, color=mp.ink("secondary"))
         a1.set_ylabel("net bps per trade")
         a2.set_ylabel("annualized Sharpe")
-        mp.legend(a1, loc="upper left")
+        mp.legend(a1, loc="lower right")
         mp.title(a1, "Cost-blind: trade the top decile", "Synthetic forecasts of known IC")
-        mp.title(a2, "Cost-aware threshold rule, 1x cost", "Same forecasts, same data")
+        mp.title(a2, "Cost-aware threshold rule, 1x cost", "Same forecasts, perfectly calibrated")
         return fig
 
     mp.render(ctx.name("b_voi"), voi_fig)
@@ -493,9 +493,21 @@ def write_report(ctx: Ctx, a: dict, fc: dict, best: Trial, trials: list[Trial], 
            f"annualized Sharpe {n(s['sharpe_annualized'])}"
            + (f" (95% CI {n(ci['lo'] * np.sqrt(252))} to {n(ci['hi'] * np.sqrt(252))})" if ci else "")
            + f", {n(s['trades_per_day'])} trades a day, {n(s['net_bps_per_trade'])} bps net per trade."]
+    a2 = cr.get(2.0, {}).get("adapted", {})
+    if a2:
+        ans.append(f" The edge is about one spread wide: at 2x cost the same rule's Sharpe is "
+                   f"{n(a2['sharpe_annualized'])}" + (" and it stops paying." if a2["sharpe_annualized"] <= 0 else "."))
+    cap = rob.get("capacity") or {}
+    if cap:
+        ans.append(f" It is also small: the displayed-depth cap binds on {n(100 * cap['share_trades_depth_capped'])}% "
+                   f"of trades, the average trade is {R.usd(cap['mean_notional_usd'])}, and the research period nets "
+                   f"{R.usd(s['total_pnl_usd'])} in total.")
     if dsr:
+        strong = dsr["dsr"] >= 0.95
         ans.append(f" Deflated for {hon['n_effective']} effective trials (of {hon['n_trials']}), the Deflated "
-                   f"Sharpe Ratio is {R.prob(dsr['dsr'])}" + (f" and PBO is {R.prob(pb.get('pbo'))}" if pb else "") + ".")
+                   f"Sharpe Ratio is {R.prob(dsr['dsr'])}" + (f" and PBO is {R.prob(pb.get('pbo'))}" if pb else "")
+                   + (": the selection survives the multiple-testing correction." if strong else
+                      ": suggestive, but below the usual 0.95 bar once the search is accounted for."))
     if hold and hold.get("adapted_1x"):
         h = hold["adapted_1x"]
         ans.append(f" On the holdout (days {ctx.design.holdout[0]}–{ctx.design.holdout[1]}, scored once), the "
@@ -522,7 +534,10 @@ def write_report(ctx: Ctx, a: dict, fc: dict, best: Trial, trials: list[Trial], 
                   f"{n(rec['median_cross_stock_std_ret60_bps'])} bps for raw returns), so the target really is "
                   "\"stock minus a fixed index\".",
                   f"Index weights recovered by least squares on days {wi['days'][0]}–{wi['days'][1]} "
-                  f"({wi['method']}, R² {n(wi.get('r2'))}, weights sum to {n(wi.get('weight_sum'))}).",
+                  f"({wi['method']}, R² {R.prob(wi.get('r2'))}, weights sum to {n(wi.get('weight_sum'))})"
+                  + (". Stocks " + ", ".join(f"{sid} (first trades on day {day})" for sid, day in wi["absent_stocks"])
+                     + " only appear after the weight window, so their weights are unknown and set to zero "
+                     "rather than estimated from test days." if wi.get("absent_stocks") else "."),
               ]), "",
               mp.picture(ctx.name("a_missing_by_second"), "Share of null far/near prices by second"), ""]
 
@@ -538,7 +553,13 @@ def write_report(ctx: Ctx, a: dict, fc: dict, best: Trial, trials: list[Trial], 
         lines += [f"Diebold–Mariano test on daily MAE, {model_label(best.spec)} vs median: statistic "
                   f"{n(dm['stat'])}, p {R.prob(dm['p_value']) if R.prob(dm['p_value']).startswith(('<', '>')) else '= ' + R.prob(dm['p_value'])}; the model has lower MAE on "
                   f"{n(100 * dm['share_days_better'])}% of days.", ""]
-    lines += [mp.picture(ctx.name("a_mae_by_second"), "MAE by second, model vs baseline"), ""]
+    mbs = m_med["mae_by_second"]
+    peak = mbs.sort("mae", descending=True).row(0, named=True)
+    typical = float(mbs.filter((pl.col("seconds_in_bucket") < 200) | (pl.col("seconds_in_bucket") > 320))["mae"].median())
+    lines += [f"The error is not uniform: the baseline's MAE peaks at {n(peak['mae'])} bps at {peak['seconds_in_bucket']} s, "
+              f"{n(peak['mae'] / typical)}× its typical level, for snapshots whose 60 s window crosses 300 s, when "
+              "Nasdaq starts publishing the indicative prices.", "",
+              mp.picture(ctx.name("a_mae_by_second"), "MAE by second, model vs baseline"), ""]
     if (Path(ctx.cache).exists() and fc["infos"][best.spec.key][-1].get("importance")):
         lines += [mp.picture(ctx.name("a_importance"), "Feature importance"), ""]
 
@@ -580,7 +601,8 @@ def write_report(ctx: Ctx, a: dict, fc: dict, best: Trial, trials: list[Trial], 
                       formats={"adapted Sharpe": "{:.2f}", "unadapted Sharpe": "{:.2f}", "adapted PnL $": "{:,.0f}",
                                "unadapted PnL $": "{:,.0f}", "oracle net bps/trade": "{:.2f}"}), "",
               mp.picture(ctx.name("b_cost"), "Sharpe by cost multiple"), "",
-              "**Value of information.** Synthetic forecasts with a chosen IC go through the same rule. A cost-blind "
+              "**Value of information.** Synthetic forecasts with a chosen IC (perfectly calibrated) go through the "
+              "same rule. A cost-blind "
               "rule (trade the top decile every instant) breaks even at IC "
               + ", ".join(f"{n(be[m]) if be[m] is not None else f'> {RHOS.max():g}'} ({m:g}x)" for m in (1.0, 2.0, 3.0))
               + f"; this model's IC at decision times is {n(rob['model_ic'])}.", "",
@@ -629,7 +651,13 @@ def write_report(ctx: Ctx, a: dict, fc: dict, best: Trial, trials: list[Trial], 
                   f"Holdout MAE: model {n(hold['mae_model'])} vs median {n(hold['mae_median'])} bps "
                   f"({pct(hold['mae_model'], hold['mae_median']):+.2f}%). For reference, a public repo using the same "
                   f"holdout days reports {PUBLIC_BENCH['median']} (median) and {PUBLIC_BENCH['gbm']} (gradient "
-                  f"boosting) ([source]({PUBLIC_BENCH['url']}))."
+                  f"boosting) ([source]({PUBLIC_BENCH['url']}))"
+                  + ("; the matching baseline is an independent check that the data and the split agree."
+                     if abs(hold["mae_median"] - PUBLIC_BENCH["median"]) < 0.01 else ".")
+                  + (" At 2x and 3x cost the adapted rule barely trades "
+                     f"({n(hold['adapted_2x']['trades_per_day'])} and {n(hold['adapted_3x']['trades_per_day'])} a day), "
+                     "so its Sharpe there rests on a handful of trades; the unadapted column is the informative one."
+                     if hold.get("adapted_2x", {}).get("trades_per_day", 99) < 2 else "")
                   + (f" Bootstrap 95% CI for the holdout annualized Sharpe: {n(hci['lo'] * np.sqrt(252))} to "
                      f"{n(hci['hi'] * np.sqrt(252))}." if hci else ""), "",
                   mp.picture(ctx.name("b_equity"), "Cumulative PnL, research and holdout"), ""]
@@ -657,6 +685,8 @@ def write_report(ctx: Ctx, a: dict, fc: dict, best: Trial, trials: list[Trial], 
         "600 s WAP that the target uses.",
         f"The holdout is {ctx.design.holdout[1] - ctx.design.holdout[0] + 1} days, so its Sharpe CI is wide.",
         "The data is anonymized (no tickers), so no sector, event or corporate-action checks are possible.",
+        "Stocks that first trade after the index-weight window get zero index weight, a small error in the "
+        "index-relative features and in the neutralization on the days they trade.",
     ]), ""]
     lines += ["## Reproduce", "", "```bash", "make optiver                        # download + convert (Kaggle login needed)",
               "python -m markout.auction.report    # this report (cached forecasts make re-runs fast)",

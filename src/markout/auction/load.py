@@ -75,17 +75,24 @@ def to_parquet(csv: Path, out: Path = PARQUET, delete_csv: bool = True) -> Path:
         .sort(KEYS)
         .collect()
     )
+    df = _nan_to_null(df)
     df.write_parquet(out, compression="zstd", statistics=True)
     if delete_csv:
         csv.unlink()
     return out
 
 
+def _nan_to_null(df: pl.DataFrame) -> pl.DataFrame:
+    """The CSV stores the competition's 88 missing targets as NaN; everything downstream
+    treats missing values as null, so convert them."""
+    return df.with_columns([pl.col(c).fill_nan(None) for c, t in df.schema.items() if t == pl.Float32])
+
+
 def load(columns: list[str] | None = None, path: Path = PARQUET) -> pl.DataFrame:
-    """Load the converted training data (sorted by stock, date, second)."""
+    """Load the converted training data (sorted by stock, date, second; NaN -> null)."""
     if not path.exists():
         raise FileNotFoundError(f"{path} missing: run `python -m markout.auction.load` first")
-    return pl.read_parquet(path, columns=columns)
+    return _nan_to_null(pl.read_parquet(path, columns=columns))
 
 
 def available(path: Path = PARQUET) -> bool:

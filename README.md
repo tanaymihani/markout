@@ -14,13 +14,31 @@ A research project that takes trading signals from prediction to PnL and measure
 | Quoting tighter than every rival | the dealer's winner's curse | 03: Glosten–Milgrom, tournament |
 | Betting where you most disagree with the market | selecting on your own errors | 05: journal |
 
+## The product: Markout Desk for the SIG Predictions Cup
+
+A trading desk for SIG's student prediction-market contest (Oct 1 – Nov 4 2026), whose rules allow bots (one account, individual participation, the platform's rate and position limits). It runs on a laptop and uses only free public data. Each step of the research above appears in it:
+
+- **Reference prices** from real-money markets (Polymarket, Kalshi), option-implied probabilities for price questions and earnings-beat histories. Every contest-to-reference mapping must be confirmed by a human (matching is where things go silently wrong).
+- **Estimates** pool the references with the contest's own price in log-odds, so the bot never treats a reference as the truth: the optimizer's-curse correction from module 01.
+- **Proposals** need the whole uncertainty band to clear the ask, are sized with Kelly as a target *exposure* (the policy pre-registered in report 05, or a steady 0.5x Kelly mode), and are sized to the book: whatever the book can't fill now is not bought, never left resting (module 02's adverse selection).
+- **Nothing trades without a click.** Every approved or declined proposal is written to the decision journal, which scores the beliefs against the market once markets resolve (report 05, Part 2).
+
+![The approval desk](docs/demo/desk.png)
+
+[Demo walkthrough](docs/demo/DEMO.md): the whole loop on fictional markets, offline (`make demo`). Run the desk yourself with `make desk` and open http://127.0.0.1:8765.
+
 ## Results
 
 Every number below is lifted from a generated report; none is typed by hand.
 
 ### 01 · Closing-auction alpha: does it survive costs? · [report](reports/01_auction.md)
 
-**Pending real data.** The pipeline (audit, causal features, walk-forward LightGBM, the cost-aware decision rule, the trial registry, Deflated Sharpe, PBO and the one-shot holdout) is built and runs end to end on synthetic data with the Optiver schema (`python -m markout.auction.report --synthetic`). The real run needs the Kaggle data: `kaggle auth login`, accept the competition rules, then `make optiver && python -m markout.auction.report`.
+**Answer.** The best model (lgbm[all, 63 leaves]) cuts out-of-sample MAE by 2.18% versus the per-stock median (IC 0.184; Diebold–Mariano p < 0.001). Turned into trades at 1x cost, the selected policy's research-period PnL is positive and its 95% bootstrap CI excludes zero: annualized Sharpe 4.81 (95% CI 3.34 to 6.28), 22.3 trades a day, 2.27 bps net per trade. The edge is about one spread wide: at 2x cost the same rule's Sharpe is -0.209 and it stops paying. It is also small: the displayed-depth cap binds on 99.5% of trades, the average trade is $1,683, and the research period nets $2,041 in total. Deflated for 18 effective trials (of 32), the Deflated Sharpe Ratio is 0.853 and PBO is 0.059: suggestive, but below the usual 0.95 bar once the search is accounted for. On the holdout (days 421–480, scored once), the same frozen policy nets $1,101 over 60 days (annualized Sharpe 4.74).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="reports/figures/b_voi_dark.png">
+  <img alt="Value of information: net edge vs forecast IC" src="reports/figures/b_voi.png" width="720">
+</picture>
 
 ### 02 · Microstructure: does a signal survive realistic fills? · [report](reports/02_microstructure.md)
 
@@ -73,10 +91,10 @@ The order-book replay and FIFO queue simulator is sequential and stateful, the o
 
 ## What keeps it honest
 
-- **299 tests** (`make test`), including a perturbation test that corrupts the future and requires every feature of the past to stay identical, with a negative control that proves the test catches a leak.
+- **327 tests** (`make test`), including a perturbation test that corrupts the future and requires every feature of the past to stay identical, with a negative control that proves the test catches a leak.
 - **Walk-forward by day** with a calibration block, never a random split. Purging is unnecessary because labels never cross a day; the reasoning is in `src/markout/auction/cv.py`.
 - **Every trial is logged** (`data/registry/trials.jsonl`, with git SHA and config hash), losers included, so the Deflated Sharpe and PBO see how much searching was done.
-- **The holdout is guarded**: `HoldoutGuard` refuses a second look and audits forced ones (holdout sealed, not yet run).
+- **The holdout is guarded**: `HoldoutGuard` refuses a second look and audits forced ones (holdout accessed 1 time).
 - **Replications are checked against closed forms**: the DSR paper's worked example, GM's spread at π = ½, Kyle's λ, Kuhn poker's −1/18, Black–Scholes parity and Greeks.
 - **Every report is generated** by `make report` from fixed seeds; prose that depends on a result is chosen by code.
 
@@ -89,6 +107,8 @@ make optiver     # Optiver closing-auction data (needs `kaggle auth login` + acc
 make cpp         # build the C++ extension (optional; pure-Python fallback)
 make test        # the test suite
 make report      # regenerate every report, figure and results file
+make demo        # the desk's offline demo -> docs/demo/
+make desk        # the desk on a paper contest: http://127.0.0.1:8765
 python -m markout.readme   # regenerate this README
 ```
 
@@ -104,6 +124,7 @@ src/markout/evaluation/  trial registry, Deflated Sharpe, PBO, bootstrap, holdou
 src/markout/lob/         LOBSTER parser, OFI, fill simulator, markouts, post-vs-cross, report 02
 src/markout/games/       Glosten–Milgrom, Kyle, market-making arena, Kuhn CFR, card game, report 03
 src/markout/options/     Black–Scholes, delta hedging, SPY smile, report 04
+src/markout/cup/         Predictions Cup desk: sources, matcher, engine, sizing, paper exchange, web desk
 cpp/                     C++17 queue simulator + pybind11 bindings
 reports/                 generated reports, figures (light + dark) and results JSON
 tests/                   pytest suite

@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PYBIND11_DIR := $(shell $(PY) -m pybind11 --cmakedir 2>/dev/null)
 
-.PHONY: install test test-fast data lobster optiver options cpp bench report readme all clean
+.PHONY: install test test-fast data lobster optiver options cpp bench report readme demo desk all clean
 
 install:
 	.venv/bin/pip install -e ".[dev,data,cpp]"
@@ -41,10 +41,17 @@ report:
 	$(PY) -m markout.games.report
 	$(PY) -m markout.options.report
 	$(PY) -m markout.decision.contest
+	$(PY) -m markout.cup demo
 	$(PY) -m markout.readme
 
 readme:
 	$(PY) -m markout.readme
+
+demo:
+	$(PY) -m markout.cup demo
+
+desk:
+	$(PY) -m markout.cup serve --paper
 
 all: data cpp test report
 

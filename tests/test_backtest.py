@@ -98,9 +98,12 @@ def test_calibration_slope_and_expanding_uses_only_the_past():
 def test_synthetic_forecasts_hit_their_ic_and_break_even():
     rng = np.random.default_rng(1)
     d = dec_frame(np.zeros(20000), rng.standard_t(5, 20000) * 8)
+    y = d["target"].to_numpy()
     for rho in (0.1, 0.5):
-        f = voi.with_synthetic(d, rho, seed=2)["edge"].to_numpy()
-        assert np.corrcoef(f, d["target"].to_numpy())[0, 1] == pytest.approx(rho, abs=0.02)
+        syn = voi.with_synthetic(d, rho, seed=2)
+        assert np.corrcoef(syn["_f"].to_numpy(), y)[0, 1] == pytest.approx(rho, abs=0.02)  # the latent forecast
+        e = syn["edge"].to_numpy()  # its edge is calibrated: regressing the target on it gives slope 1
+        assert (e * y).sum() / (e * e).sum() == pytest.approx(1.0, abs=0.05)
     assert voi.break_even([0, 0.1, 0.2], [-2.0, -1.0, 1.0]) == pytest.approx(0.15)
     assert voi.break_even([0, 0.1], [-2.0, -1.0]) is None
     assert voi.with_oracle(d)["edge"].to_list() == d["target"].to_list()

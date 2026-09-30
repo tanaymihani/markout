@@ -104,7 +104,10 @@ def index_weights(df: pl.DataFrame, days: tuple[int, int]) -> tuple[pl.DataFrame
     cols = [str(s) for s in stocks]
     X = wide.select(cols).to_numpy().astype(np.float64)
     yv = wide["y"].to_numpy().astype(np.float64)
-    info = {"n_timestamps": int(X.shape[0]), "n_stocks": int(X.shape[1]), "days": list(days)}
+    first_seen = df.group_by("stock_id").agg(pl.col("date_id").min().alias("first_day"))
+    absent = first_seen.filter(~pl.col("stock_id").is_in(stocks.tolist())).sort("stock_id")
+    info = {"n_timestamps": int(X.shape[0]), "n_stocks": int(X.shape[1]), "days": list(days),
+            "absent_stocks": absent.rows()}  # (stock_id, first day seen): weight unknown, set to 0
     if X.shape[0] < 2 * X.shape[1]:
         w = np.full(len(stocks), 1.0 / len(stocks))
         info.update(method="equal (too few complete timestamps)", r2=float("nan"))

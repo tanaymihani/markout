@@ -216,15 +216,16 @@ def bars(ax, x, heights, width: float = 0.62, color: str | None = None,
     return ax.bar(x, heights, width=width, **style)
 
 
-def render(name: str, draw: Callable[[], "plt.Figure"], dark: bool = True) -> list[Path]:
-    """Call `draw` under each theme and save reports/figures/<name>[_dark].png."""
-    FIGURES.mkdir(parents=True, exist_ok=True)
+def render(name: str, draw: Callable[[], "plt.Figure"], dark: bool = True, out_dir: Path | None = None) -> list[Path]:
+    """Call `draw` under each theme and save <out_dir or reports/figures>/<name>[_dark].png."""
+    target = Path(out_dir) if out_dir is not None else FIGURES
+    target.mkdir(parents=True, exist_ok=True)
     variants = [(LIGHT, "")] + ([(DARK, "_dark")] if dark else [])
     paths = []
     for t, suffix in variants:
         with use(t):
             fig = draw()
-            path = FIGURES / f"{name}{suffix}.png"
+            path = target / f"{name}{suffix}.png"
             fig.savefig(path)
             plt.close(fig)
             paths.append(path)

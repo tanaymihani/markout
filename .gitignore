@@ -25,3 +25,7 @@ PLAN.md
 reports/dev_*
 reports/figures/dev_*
 reports/results/dev_*
+
+# autonomous-run watcher (session tooling, not part of the project)
+.watch/
+PROGRESS.md

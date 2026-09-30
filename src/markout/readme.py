@@ -129,6 +129,32 @@ def section_cpp() -> list[str]:
             _fig("g_throughput", "C++ vs Python throughput"), ""]
 
 
+def section_desk() -> list[str]:
+    demo = ROOT / "docs" / "demo" / "DEMO.md"
+    shot = ROOT / "docs" / "demo" / "desk.png"
+    out = ["## The product: Markout Desk for the SIG Predictions Cup", "",
+           "A trading desk for SIG's student prediction-market contest (Oct 1 – Nov 4 2026), whose rules allow bots "
+           "(one account, individual participation, the platform's rate and position limits). It runs on a laptop "
+           "and uses only free public data. Each step of the research above appears in it:", "",
+           "- **Reference prices** from real-money markets (Polymarket, Kalshi), option-implied probabilities for "
+           "price questions and earnings-beat histories. Every contest-to-reference mapping must be confirmed by a "
+           "human (matching is where things go silently wrong).",
+           "- **Estimates** pool the references with the contest's own price in log-odds, so the bot never treats a "
+           "reference as the truth: the optimizer's-curse correction from module 01.",
+           "- **Proposals** need the whole uncertainty band to clear the ask, are sized with Kelly as a target "
+           "*exposure* (the policy pre-registered in report 05, or a steady 0.5x Kelly mode), and are sized to the "
+           "book: whatever the book can't fill now is not bought, never left resting (module 02's adverse "
+           "selection).",
+           "- **Nothing trades without a click.** Every approved or declined proposal is written to the decision "
+           "journal, which scores the beliefs against the market once markets resolve (report 05, Part 2).", ""]
+    if shot.exists():
+        out += ["![The approval desk](docs/demo/desk.png)", ""]
+    if demo.exists():
+        out += ["[Demo walkthrough](docs/demo/DEMO.md): the whole loop on fictional markets, offline "
+                "(`make demo`). Run the desk yourself with `make desk` and open http://127.0.0.1:8765.", ""]
+    return out
+
+
 def build() -> str:
     a = results.load("auction") or {}
     hold = (a.get("holdout") or {})
@@ -154,6 +180,9 @@ def build() -> str:
         "| Quoting tighter than every rival | the dealer's winner's curse | 03: Glosten–Milgrom, tournament |",
         "| Betting where you most disagree with the market | selecting on your own errors | 05: journal |",
         "",
+    ]
+    lines += section_desk()
+    lines += [
         "## Results", "",
         "Every number below is lifted from a generated report; none is typed by hand.", "",
     ]
@@ -182,6 +211,8 @@ def build() -> str:
         "make cpp         # build the C++ extension (optional; pure-Python fallback)",
         "make test        # the test suite",
         "make report      # regenerate every report, figure and results file",
+        "make demo        # the desk's offline demo -> docs/demo/",
+        "make desk        # the desk on a paper contest: http://127.0.0.1:8765",
         "python -m markout.readme   # regenerate this README",
         "```", "",
         "Other entry points: `python -m markout.backtest.report` (daily PnL report), "
@@ -196,6 +227,7 @@ def build() -> str:
         "src/markout/lob/         LOBSTER parser, OFI, fill simulator, markouts, post-vs-cross, report 02",
         "src/markout/games/       Glosten–Milgrom, Kyle, market-making arena, Kuhn CFR, card game, report 03",
         "src/markout/options/     Black–Scholes, delta hedging, SPY smile, report 04",
+        "src/markout/cup/         Predictions Cup desk: sources, matcher, engine, sizing, paper exchange, web desk",
         "cpp/                     C++17 queue simulator + pybind11 bindings",
         "reports/                 generated reports, figures (light + dark) and results JSON",
         "tests/                   pytest suite",
