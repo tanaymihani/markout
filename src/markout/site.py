@@ -17,7 +17,9 @@ REPO = "https://github.com/tanaymihani/markout"
 FIGS = [("b_voi", "Net edge per trade against forecast quality (report 01)", "01_auction"),
         ("d_markouts", "Markouts of filled orders under three fill models (report 02)", "02_microstructure"),
         ("e_arena_competition", "Spread and maker profit as market makers compete (report 03)", "03_arena"),
-        ("h_kelly", "Kelly sizing chosen before 2008, lived through it (report 06)", "06_vol_premium")]
+        ("h_kelly", "Kelly sizing chosen before 2008, lived through it (report 06)", "06_vol_premium"),
+        ("h_straddle", "A delta-hedged straddle against a variance swap, month by month since 1993 (report 06)",
+         "06_vol_premium")]
 
 CSS = """
 :root{--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;

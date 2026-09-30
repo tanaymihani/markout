@@ -220,5 +220,237 @@
   "long_period": [
     "1993-01-04",
     "2026-08-18"
-  ]
+  ],
+  "straddle": {
+    "period": [
+      "1993-01-04",
+      "2026-08-18"
+    ],
+    "rolls": 404,
+    "instruments": {
+      "var_swap": {
+        "rolls": 404,
+        "traded": 404,
+        "share_traded": 1.0,
+        "mean_pnl": 2.08310265599,
+        "sd_pnl": 8.03625400865,
+        "sharpe_ann": 0.897940665804,
+        "skew": -5.38993542057,
+        "hit_rate": 0.834158415842,
+        "worst_pnl": -78.9499035662,
+        "worst_date": "2020-02-10",
+        "cvar5": -23.9040007748,
+        "max_drawdown": -131.39933876,
+        "total": 841.573473019,
+        "kelly": {
+          "v_star": 0.0108884173529,
+          "growth_star": 0.0159087612659,
+          "v_max": 0.0126535936699,
+          "v_continuous": 0.0322554690631
+        },
+        "kelly_pre2008": {
+          "v_star": 0.0534646515369,
+          "growth_star": 0.117853385477,
+          "v_max": 0.0563082164685,
+          "v_continuous": 0.197649398285
+        },
+        "kelly_after_2008": [
+          {
+            "sizing": "continuous mu/sigma^2",
+            "vega_per_100": 19.7649398285,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          },
+          {
+            "sizing": "full Kelly",
+            "vega_per_100": 5.34646515369,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          },
+          {
+            "sizing": "half Kelly",
+            "vega_per_100": 2.67323257684,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          },
+          {
+            "sizing": "quarter Kelly",
+            "vega_per_100": 1.33661628842,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          }
+        ],
+        "post2008_worst": {
+          "date": "2020-02-10",
+          "pnl": -78.9499035662
+        },
+        "survivable_vega_per_100": 1.26535936699,
+        "survivable_share_of_pre2008_kelly": 0.236672143297
+      },
+      "straddle": {
+        "rolls": 404,
+        "traded": 404,
+        "share_traded": 1.0,
+        "mean_pnl": 3.26960115931,
+        "sd_pnl": 5.73909201318,
+        "sharpe_ann": 1.97352309926,
+        "skew": -2.02100959216,
+        "hit_rate": 0.806930693069,
+        "worst_pnl": -41.0511507849,
+        "worst_date": "2008-09-04",
+        "cvar5": -12.0994984708,
+        "max_drawdown": -80.6330143276,
+        "total": 1320.91886836,
+        "kelly": {
+          "v_star": 0.0232890669743,
+          "growth_star": 0.0597068695092,
+          "v_max": 0.0243354931811,
+          "v_continuous": 0.0992678014218
+        },
+        "kelly_pre2008": {
+          "v_star": 0.0757725059448,
+          "growth_star": 0.206987716293,
+          "v_max": 0.0781159855101,
+          "v_continuous": 0.200740283486
+        },
+        "kelly_after_2008": [
+          {
+            "sizing": "continuous mu/sigma^2",
+            "vega_per_100": 20.0740283486,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          },
+          {
+            "sizing": "full Kelly",
+            "vega_per_100": 7.57725059448,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          },
+          {
+            "sizing": "half Kelly",
+            "vega_per_100": 3.78862529724,
+            "final_wealth": 0.0,
+            "max_drawdown": -1.0,
+            "busted": true
+          },
+          {
+            "sizing": "quarter Kelly",
+            "vega_per_100": 1.89431264862,
+            "final_wealth": 12267.0855163,
+            "max_drawdown": -0.909777595205,
+            "busted": false
+          }
+        ],
+        "post2008_worst": {
+          "date": "2008-09-04",
+          "pnl": -41.0511507849
+        },
+        "survivable_vega_per_100": 2.43354931811,
+        "survivable_share_of_pre2008_kelly": 0.321165215241
+      }
+    },
+    "corr": 0.767251959987,
+    "attribution_r2": 0.872346241037,
+    "sim_daily_attribution_r2": 0.956662265838,
+    "mean_hedge_cost": 0.144299461701,
+    "worst": [
+      {
+        "date": "2020-02-10",
+        "vix": 15.0399999619,
+        "realized": 50.8524797049,
+        "eff_vol": 23.688342365,
+        "exposure": 0.516028847625,
+        "var_swap": -78.9499035662,
+        "straddle": -5.09090540623
+      },
+      {
+        "date": "2008-09-04",
+        "vix": 24.0300006866,
+        "realized": 55.352704296,
+        "eff_vol": 58.4570539311,
+        "exposure": 0.935432516096,
+        "var_swap": -52.2370135003,
+        "straddle": -41.0511507849
+      },
+      {
+        "date": "2008-10-03",
+        "vix": 45.1399993896,
+        "realized": 81.5431940959,
+        "eff_vol": 83.9672924731,
+        "exposure": 0.360391090587,
+        "var_swap": -51.5818899071,
+        "straddle": -20.9458084857
+      },
+      {
+        "date": "2020-03-11",
+        "vix": 53.9000015259,
+        "realized": 89.2352454044,
+        "eff_vol": 75.3463913396,
+        "exposure": 1.21811042364,
+        "var_swap": -47.4176133089,
+        "straddle": -33.0161608618
+      },
+      {
+        "date": "2025-03-17",
+        "vix": 20.5100002289,
+        "realized": 45.9169683322,
+        "eff_vol": 34.5563611223,
+        "exposure": 0.801119934732,
+        "var_swap": -41.6435361433,
+        "straddle": -11.7928587192
+      }
+    ],
+    "straddle_worse": {
+      "date": "2018-01-08",
+      "vix": 9.52000045776,
+      "realized": 19.3763344269,
+      "eff_vol": 28.604544323,
+      "exposure": 0.637463851273,
+      "var_swap": -15.4586088978,
+      "straddle": -20.3771291347
+    },
+    "shifts": [
+      {
+        "shift": 0.0,
+        "sharpe_ann": 1.97352309926,
+        "mean_pnl": 3.26960115931,
+        "worst_pnl": -41.0511507849,
+        "v_star": 0.0232890669743
+      },
+      {
+        "shift": -1.0,
+        "sharpe_ann": 1.36809046053,
+        "mean_pnl": 2.25260737964,
+        "worst_pnl": -42.4342011789,
+        "v_star": 0.0218472829521
+      },
+      {
+        "shift": -2.0,
+        "sharpe_ann": 0.752041950569,
+        "mean_pnl": 1.2341702672,
+        "worst_pnl": -43.8308450018,
+        "v_star": 0.0189174997645
+      },
+      {
+        "shift": -3.0,
+        "sharpe_ann": 0.130183738358,
+        "mean_pnl": 0.213741067871,
+        "worst_pnl": -45.2384502893,
+        "v_star": 0.00598448882022
+      }
+    ],
+    "atm_gap": {
+      "date": "2026-09-29",
+      "days": 31,
+      "atm_iv": 13.4205046294,
+      "vix": 16.0400009155,
+      "gap": 2.61949628613
+    }
+  }
 }

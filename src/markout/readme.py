@@ -205,7 +205,7 @@ def build() -> str:
         "src/markout/lob/         LOBSTER parser, order-flow imbalance, fill simulator, markouts, report 02",
         "src/markout/games/       Glosten–Milgrom, Kyle, market-making arena, Kuhn CFR, card game, report 03",
         "src/markout/options/     Black–Scholes, delta hedging, SPY smile, report 04",
-        "src/markout/vol/         S&P 500 / VIX data, variance risk premium, HAR forecast, sizing, report 06",
+        "src/markout/vol/         S&P 500 / VIX data, variance risk premium, HAR forecast, sizing, hedged straddles, report 06",
         "src/markout/cup/         Predictions Cup desk: sources, matcher, estimates, sizing, paper exchange, web page",
         "cpp/                     C++17 queue simulator and pybind11 bindings",
         "reports/                 generated reports, figures (light and dark) and results",

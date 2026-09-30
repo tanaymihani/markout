@@ -4,7 +4,7 @@
 
 **Question.** Options on the S&P 500 are usually priced for more movement than actually follows. How large is that premium, how often does collecting it go badly wrong, and does timing or sizing make it safe enough to trade?
 
-**Answer.** From 1990 to 2026, VIX exceeded the volatility the S&P then realized over the next 21 trading days 85.9% of the time, by 4.10 vol points on average (median 4.71). Selling one month of variance every month since 2006 earned an annualized Sharpe of 0.551 with a skew of -4.36: its worst month (2008-10-01) lost 66.6 per $1 of vega, against an average gain of 1.56. The best of 5 timing rules, *har + contango*, raises the Sharpe to 1.07 (95% CI 0.408 to 2.30) and cuts the maximum drawdown from 136 to 60.9, and it survives the deflation for the 5 rules tried (Deflated Sharpe 0.965). Sizing matters more than timing: the textbook Kelly fraction mu/sigma^2 asks for 2.96x the growth-optimal size on these fat-tailed outcomes, 2.55x the size at which the worst month wipes out the account.
+**Answer.** From 1990 to 2026, VIX exceeded the volatility the S&P then realized over the next 21 trading days 85.9% of the time, by 4.10 vol points on average (median 4.71). Selling one month of variance every month since 2006 earned an annualized Sharpe of 0.551 with a skew of -4.36: its worst month (2008-10-01) lost 66.6 per $1 of vega, against an average gain of 1.56. The best of 5 timing rules, *har + contango*, raises the Sharpe to 1.07 (95% CI 0.408 to 2.30) and cuts the maximum drawdown from 136 to 60.9, and it survives the deflation for the 5 rules tried (Deflated Sharpe 0.965). Sizing matters more than timing: the textbook Kelly fraction mu/sigma^2 asks for 2.96x the growth-optimal size on these fat-tailed outcomes, 2.55x the size at which the worst month wipes out the account. Collected with a delta-hedged straddle instead, the worst month of 1993–2026 loses 41.1 rather than 78.9 per $1 of vega, because the straddle's exposure fades once the index leaves the strike. But at-the-money options trade below VIX, and at a 2-point discount the straddle's Sharpe (0.752) is below the variance swap's over the same months (0.898).
 
 ## Data and method
 
@@ -79,11 +79,57 @@ Estimation risk makes it worse. Fitted on 1993–2007 alone, full Kelly is 5.35 
   <img alt="Wealth paths under Kelly fractions chosen before 2008" src="figures/h_kelly.png" width="720">
 </picture>
 
+## Collecting the premium with options instead
+
+Variance swaps trade over the counter between institutions. Most traders collect the premium by selling listed options and delta-hedging them, so the same 404 months (1993–2026) were also run through a short at-the-money straddle. It is priced at the same implied vol (VIX), hedged at every close with Black–Scholes deltas at that vol, and charged the same 0.5 vol point cost plus 1 bp per unit of index traded for the hedge (0.144 vol points a month on average). Dividing by the straddle's vega at the roll puts both in PnL per $1 of vega.
+
+A hedged option is still a bet on realized variance, but each day counts in proportion to the option's dollar gamma, which peaks near the strike and collapses once the index runs away from it; the variance swap counts every day the same. On these real paths the gamma–theta attribution explains 87.2% of the variance of the straddle's monthly PnL, against 95.7% for the same daily hedge on the lognormal paths of report 04. The gap comes from large daily moves, which real prices have far more of.
+
+| instrument | Sharpe | skew | worst month | worst 5% (mean) | max drawdown | Kelly | ruin at | mu/sigma^2 |
+|---|---|---|---|---|---|---|---|---|
+| short variance swap | 0.90 | -5.39 | -78.9 | -23.9 | -131.4 | 1.09 | 1.27 | 3.23 |
+| short straddle, delta-hedged | 1.97 | -2.02 | -41.1 | -12.1 | -80.6 | 2.33 | 2.43 | 9.93 |
+
+PnL is per $1 of vega a month. Kelly (exact), ruin and mu/sigma^2 are dollars of vega per $100 of capital; ruin is the size at which the worst month takes the whole account.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/h_straddle_dark.png">
+  <img alt="Monthly PnL of the delta-hedged straddle against the variance swap" src="figures/h_straddle.png" width="720">
+</picture>
+
+The two move together (correlation 0.767) until the index runs. The five worst months for the variance swap:
+
+| roll date | VIX | realized vol | gamma-weighted vol | gamma exposure | variance swap | straddle |
+|---|---|---|---|---|---|---|
+| 2020-02-10 | 15.0 | 50.9 | 23.7 | 0.52 | -78.9 | -5.1 |
+| 2008-09-04 | 24.0 | 55.4 | 58.5 | 0.94 | -52.2 | -41.1 |
+| 2008-10-03 | 45.1 | 81.5 | 84.0 | 0.36 | -51.6 | -20.9 |
+| 2020-03-11 | 53.9 | 89.2 | 75.3 | 1.22 | -47.4 | -33.0 |
+| 2025-03-17 | 20.5 | 45.9 | 34.6 | 0.80 | -41.6 | -11.8 |
+
+Gamma-weighted vol weights each day's move by the straddle's dollar gamma that day. Gamma exposure is the month's total dollar gamma relative to an average month; below 1, the index spent the month away from the strike.
+
+In the month from 2020-02-10, VIX was 15.0 and the index then realized 50.9. The variance swap lost 78.9 and the straddle 5.09, because the big days came after the index had left the strike (gamma-weighted vol 23.7). The straddle is not always the safer side: from 2018-01-08 the big days came while its gamma was high (gamma-weighted vol 28.6 against 19.4 realized), and it lost 20.4 to the variance swap's 15.5.
+
+The milder tail raises the growth-optimal size 2.14x, to 2.33 dollars of vega per $100 against 1.09. Fitted on 1993–2007 alone, the straddle's quarter Kelly lives through 2008 onward, with a 91% drawdown on the way; full Kelly and half Kelly are wiped out, as is every fraction of the variance swap's.
+
+The catch is the price. VIX averages the whole smile, including the expensive downside puts, so an at-the-money straddle trades below it: on the SPY chain saved for report 04 (2026-09-29), 31-day at-the-money implied vol was 13.4% against a VIX close of 16.0, 2.62 points lower. Pricing the straddle below VIX leaves its tail about where it was and takes the premium away:
+
+| priced at | Sharpe | mean PnL | worst month | Kelly |
+|---|---|---|---|---|
+| VIX | 1.97 | 3.27 | -41.1 | 2.33 |
+| VIX -1 | 1.37 | 2.25 | -42.4 | 2.18 |
+| VIX -2 | 0.75 | 1.23 | -43.8 | 1.89 |
+| VIX -3 | 0.13 | 0.21 | -45.2 | 0.60 |
+
+By a 2-point discount its Sharpe (0.752) is below the variance swap's (0.898) over the same months. What the straddle buys is a milder worst month, not a bigger premium.
+
 ## What this says
 
 - The premium is persistent and large, which is why selling index options is a real business. It is paid for carrying a crash, and the crashes are the whole story of the risk.
 - Timing helps mainly by being out of the market when the term structure inverts, which is exactly when the next month is most dangerous; it does not remove the left tail (the worst months still arrive from calm starts).
 - Kelly sizing on a payoff like this has to use the actual distribution, not mean and variance, and it still depends on the worst month you have seen. Fractional Kelly is the price of not knowing the tail.
+- The instrument shapes the tail. A delta-hedged straddle's exposure fades as the index runs away from the strike, which cuts the worst month to 52.0% of the variance swap's and raises the size Kelly allows 2.14x. But at-the-money options trade below VIX, and a 2-point discount uses up the straddle's Sharpe advantage.
 
 ## Limitations
 
@@ -91,6 +137,7 @@ Estimation risk makes it worse. Fitted on 1993–2007 alone, full Kelly is 5.35 
 - Realized variance uses daily closes (no intraday data), and index dividends are ignored (they barely move variance).
 - Trading this means SPX options or VIX futures, with their own margin, liquidity and roll costs; the study measures the premium, not an executable strategy.
 - Five rules were tried on the same history; the Deflated Sharpe above accounts for that, not for the wider literature this design draws on.
+- The straddle is priced at VIX (or a fixed discount to it) and hedged once a day at the close with Black–Scholes deltas, with r = q = 0. A real book would hedge futures during the day, and option spreads widen in exactly the months that hurt.
 
 ## Reproduce
 
