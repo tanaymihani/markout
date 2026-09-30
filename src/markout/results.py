@@ -23,7 +23,9 @@ def _clean(o: Any) -> Any:
         return int(o)
     if isinstance(o, (np.floating, float)):
         f = float(o)
-        return f if math.isfinite(f) else None
+        # 12 significant digits: multithreaded sums differ in the last bits from run to run,
+        # and results files are committed, so keep them stable
+        return float(f"{f:.12g}") if math.isfinite(f) else None
     if isinstance(o, (np.bool_,)):
         return bool(o)
     if isinstance(o, Path):
