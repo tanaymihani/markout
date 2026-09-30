@@ -32,7 +32,7 @@ The paragraphs below are copied from the reports.
   <img alt="Net edge per trade against forecast quality" src="reports/figures/b_voi.png" width="720">
 </picture>
 
-**02 · Microstructure.** No. Chosen before 12:45 and scored after, the best post-or-cross rule under FIFO fills earns AAPL -0.192, AMZN -0.051, GOOG -0.158, INTC +0.002 and MSFT +0.003 ticks per decision: reliably negative for GOOG; indistinguishable from zero for AAPL, AMZN and MSFT; positive for INTC only because it trades on 1% of decisions for +0.25 ticks each, which a 0.3-tick taker fee wipes out. Touch fills would have said yes: INTC +0.069 ticks per decision, confidence interval above zero.
+**02 · Microstructure.** Queue imbalance predicts the next price move, but does trading on it pay once fills follow queue priority? No. Chosen before 12:45 and scored after, the best post-or-cross rule under FIFO fills earns AAPL -0.192, AMZN -0.051, GOOG -0.158, INTC +0.002 and MSFT +0.003 ticks per decision: reliably negative for GOOG; indistinguishable from zero for AAPL, AMZN and MSFT; positive for INTC only because it trades on 1% of decisions for +0.25 ticks each, which a 0.3-tick taker fee wipes out. Touch fills would have said yes: INTC +0.069 ticks per decision, confidence interval above zero.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="reports/figures/d_markouts_dark.png">
@@ -54,14 +54,14 @@ The paragraphs below are copied from the reports.
 - The gamma–theta attribution explains 99.98% of hedged-PnL variance path by path at 5 min hedging (corr 0.9999).
 - SPY (yfinance, 2026-09-29 16:15 ET): ATM IV 12.0% at 7 days, 13.4% at 31 days, 14.1% at 93 days. Parity 'fails' for 367 of 370 strike pairs at mids, 64 after crossing the spread, and 6 against the American band.
 
+**05 · Predictions Cup sizing.** The winning bankroll has a median of 92× the start (10th–90th percentile 19×–691×), and third place needs a median 35×. 31% of contests were won by a field player going all-in every round, and 2% by one of the sharp players. Your median at 0.75× Kelly is 1.40×, and at 1× Kelly you reach the top 3 in none of the 10,000 simulated contests. In a 1,000-player field over 40 markets, forecasting skill does not move you up the ranking; variance does.
+
 **06 · Volatility premium.** From 1990 to 2026, VIX exceeded the volatility the S&P then realized over the next 21 trading days 85.9% of the time, by 4.10 vol points on average (median 4.71). Selling one month of variance every month since 2006 earned an annualized Sharpe of 0.551 with a skew of -4.36: its worst month (2008-10-01) lost 66.6 per $1 of vega, against an average gain of 1.56. The best of 5 timing rules, *har + contango*, raises the Sharpe to 1.07 (95% CI 0.408 to 2.30) and cuts the maximum drawdown from 136 to 60.9, and it survives the deflation for the 5 rules tried (Deflated Sharpe 0.965). Sizing matters more than timing: the textbook Kelly fraction mu/sigma^2 asks for 2.96x the growth-optimal size on these fat-tailed outcomes, 2.55x the size at which the worst month wipes out the account.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="reports/figures/h_kelly_dark.png">
   <img alt="Kelly sizing chosen before 2008, lived through it" src="reports/figures/h_kelly.png" width="720">
 </picture>
-
-**05 · Predictions Cup sizing.** The winning bankroll has a median of 92× the start (10th–90th percentile 19×–691×), and third place needs a median 35×. 31% of contests were won by a field player going all-in every round, and 2% by one of the sharp players. Your median at 0.75× Kelly is 1.40×, and at 1× Kelly you reach the top 3 in none of the 10,000 simulated contests. In a 1,000-player field over 40 markets, forecasting skill does not move you up the ranking; variance does.
 
 **C++.** The order-book replay and queue simulator from part 02 is sequential and keeps state, so it was the one piece worth porting. `cpp/queue_sim.cpp` (C++17 with pybind11) runs 26–47× faster than the Python version and gives identical output, checked on all five stocks and on randomized event streams.
 
@@ -85,7 +85,7 @@ The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`m
 
 ## How I tried to keep it honest
 
-- 360 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 365 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).

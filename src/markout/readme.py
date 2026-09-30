@@ -79,20 +79,21 @@ def results_section() -> list[str]:
     else:
         out += ["**01 · Closing auction.** Waiting for the Kaggle data (`make optiver`).", ""]
     micro = _read("02_microstructure")
-    out += ["**02 · Microstructure.** " + _answer(micro).replace("**No.** ", "No. "), "",
+    out += ["**02 · Microstructure.** Queue imbalance predicts the next price move, but does trading on it pay "
+            "once fills follow queue priority? " + _answer(micro).replace("**No.** ", "No. "), "",
             _fig("d_markouts", "Markouts of filled orders under each fill model"), ""]
     arena = _read("03_arena")
     lead = next((b for b in _blocks(arena) if b.startswith("In short:")), "")
     out += ["**03 · Arena.** " + lead.replace("In short: ", "").capitalize()[:1] + lead.replace("In short: ", "")[1:], "",
             _fig("e_arena_competition", "Spread and market-maker profit as competitors are added"), ""]
     out += ["**04 · Options.**", "", _first_bullets(_read("04_options")), ""]
+    cup = _after(_read("05_predictions_cup"), "### What it takes to win")
+    if cup:
+        out += ["**05 · Predictions Cup sizing.** " + cup, ""]
     vol = _read("06_vol_premium")
     if vol:
         out += ["**06 · Volatility premium.** " + _answer(vol), "",
                 _fig("h_kelly", "Kelly sizing chosen before 2008, lived through it"), ""]
-    cup = _after(_read("05_predictions_cup"), "### What it takes to win")
-    if cup:
-        out += ["**05 · Predictions Cup sizing.** " + cup, ""]
     b = results.load("cpp_bench")
     if b:
         out += [f"**C++.** The order-book replay and queue simulator from part 02 is sequential and keeps state, "

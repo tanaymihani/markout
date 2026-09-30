@@ -272,7 +272,7 @@ One undercutter alone is a monopolist. It quotes 124 ticks, 13.0 times the zero-
 
 ### 3.4 Kuhn poker
 
-After 100,000 iterations (8.5 s), vanilla CFR's average strategy is worth -0.0555547 to player 1. The game value is −1/18 = -0.0555556, a gap of 8.5e-07. Its exploitability is 0.00135. Over the last two decades of iterations exploitability falls with slope -0.508 on log–log axes, the O(1/√T) rate of CFR's regret bound. CFR+ reaches 1.3e-05 in 20,000 iterations. The average strategy lands in Kuhn's equilibrium family. P1 bets the Jack with α = 0.2053 (the family allows [0, 1/3]) and the King with 0.6244 (3α = 0.616). After check–bet it calls with the Queen at 0.5412 (α + 1/3 = 0.5387). P2 bluffs the Jack at 0.3357 and calls with the Queen at 0.3334 (both 1/3 in theory).
+After 100,000 iterations (8.3 s), vanilla CFR's average strategy is worth -0.0555547 to player 1. The game value is −1/18 = -0.0555556, a gap of 8.5e-07. Its exploitability is 0.00135. Over the last two decades of iterations exploitability falls with slope -0.508 on log–log axes, the O(1/√T) rate of CFR's regret bound. CFR+ reaches 1.3e-05 in 20,000 iterations. The average strategy lands in Kuhn's equilibrium family. P1 bets the Jack with α = 0.2053 (the family allows [0, 1/3]) and the King with 0.6244 (3α = 0.616). After check–bet it calls with the Queen at 0.5412 (α + 1/3 = 0.5387). P2 bluffs the Jack at 0.3357 and calls with the Queen at 0.3334 (both 1/3 in theory).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/e_cfr_exploitability_dark.png">

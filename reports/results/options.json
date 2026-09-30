@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-30T04:00:32+00:00",
+  "generated_utc": "2026-09-30T05:47:52+00:00",
   "bs": {
     "n_random": 20000,
     "parity_max_rel_err": 3.52361228479e-16,
@@ -1146,7 +1146,7 @@
       }
     ],
     "base_T": 0.119047619048,
-    "seconds": 13.6644098759
+    "seconds": 13.4188799858
   },
   "snapshot": {
     "available": true,
@@ -1436,5 +1436,5 @@
     "zero_r_half_gamma_s2_sigma2": 13.909688154,
     "n_d2": 0.51143575314
   },
-  "seconds": 17.2727470398
+  "seconds": 16.8541812897
 }
