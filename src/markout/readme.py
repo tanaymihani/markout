@@ -130,6 +130,60 @@ def desk_section() -> list[str]:
     return out
 
 
+def brief() -> list[str]:
+    """The headline numbers, for readers who stop after the first screen."""
+    out = []
+    a = results.load("auction")
+    if a:
+        s, h = a["selected"]["summary"], (a.get("holdout") or {}).get("adapted_1x", {})
+        two = next(r for r in a["robustness"]["cost_rows"] if r["cost_mult"] == 2.0)["adapted"]["sharpe_annualized"]
+        share = a["diebold_mariano"]["share_days_better"]
+        days = "every out-of-sample day" if share == 1 else f"{100 * share:.0f}% of out-of-sample days"
+        out.append(f"**Closing auction.** A LightGBM model beats a per-stock baseline on {days}. Traded net of costs, "
+                   f"it earns an annualized Sharpe of {s['sharpe_annualized']:.1f}, and "
+                   f"{h.get('sharpe_annualized', float('nan')):.1f} on a holdout I opened once. At twice the assumed "
+                   f"costs it drops to {two:.1f}, and at a size the order book can absorb it makes "
+                   f"${s['total_pnl_usd']:,.0f} in {s['days']} days: real, but thin.")
+    m = results.load("microstructure")
+    if m:
+        intc = {r["model"]: r for r in m["fills"]["INTC"]["summary"]}
+        out.append(f"**Fills.** Resting orders in INTC look profitable if any trade at your price fills you "
+                   f"({intc['touch']['mk_10_bps']:+.2f} bps ten seconds later). Simulating queue position order by "
+                   f"order turns that into {intc['fifo']['mk_10_bps']:+.2f} bps: the fills you actually get are the "
+                   "ones you didn't want.")
+    ar = results.load("arena")
+    if ar:
+        k = {r["K"]: r for r in ar["arena"]["k_sweep"]}
+        out.append(f"**Competition.** A lone market maker quotes a {100 * k[1]['quoted_spread']['mean']:.0f}-tick "
+                   f"spread; one identical rival brings it to {100 * k[2]['quoted_spread']['mean']:.1f}, next to the "
+                   f"zero-profit {100 * k[2]['zero_profit_spread']['mean']:.1f}. Competition removes the rent, not the "
+                   "cost of trading against informed flow.")
+    v = results.load("vol_premium")
+    if v:
+        kf, sd = v["kelly_full"], v.get("straddle")
+        text = (f"**Volatility premium.** VIX sat above the volatility that followed "
+                f"{100 * v['share_implied_above']:.0f}% of the time since 1990, but the textbook Kelly formula asks for "
+                f"{kf['v_continuous'] / kf['v_star']:.1f}x the growth-optimal size"
+                + (", and every Kelly fraction fitted on 1993–2007 was wiped out after 2008."
+                   if all(x["busted"] for x in v["kelly_after_2008"]) else "."))
+        if sd:
+            vs, st = sd["instruments"]["var_swap"]["worst_pnl"], sd["instruments"]["straddle"]["worst_pnl"]
+            text += (f" Selling delta-hedged straddles instead of variance cuts the worst month from {-vs:.0f} to "
+                     f"{-st:.0f} per $1 of vega, though at-the-money options carry less of the premium.")
+        out.append(text)
+    c = (results.load("predictions_cup") or {}).get("contest")
+    if c:
+        cfg, k1 = c["config"], next(r for r in c["base"] if r["policy"] == "1x Kelly")
+        best = max(c["base"], key=lambda r: r["p_top3"])
+        placed = "never finishes" if k1["p_top3"] == 0 else f"finishes {100 * k1['p_top3']:.1f}% of the time"
+        out.append(f"**Contest sizing.** In a simulated {cfg['n_players']:,}-player contest that pays only the top 3, "
+                   f"1x Kelly {placed} in the money over {cfg['n_sims']:,} runs. The best policy tried "
+                   f"({best['policy']}) gets there {100 * best['p_top3']:.1f}% of the time, "
+                   f"{best['p_top3'] / (3 / cfg['n_players']):.0f}x a random player's odds, and busts in "
+                   f"{100 * best['p_bust']:.0f}% of runs.")
+    return (["## In brief", ""] + [f"- {b}" for b in out] + [""]) if out else []
+
+
 def build() -> str:
     a = results.load("auction") or {}
     times = (a.get("holdout") or {}).get("accessed")
@@ -146,6 +200,7 @@ def build() -> str:
         "whether they got picked off. The same trap shows up at every stage here: the best of many backtests "
         "looks better than it is, and so do the order that happened to get filled and the bet where you disagree "
         "most with the market. Each part tries to measure that gap and correct for it.", "",
+        *brief(),
         "## Contents", "",
         "| Part | Question | Data |",
         "|---|---|---|",

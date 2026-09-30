@@ -529,7 +529,7 @@ def fig_arena_competition(a: dict) -> None:
         return m, e
 
     def draw():
-        fig, axes = mp.subplots(1, 3, w=11.2, h=3.8)
+        fig, axes = mp.subplots(1, 3, w=9.4, h=3.6)
         for i, (key, lab) in enumerate((("quoted_spread", "quoted (inside) spread"),
                                         ("effective_spread", "effective spread"),
                                         ("zero_profit_spread", "zero-profit spread at the belief"))):
@@ -537,7 +537,7 @@ def fig_arena_competition(a: dict) -> None:
             _line_with_ci(axes[0], K, m, e, mp.series(i), lab)
         axes[0].set_ylabel("ticks (time average)")
         mp.legend(axes[0], loc="upper right", fontsize=8)
-        mp.title(axes[0], "Spreads", "quoted and effective coincide; CIs hide under the markers")
+        mp.title(axes[0], "Spreads", "quoted and effective coincide")
         m, e = err("maker_pnl_per_trade", 1 / tick)
         _line_with_ci(axes[1], K, m, e, mp.series(0))
         mp.zero_line(axes[1])
@@ -547,11 +547,11 @@ def fig_arena_competition(a: dict) -> None:
         _line_with_ci(axes[2], K, m, e, mp.series(0))
         axes[2].set_ylim(0, None)
         axes[2].set_ylabel("surplus per period ($)")
-        mp.title(axes[2], "Noise-trader welfare", "urgency value minus cost, marked to V")
+        mp.title(axes[2], "Noise-trader welfare", "urgency value minus trading cost")
         for ax in axes:
-            ax.set_xlabel("number of identical Bayesian undercutters K")
             ax.set_xticks(K)
             _style_axes(ax)
+        fig.supxlabel("number of identical Bayesian undercutters K", fontsize=10, color=mp.ink("secondary"))
         return fig
     mp.render("e_arena_competition", draw)
 

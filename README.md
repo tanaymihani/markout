@@ -8,6 +8,14 @@ Does a short-horizon trading edge survive the spread, realistic fills, competing
 
 The name comes from the *markout*, the price move right after a trade, which market makers use to check whether they got picked off. The same trap shows up at every stage here: the best of many backtests looks better than it is, and so do the order that happened to get filled and the bet where you disagree most with the market. Each part tries to measure that gap and correct for it.
 
+## In brief
+
+- **Closing auction.** A LightGBM model beats a per-stock baseline on every out-of-sample day. Traded net of costs, it earns an annualized Sharpe of 4.8, and 4.7 on a holdout I opened once. At twice the assumed costs it drops to -0.2, and at a size the order book can absorb it makes $2,041 in 240 days: real, but thin.
+- **Fills.** Resting orders in INTC look profitable if any trade at your price fills you (+0.33 bps ten seconds later). Simulating queue position order by order turns that into -1.64 bps: the fills you actually get are the ones you didn't want.
+- **Competition.** A lone market maker quotes a 124-tick spread; one identical rival brings it to 13.8, next to the zero-profit 13.0. Competition removes the rent, not the cost of trading against informed flow.
+- **Volatility premium.** VIX sat above the volatility that followed 86% of the time since 1990, but the textbook Kelly formula asks for 3.0x the growth-optimal size, and every Kelly fraction fitted on 1993–2007 was wiped out after 2008. Selling delta-hedged straddles instead of variance cuts the worst month from 79 to 41 per $1 of vega, though at-the-money options carry less of the premium.
+- **Contest sizing.** In a simulated 1,000-player contest that pays only the top 3, 1x Kelly never finishes in the money over 10,000 runs. The best policy tried (0.5x Kelly, all-in in the last 80% of rounds if outside top 3) gets there 2.4% of the time, 8x a random player's odds, and busts in 96% of runs.
+
 ## Contents
 
 | Part | Question | Data |
