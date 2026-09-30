@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PYBIND11_DIR := $(shell $(PY) -m pybind11 --cmakedir 2>/dev/null)
 
-.PHONY: install test test-fast data lobster optiver options cpp bench report readme demo desk all clean
+.PHONY: install test test-fast data lobster optiver options vol cpp bench report readme demo desk all clean
 
 install:
 	.venv/bin/pip install -e ".[dev,data,cpp]"
@@ -13,7 +13,7 @@ test-fast:
 	$(PY) -m pytest -m "not slow"
 
 # ---- data (never committed; see .gitignore) --------------------------------
-data: lobster optiver options
+data: lobster optiver options vol
 
 lobster:
 	$(PY) scripts/download_lobster.py
@@ -23,6 +23,9 @@ optiver:
 
 options:
 	$(PY) scripts/snapshot_options.py
+
+vol:
+	$(PY) -m markout.vol.data
 
 # ---- C++ core ---------------------------------------------------------------
 cpp:
@@ -40,6 +43,8 @@ report:
 	$(PY) -m markout.lob.report
 	$(PY) -m markout.games.report
 	$(PY) -m markout.options.report
+	@if [ -f data/raw/vol/spx.parquet ]; then $(PY) -m markout.vol.report; \
+	  else echo "skipping report 06: run 'make vol' first"; fi
 	$(PY) -m markout.decision.contest
 	$(PY) -m markout.cup demo
 	$(PY) -m markout.readme

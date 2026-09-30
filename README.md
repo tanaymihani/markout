@@ -15,6 +15,7 @@ The name comes from the *markout*, the price move right after a trade, which mar
 | [03 Arena](reports/03_arena.md) | What does competition between market makers do to spreads and profits? | Simulated markets: Glosten–Milgrom, Kyle, a market-making tournament, Kuhn poker |
 | [04 Options](reports/04_options.md) | What does delta hedging actually earn, and how often should you hedge? | Simulation, plus one SPY option chain |
 | [05 Predictions Cup](reports/05_predictions_cup.md) | How should you size bets when only the top three places get paid? | Simulation of SIG's student contest |
+| [06 Volatility premium](reports/06_vol_premium.md) | How big is the premium in S&P options, when does selling it blow up, and how much should you sell? | S&P 500, VIX and VIX3M daily closes, 1990 onward |
 
 There is also a trading desk for SIG's Predictions Cup, and a C++ version of the order-book replay from part 02.
 
@@ -51,6 +52,13 @@ The paragraphs below are copied from the reports.
 - The gamma–theta attribution explains 99.98% of hedged-PnL variance path by path at 5 min hedging (corr 0.9999).
 - SPY (yfinance, 2026-09-29 16:15 ET): ATM IV 12.0% at 7 days, 13.4% at 31 days, 14.1% at 93 days. Parity 'fails' for 367 of 370 strike pairs at mids, 64 after crossing the spread, and 6 against the American band.
 
+**06 · Volatility premium.** From 1990 to 2026, VIX exceeded the volatility the S&P then realized over the next 21 trading days 85.9% of the time, by 4.10 vol points on average (median 4.71). Selling one month of variance every month since 2006 earned an annualized Sharpe of 0.551 with a skew of -4.36: its worst month (2008-10-01) lost 66.6 per $1 of vega, against an average gain of 1.56. The best of 5 timing rules, *har + contango*, raises the Sharpe to 1.07 (95% CI 0.408 to 2.30) and cuts the maximum drawdown from 136 to 60.9, and it survives the deflation for the 5 rules tried (Deflated Sharpe 0.965). Sizing matters more than timing: the textbook Kelly fraction mu/sigma^2 asks for 2.96x the growth-optimal size on these fat-tailed outcomes, 2.55x the size at which the worst month wipes out the account.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="reports/figures/h_kelly_dark.png">
+  <img alt="Kelly sizing chosen before 2008, lived through it" src="reports/figures/h_kelly.png" width="720">
+</picture>
+
 **05 · Predictions Cup sizing.** The winning bankroll has a median of 92× the start (10th–90th percentile 19×–691×), and third place needs a median 35×. 31% of contests were won by a field player going all-in every round, and 2% by one of the sharp players. Your median at 0.75× Kelly is 1.40×, and at 1× Kelly you reach the top 3 in none of the 10,000 simulated contests. In a 1,000-player field over 40 markets, forecasting skill does not move you up the ranking; variance does.
 
 **C++.** The order-book replay and queue simulator from part 02 is sequential and keeps state, so it was the one piece worth porting. `cpp/queue_sim.cpp` (C++17 with pybind11) runs 26–47× faster than the Python version and gives identical output, checked on all five stocks and on randomized event streams.
@@ -75,7 +83,7 @@ The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`m
 
 ## How I tried to keep it honest
 
-- 352 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 359 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).
@@ -88,6 +96,7 @@ The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`m
 make install     # editable install into .venv
 make lobster     # LOBSTER sample day (5 stocks, 10 levels)
 make optiver     # Optiver data (needs a Kaggle login and the competition rules accepted)
+make vol         # S&P 500 and VIX history for report 06
 make cpp         # C++ extension (optional; there is a pure-Python fallback)
 make test
 make report      # regenerate every report, figure and results file
@@ -107,6 +116,7 @@ src/markout/evaluation/  trial registry, Deflated Sharpe, PBO, bootstrap, holdou
 src/markout/lob/         LOBSTER parser, order-flow imbalance, fill simulator, markouts, report 02
 src/markout/games/       Glosten–Milgrom, Kyle, market-making arena, Kuhn CFR, card game, report 03
 src/markout/options/     Black–Scholes, delta hedging, SPY smile, report 04
+src/markout/vol/         S&P 500 / VIX data, variance risk premium, HAR forecast, sizing, report 06
 src/markout/cup/         Predictions Cup desk: sources, matcher, estimates, sizing, paper exchange, web page
 cpp/                     C++17 queue simulator and pybind11 bindings
 reports/                 generated reports, figures (light and dark) and results
@@ -118,6 +128,7 @@ tests/                   pytest suite
 - **Optiver *Trading at the Close*** (Kaggle). Kaggle's rules don't allow redistributing it, so it is downloaded by `make optiver` and never committed.
 - **LOBSTER sample files** for AAPL, AMZN, GOOG, INTC and MSFT on 2012-06-21. The official download links stopped working when lobsterdata.com was rebuilt, so the script tries them first and otherwise uses a pinned, hash-checked mirror. A replay that checks every message against the book is the authenticity check. Not committed.
 - **One SPY option chain**, saved with yfinance on 2026-09-29 after the close.
+- **S&P 500, VIX and VIX3M daily closes** from Yahoo Finance (`make vol`). Not committed.
 
 ## Limitations
 

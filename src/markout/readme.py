@@ -86,6 +86,10 @@ def results_section() -> list[str]:
     out += ["**03 · Arena.** " + lead.replace("In short: ", "").capitalize()[:1] + lead.replace("In short: ", "")[1:], "",
             _fig("e_arena_competition", "Spread and market-maker profit as competitors are added"), ""]
     out += ["**04 · Options.**", "", _first_bullets(_read("04_options")), ""]
+    vol = _read("06_vol_premium")
+    if vol:
+        out += ["**06 · Volatility premium.** " + _answer(vol), "",
+                _fig("h_kelly", "Kelly sizing chosen before 2008, lived through it"), ""]
     cup = _after(_read("05_predictions_cup"), "### What it takes to win")
     if cup:
         out += ["**05 · Predictions Cup sizing.** " + cup, ""]
@@ -152,6 +156,8 @@ def build() -> str:
         "hedge? | Simulation, plus one SPY option chain |",
         "| [05 Predictions Cup](reports/05_predictions_cup.md) | How should you size bets when only the top three "
         "places get paid? | Simulation of SIG's student contest |",
+        "| [06 Volatility premium](reports/06_vol_premium.md) | How big is the premium in S&P options, when does "
+        "selling it blow up, and how much should you sell? | S&P 500, VIX and VIX3M daily closes, 1990 onward |",
         "",
         "There is also a trading desk for SIG's Predictions Cup, and a C++ version of the order-book replay "
         "from part 02.", "",
@@ -177,6 +183,7 @@ def build() -> str:
         "make install     # editable install into .venv",
         "make lobster     # LOBSTER sample day (5 stocks, 10 levels)",
         "make optiver     # Optiver data (needs a Kaggle login and the competition rules accepted)",
+        "make vol         # S&P 500 and VIX history for report 06",
         "make cpp         # C++ extension (optional; there is a pure-Python fallback)",
         "make test",
         "make report      # regenerate every report, figure and results file",
@@ -195,6 +202,7 @@ def build() -> str:
         "src/markout/lob/         LOBSTER parser, order-flow imbalance, fill simulator, markouts, report 02",
         "src/markout/games/       Glosten–Milgrom, Kyle, market-making arena, Kuhn CFR, card game, report 03",
         "src/markout/options/     Black–Scholes, delta hedging, SPY smile, report 04",
+        "src/markout/vol/         S&P 500 / VIX data, variance risk premium, HAR forecast, sizing, report 06",
         "src/markout/cup/         Predictions Cup desk: sources, matcher, estimates, sizing, paper exchange, web page",
         "cpp/                     C++17 queue simulator and pybind11 bindings",
         "reports/                 generated reports, figures (light and dark) and results",
@@ -207,7 +215,8 @@ def build() -> str:
         "links stopped working when lobsterdata.com was rebuilt, so the script tries them first and otherwise "
         "uses a pinned, hash-checked mirror. A replay that checks every message against the book is the "
         "authenticity check. Not committed.",
-        "- **One SPY option chain**, saved with yfinance on 2026-09-29 after the close.", "",
+        "- **One SPY option chain**, saved with yfinance on 2026-09-29 after the close.",
+        "- **S&P 500, VIX and VIX3M daily closes** from Yahoo Finance (`make vol`). Not committed.", "",
         "## Limitations", "",
         "Each report ends with its own. The main ones: the auction target is measured against a synthetic index, "
         "so the PnL assumes a hedge I can't observe; the microstructure study is a single day from 2012 and my "
