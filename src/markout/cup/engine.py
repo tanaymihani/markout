@@ -10,6 +10,7 @@ Weights are explicit priors, printed with every proposal, and meant to be revise
 the decision journal as markets resolve:
 - the contest mid: 1, less when the contest book is wide (a wide book is a weak signal);
 - a real-money market: 1 + log10(1 + liquidity / $10k) + 0.5 log10(1 + 24h volume / $10k), capped at 4;
+- a play-money market (Manifold): 0.4 + 0.1 log10(1 + bettors), at most 0.9;
 - options-implied (risk-neutral) probability: 3;
 - the earnings-beat posterior: 0.5 + 0.1 per quarter of history (at most 1.7).
 The band is the references' own uncertainty (their disagreement and quoted half-spreads,
@@ -37,6 +38,8 @@ def sigmoid(x: float) -> float:
 
 def source_weight(c: Candidate) -> float:
     q = c.quote
+    if q.source == "manifold":  # play money: a small weight that grows slowly with the number of bettors
+        return min(0.4 + 0.1 * math.log10(1 + (q.n or 0)), 0.9)
     if q.kind == "market":
         w = 1 + math.log10(1 + (q.liquidity or 0) / 1e4) + 0.5 * math.log10(1 + (q.volume_24h or 0) / 1e4)
         return min(w, 4.0)

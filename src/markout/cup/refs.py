@@ -15,7 +15,7 @@ from collections import defaultdict
 
 from markout.cup import match
 from markout.cup.match import Candidate
-from markout.cup.sources import kalshi, models, polymarket
+from markout.cup.sources import kalshi, manifold, models, polymarket
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.types import Contract, Market
 
@@ -37,7 +37,8 @@ class References:
         if not self.live or time.monotonic() - self._t < self.refresh_seconds and self._quotes:
             return
         quotes = []
-        for name, fetch in (("polymarket", polymarket.active_markets), ("kalshi", kalshi.open_events)):
+        for name, fetch in (("polymarket", polymarket.active_markets), ("kalshi", kalshi.open_events),
+                            ("manifold", manifold.open_binary)):
             try:
                 quotes += fetch()
             except Exception as e:  # noqa: BLE001 - a source being down must not stop the bot

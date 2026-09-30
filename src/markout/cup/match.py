@@ -44,8 +44,38 @@ TICKERS = {"apple": "AAPL", "microsoft": "MSFT", "nvidia": "NVDA", "amazon": "AM
            "gold": "GLD"}
 
 
+GENERIC_CAPS = set("midterm midterms general presidential parliamentary legislative election elections federal "
+                   "national party us world cup award awards championship league series prize game games final "
+                   "finals season day winner".split())
+
+
+def fold(s: str) -> str:
+    """Drop accents so "Inácio" and "Inacio" tokenize the same way."""
+    import unicodedata
+
+    s = s.replace("°", " ")  # "24°C" stays "24 C" rather than becoming one token
+    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+
+
+def _same_name(e: str, tokens: set[str]) -> bool:
+    """e appears among tokens, allowing demonym/plural variants that share a 5+ letter
+    prefix (brazil ~ brazilian, israel ~ israeli); short names must match exactly."""
+    if e in tokens:
+        return True
+    if len(e) < 5:
+        return False
+    return any(len(t) >= 5 and len(_common(e, t)) >= 5 for t in tokens)
+
+
+def _common(a: str, b: str) -> str:
+    n = 0
+    while n < min(len(a), len(b)) and a[n] == b[n]:
+        n += 1
+    return a[:n]
+
+
 def norm_tokens(s: str) -> list[str]:
-    s = s.lower().replace("’", "'")
+    s = fold(s).lower().replace("’", "'")
     words = re.findall(r"[a-z0-9$%.']+", s)
     out = []
     for w in words:
@@ -69,7 +99,8 @@ QUALIFIERS = set("""passing rushing receiving hit run rbi rbis home homer stolen
 three pointer 1st 2nd first second third half quarter inning period set map game goal corner card yard touchdown
 reception sack save shot ace spread total moneyline margin exact popular electoral turnout primary runoff
 increase decrease hike cut raise lower change pause hold up down above below higher highest lowest over under
-more fewer less reach dip drop rise fall before after low high""".split())
+more fewer less reach dip drop rise fall before after low high
+cease stop leave resign remain stay still former removed impeach fail lose miss not""".split())
 
 MONTHS = {m: i for i, names in enumerate([("jan", "january"), ("feb", "february"), ("mar", "march"), ("apr", "april"),
                                          ("may",), ("jun", "june"), ("jul", "july"), ("aug", "august"),
@@ -119,7 +150,7 @@ def entities(s: str) -> set[str]:
     """Capitalized names and tickers (teams, people, parties, companies, Q3), normalized like
     tokens. Weekdays and months are capitalized but are dates, not entities."""
     ents = set()
-    for sentence in re.split(r"[?.!:;]\s+|\s+[-–]\s+", s):
+    for sentence in re.split(r"[?.!:;]\s+|\s+[-–]\s+", fold(s)):
         ents |= _sentence_entities(sentence)
     return ents
 
@@ -148,8 +179,8 @@ def hard_reject(a: str, b: str) -> str | None:
     if not ea:
         return "no named entity in the contest question: too ambiguous to match"
     tb = set(norm_tokens(b))
-    missing = ea - tb
-    if len(missing) > (1 if len(ea) >= 4 else 0):  # long titles carry descriptive capitals ("Midterm")
+    missing = {e for e in ea if not _same_name(e, tb)} - GENERIC_CAPS  # "Midterm" may be missing; names may not
+    if missing:
         return f"entities {sorted(missing)} not in the reference"
     extra = entities(b) - set(norm_tokens(a))
     if len(extra) >= 2:

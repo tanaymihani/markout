@@ -194,3 +194,15 @@ def test_orders_are_sized_to_the_book_and_never_rest():
     assert (qty, limit) == (60, 0.54) and cost == pytest.approx(30 * 0.50 + 30 * 0.54)
     qty, limit, cost = P.fill_plan(b, max_price=0.57, budget=20.0)  # money runs out first
     assert qty == 30 + 9 and cost <= 20.0 + 1e-9  # 30 at 0.50 = 15, then floor(5 / 0.54) = 9
+
+
+def test_manifold_quotes_parse_and_weigh_less_than_real_money():
+    from markout.cup.sources import manifold
+
+    q = manifold.parse_market({"id": "a1", "question": "Will X happen?", "outcomeType": "BINARY", "probability": 0.3,
+                               "closeTime": 1_800_000_000_000, "uniqueBettorCount": 500, "url": "u"})
+    assert q is not None and q.source == "manifold" and q.p == 0.3
+    assert manifold.parse_market({"outcomeType": "MULTIPLE_CHOICE", "probability": None}) is None
+    play = engine.source_weight(Candidate(q, 1.0, False, "t"))
+    real = engine.source_weight(ref(0.3, liq=1e5))
+    assert play < 1.0 < real

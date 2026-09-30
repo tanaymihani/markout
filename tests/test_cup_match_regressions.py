@@ -35,6 +35,16 @@ MUST_REJECT += [
     ("Will the highest temperature in Paris be 24°C on September 30?",
      "Will the highest temperature in Paris be 20°C on September 30?", "thresholds differ"),
 ]
+MUST_REJECT += [  # reversals: the same names, the opposite question
+    ("Will Benjamin Netanyahu be the next Prime Minister of Israel?",
+     "[ACX 2026] Will Benjamin Netanyahu cease to be Prime Minister of Israel during 2026?", "different measure"),
+    ("Will Apple miss Q3 EPS estimates?", "Apple Q3 earnings: beat EPS consensus?", "different measure"),
+]
+MUST_REJECT += [  # a sibling market in the same event: same speech, a different word
+    ("What will Donald Trump say during Hispanic Heritage Month Celebration? Rubio",
+     "What will Trump say during Hispanic Heritage Month Celebration? Donald Trump - Hispanic Heritage Month "
+     "Celebration ICE", "entities"),
+]
 MUST_MATCH = [
     ("Will Republicans win the Senate in 2026?", "Which party will win the Senate in 2026? Republican"),
     ("Will the Chiefs beat the Bills on Sunday?", "Chiefs vs. Bills Chiefs"),
@@ -43,6 +53,8 @@ MUST_MATCH = [
     ("Will the Republican Party control the Senate after the 2026 Midterm elections?",
      "Which party will win the U.S. Senate? In 2026 Republican Party"),
     ("Will Alexia Putellas win the 2026 Women's Ballon d'Or?", "Women's Ballon d'Or Winner 2026 Alexia Putellas"),
+    ("Will Luiz Inácio Lula da Silva win the 2026 Brazilian presidential election?",
+     "Brazil Presidential election winner? In The next presidential election Luiz Inácio Lula da Silva"),
 ]
 
 
