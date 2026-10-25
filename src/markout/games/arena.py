@@ -82,9 +82,10 @@ grid given everyone's floors and caps.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Protocol, Sequence
+from typing import Protocol
 
 import numpy as np
 
@@ -131,7 +132,7 @@ class Market:
         return 0.5 * (1 - self.mu) * self.noise_trade_prob(e)
 
     @cached_property
-    def tables(self) -> "QuoteTables":
+    def tables(self) -> QuoteTables:
         return QuoteTables.build(self)
 
 
@@ -218,7 +219,7 @@ class QuoteTables:
     mono_profit: np.ndarray  # one-period profit of the monopoly quote
 
     @classmethod
-    def build(cls, mkt: Market, n_grid: int = 2001) -> "QuoteTables":
+    def build(cls, mkt: Market, n_grid: int = 2001) -> QuoteTables:
         grid = np.linspace(0.0, 1.0, n_grid)
         a, b = zero_profit_edges(grid, mkt)
         if np.isnan(a).any() or np.isnan(b).any():

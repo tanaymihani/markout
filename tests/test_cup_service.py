@@ -4,7 +4,7 @@ import json
 import threading
 import urllib.error
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -19,7 +19,7 @@ from markout.cup.store import Store
 from markout.cup.web import PAGE, Desk
 from markout.decision import journal
 
-T0 = datetime(2026, 10, 1, 16, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 16, tzinfo=UTC)
 
 
 @pytest.fixture

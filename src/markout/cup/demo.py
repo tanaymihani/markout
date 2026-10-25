@@ -14,10 +14,8 @@ import json
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-
-import numpy as np
 
 from markout import plotting as mp
 from markout import reporting as R
@@ -34,7 +32,7 @@ from markout.paths import DATA, ROOT
 SCENARIO = ROOT / "configs" / "cup_demo_scenario.json"
 OUT = ROOT / "docs" / "demo"
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
-START = datetime(2026, 10, 1, 16, 0, tzinfo=timezone.utc)  # the contest opens at 12:00 ET
+START = datetime(2026, 10, 1, 16, 0, tzinfo=UTC)  # the contest opens at 12:00 ET
 
 
 class ManualClock:

@@ -10,7 +10,7 @@ regression tests in tests/test_cup_match_regressions.py).
 from __future__ import annotations
 
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from markout import reporting as R
 from markout.cup import proposals as P
@@ -61,7 +61,7 @@ def run_one(source: str, n: int = 40, seed: int = 1) -> dict:
 
 def main() -> int:
     res = [run_one("polymarket"), run_one("kalshi")]
-    when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    when = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     lines = [
         "# Matcher dry run on live markets",
         "",

@@ -17,13 +17,13 @@ from __future__ import annotations
 import math
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from markout.cup.engine import Estimate
 from markout.cup.types import Account, Book, Market
 from markout.decision.kelly import kelly_yes
 
-CONTEST_END = datetime(2026, 11, 4, 16, 0, tzinfo=timezone.utc)  # 12:00 ET
+CONTEST_END = datetime(2026, 11, 4, 16, 0, tzinfo=UTC)  # 12:00 ET
 
 
 @dataclass
@@ -84,7 +84,7 @@ class Proposal:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "Proposal":
+    def from_dict(cls, d: dict) -> Proposal:
         return cls(**d)
 
 

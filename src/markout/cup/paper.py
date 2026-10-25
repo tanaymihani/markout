@@ -21,10 +21,10 @@ from __future__ import annotations
 import itertools
 import json
 import math
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 
@@ -133,9 +133,14 @@ class PaperContest:
             if o.status not in ("open", "partial"):
                 continue
             b = self._book(o.contract_id)
-            if o.side == "buy" and b.best_ask is not None and b.best_ask <= o.price:
-                self._fill(o, o.qty - o.filled_qty, o.price)
-            elif o.side == "sell" and b.best_bid is not None and b.best_bid >= o.price:
+            if (
+                o.side == "buy"
+                and b.best_ask is not None
+                and b.best_ask <= o.price
+                or o.side == "sell"
+                and b.best_bid is not None
+                and b.best_bid >= o.price
+            ):
                 self._fill(o, o.qty - o.filled_qty, o.price)
 
     # -------------------------------------------------------------- ContestAPI
@@ -233,7 +238,7 @@ def _dt(s: str | None) -> datetime | None:
     if not s:
         return None
     d = datetime.fromisoformat(s.replace("Z", "+00:00"))
-    return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+    return d if d.tzinfo else d.replace(tzinfo=UTC)
 
 
 def load_scenario(path: Path, start: datetime | None = None) -> list[PaperMarketSpec]:

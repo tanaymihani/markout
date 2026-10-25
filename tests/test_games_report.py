@@ -1,7 +1,6 @@
 """Report 03 text helpers: the Kyle bridge paragraph must handle module D present or absent."""
 
-from markout.games import kyle
-from markout.games import report
+from markout.games import kyle, report
 
 
 def test_bridge_text_without_module_d():

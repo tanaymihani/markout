@@ -3,9 +3,9 @@ import polars as pl
 import pytest
 
 from markout.auction import audit
+from markout.auction import features as F
 from markout.auction.cv import Design
 from markout.auction.pipeline import ModelSpec, forecast_metrics, neutralize, walk_forward
-from markout.auction import features as F
 from markout.auction.synth import make_synthetic
 
 

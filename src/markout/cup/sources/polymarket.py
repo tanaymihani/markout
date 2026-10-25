@@ -6,7 +6,7 @@ trading itself is not used (and is restricted for US persons)."""
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.sources.http import DEFAULT, Http
@@ -26,7 +26,7 @@ def _dt(s: str | None) -> datetime | None:
         return None
     try:
         d = datetime.fromisoformat(s.replace("Z", "+00:00"))
-        return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+        return d if d.tzinfo else d.replace(tzinfo=UTC)
     except ValueError:
         return None
 

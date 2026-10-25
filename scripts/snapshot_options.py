@@ -26,7 +26,7 @@ import json
 import re
 import sys
 import urllib.request
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -200,7 +200,7 @@ def main(argv: list[str] | None = None) -> int:
 
     import yfinance as yf
 
-    now_utc = datetime.now(timezone.utc).replace(microsecond=0)
+    now_utc = datetime.now(UTC).replace(microsecond=0)
     now_et = now_utc.astimezone(smile.ET)
     tk = yf.Ticker(TICKER)
     und = underlying_prices(tk, now_et)

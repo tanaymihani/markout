@@ -9,8 +9,7 @@ The prices say nothing about edge (the crowd noise is simulated); the matches ar
 
 from __future__ import annotations
 
-import math
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 
@@ -41,7 +40,7 @@ def standin_specs(
     source: str = "kalshi",
 ) -> tuple[list[PaperMarketSpec], set[tuple[str, str]]]:
     """Kalshi's liquidity field reads 0 nowadays, so activity is judged by 24h volume."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     pool = (
         kalshi.open_markets(max_pages=6)
         if source == "kalshi"

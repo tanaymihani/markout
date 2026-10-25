@@ -106,7 +106,6 @@ def test_thresholds_ignore_years_and_days():
 
 
 def test_yes_contract_on_a_no_reference_is_inverted():
-    from datetime import datetime, timezone
 
     from markout.cup.sources.base import ExternalQuote
     from markout.cup.types import Contract, Market

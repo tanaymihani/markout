@@ -26,7 +26,8 @@ import polars as pl
 from markout import plotting as mp
 from markout import reporting as R
 from markout import results
-from markout.auction import audit, features as F
+from markout.auction import audit
+from markout.auction import features as F
 from markout.auction.cv import Design
 from markout.auction.experiments import COSTS, MODELS, Trial, model_label, run_policies
 from markout.auction.pipeline import (
@@ -349,9 +350,9 @@ def run_holdout(
 
     try:
         res = guard.run(score_and_keep, frozen)
-    except HoldoutAlreadyUsed:
+    except HoldoutAlreadyUsed as err:
         if not full.exists():
-            raise SystemExit(f"holdout already used but {full} is missing; refusing to re-run it")
+            raise SystemExit(f"holdout already used but {full} is missing; refusing to re-run it") from err
         res = __import__("json").loads(full.read_text())
     res = dict(res or {})
     res["accessed"] = guard.accessed_count()

@@ -8,9 +8,10 @@ computed results.
 
 from __future__ import annotations
 
+import functools
 import math
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 from scipy.special import ndtr
@@ -63,6 +64,11 @@ FD_CASES = [
 ]
 
 
+def _price_with(base: dict, kind: str, **kw) -> float:
+    """Black-Scholes price at `base` parameters with some of them overridden."""
+    return bs.price(**{**base, **kw}, kind=kind)
+
+
 def bs_checks(seed: int = SEED, n: int = 20_000) -> dict:
     """Parity, bounds, Greeks vs central differences, and IV round-trip, as numbers."""
     rng = np.random.default_rng(seed)
@@ -79,7 +85,7 @@ def bs_checks(seed: int = SEED, n: int = 20_000) -> dict:
     fd_err = {g: 0.0 for g in ("delta", "gamma", "vega", "theta", "rho")}
     for s0, k0, t0, r0, q0, v0 in FD_CASES:
         for kind in ("call", "put"):
-            V = lambda **kw: bs.price(**{**dict(S=s0, K=k0, T=t0, r=r0, q=q0, sigma=v0), **kw}, kind=kind)  # noqa: E731
+            V = functools.partial(_price_with, dict(S=s0, K=k0, T=t0, r=r0, q=q0, sigma=v0), kind)
             hS = 1e-4 * s0
             fd = {
                 "delta": (V(S=s0 + hS) - V(S=s0 - hS)) / (2 * hS),
@@ -411,7 +417,7 @@ def fig_scaling(fd: dict, slope_std: float, slope_turn: float) -> None:
     def draw():
         fig, (a1, a2) = mp.subplots(1, 2, w=8.6, h=3.8)
         n = np.array(fd["fair_n"], float)
-        for ax, y, slope, lab, col in (
+        for ax, y, _slope, lab, col in (
             (a1, fd["fair_std"], slope_std, "std of hedging error ($)", 0),
             (a2, fd["fair_reb_turn"], slope_turn, "rebalancing turnover ($ traded)", 1),
         ):
@@ -976,7 +982,6 @@ hours) and rerun this report. This section is skipped rather than filled with ma
     conv_div = sum(e["parity_fresh"]["spread_violations_conversion"] for e in ex if e["pv_div"] > 0)
     conv_nodiv = tot["spread_violations_conversion"] - conv_div
     am_nodiv = sum(e["parity_fresh"]["american_violations"] for e in ex if e["pv_div"] == 0)
-    div_names = ", ".join(e["expiry"] for e in ex if e["pv_div"] > 0) or "none"
     tot_all_am = sum(e["parity_all"]["american_violations"] for e in ex)
     max_all = max(e["parity_all"]["max_american_edge"] for e in ex)
     max_fresh = max(e["parity_fresh"]["max_american_edge"] for e in ex)
@@ -1238,7 +1243,7 @@ section reads the saved snapshot and never refetches). Numbers: `reports/results
 
 def main() -> dict:
     t0 = time.time()
-    R = {"generated_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat()}
+    R = {"generated_utc": datetime.now(UTC).replace(microsecond=0).isoformat()}
     R["bs"] = bs_checks()
     R["hedging"], hfig = run_hedging()
     R["snapshot"], sfig = run_snapshot()

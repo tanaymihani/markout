@@ -97,7 +97,7 @@ class Orders:
         return len(self.place_idx)
 
     @staticmethod
-    def make(place_idx, side, price, size=100, max_wait=60.0) -> "Orders":
+    def make(place_idx, side, price, size=100, max_wait=60.0) -> Orders:
         place_idx = np.asarray(place_idx, dtype=np.int64)
         k = len(place_idx)
         return Orders(
@@ -127,7 +127,7 @@ class Fills:
     def __len__(self) -> int:
         return len(self.filled_qty)
 
-    def equals(self, other: "Fills") -> bool:
+    def equals(self, other: Fills) -> bool:
         """Bit-for-bit equality of every field (NaN == NaN)."""
         for f in self.FIELDS:
             a, b = getattr(self, f), getattr(other, f)

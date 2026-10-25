@@ -597,7 +597,7 @@ def write(a: dict) -> str:
         f"Estimation risk makes it worse. Fitted on 1993–2007 alone, full Kelly is {n(100 * kp['v_star'])} per $100: "
         "that history had no month like the ones to come. "
         + (
-            f"Every fraction of it down to a quarter is wiped out after 2008. "
+            "Every fraction of it down to a quarter is wiped out after 2008. "
             if all(x["busted"] for x in a["kelly_after_2008"])
             else ""
         )

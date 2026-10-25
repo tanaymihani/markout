@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import cProfile
+import functools
 import io
 import platform
 import pstats
@@ -51,7 +52,7 @@ def profile_python(ticker: str = PROFILE_TICKER, model: str = "fifo", rows: int 
     total = st.total_tt
     top = sorted(st.stats.items(), key=lambda kv: kv[1][2], reverse=True)[:rows]
     table = []
-    for (file, line, func), (cc, nc, tt, ct, _) in top:
+    for (file, line, func), (_cc, nc, tt, ct, _) in top:
         where = f"{Path(file).name}:{line}" if line else file
         table.append(
             {
@@ -104,10 +105,10 @@ def run(runs: int = RUNS) -> dict:
         orders = sample_orders(day).orders
         for model in MODELS:
             py_med, py_times, py_out = timed(
-                lambda: simulate(day.messages, day.book, orders, model, engine="python"), runs
+                functools.partial(simulate, day.messages, day.book, orders, model, engine="python"), runs
             )
             cc_med, cc_times, cc_out = timed(
-                lambda: simulate(day.messages, day.book, orders, model, engine="cpp"), runs
+                functools.partial(simulate, day.messages, day.book, orders, model, engine="cpp"), runs
             )
             first = int(orders.place_idx.min())
             replayed = int(py_out.end_idx.max()) - first + 1
@@ -201,7 +202,6 @@ def report_section(bench: dict) -> str:
 
     prof = bench["profile"]
     loop = prof["rows"][0]
-    fifo = [r for r in bench["rows"] if r["model"] == "fifo"]
     same = (
         "bit-identical to the Python reference on every run"
         if bench["all_identical"]

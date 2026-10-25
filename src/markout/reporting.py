@@ -4,8 +4,8 @@ computed results, never typed by hand."""
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import Iterable, Mapping, Sequence
 
 from markout.paths import REPORTS
 

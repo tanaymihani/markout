@@ -27,11 +27,10 @@ Rules (from the dataviz method; the palette is its validated default instance):
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable, Iterator
-
-import logging
 
 import matplotlib
 
@@ -232,7 +231,7 @@ def bars(ax, x, heights, width: float = 0.62, color: str | None = None, horizont
     return ax.bar(x, heights, width=width, **style)
 
 
-def render(name: str, draw: Callable[[], "plt.Figure"], dark: bool = True, out_dir: Path | None = None) -> list[Path]:
+def render(name: str, draw: Callable[[], plt.Figure], dark: bool = True, out_dir: Path | None = None) -> list[Path]:
     """Call `draw` under each theme and save <out_dir or reports/figures>/<name>[_dark].png."""
     target = Path(out_dir) if out_dir is not None else FIGURES
     target.mkdir(parents=True, exist_ok=True)

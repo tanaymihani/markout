@@ -3,7 +3,7 @@ zero-argument function for `mp.render`, so every figure exists in light and dark
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 

@@ -25,10 +25,10 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
-from typing import Sequence
 from zoneinfo import ZoneInfo
 
 import numpy as np

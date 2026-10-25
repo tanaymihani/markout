@@ -15,7 +15,7 @@ import polars as pl
 class Model:
     name = "base"
 
-    def fit(self, train: pl.DataFrame, features: list[str]) -> "Model":
+    def fit(self, train: pl.DataFrame, features: list[str]) -> Model:
         raise NotImplementedError
 
     def predict(self, df: pl.DataFrame) -> np.ndarray:

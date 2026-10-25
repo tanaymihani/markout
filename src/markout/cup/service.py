@@ -10,14 +10,14 @@ as the pre-registration requires.
 
 from __future__ import annotations
 
-import math
+import contextlib
 import threading
 from datetime import datetime
 from pathlib import Path
 
 from markout.cup import engine, match, risk
-from markout.cup.match import Candidate
 from markout.cup import proposals as P
+from markout.cup.match import Candidate
 from markout.cup.refs import References
 from markout.cup.store import Store
 from markout.cup.types import Account, utcnow
@@ -341,16 +341,14 @@ class Bot:
     def _sync_resolutions(self) -> None:
         """Paper mode knows outcomes; live mode resolves when the platform reports them."""
         resolved = getattr(self.api, "resolved", {}) or {}
-        for mid, outcomes in resolved.items():
+        for outcomes in resolved.values():
             for cid, y in outcomes.items():
                 if cid in self._resolved_logged:
                     continue
-                try:
+                with contextlib.suppress(ValueError, KeyError):  # no journal rows for that contract
                     journal.resolve(
                         self.journal_path, cid, int(y), resolved_at=self.now().isoformat(timespec="seconds")
                     )
-                except (ValueError, KeyError):
-                    pass  # no journal rows for that contract
                 self._resolved_logged.add(cid)
 
     # ------------------------------------------------------------------ view

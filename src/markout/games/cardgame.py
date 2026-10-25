@@ -42,8 +42,8 @@ from __future__ import annotations
 import argparse
 import math
 import sys
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Callable, Sequence
 
 import numpy as np
 

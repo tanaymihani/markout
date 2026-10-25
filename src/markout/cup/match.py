@@ -23,14 +23,56 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.types import Contract, Market
 
 STOP = set(
-    "a an the of in on at to for by will be is are was were who what which when does do did "
-    "than more less there any this that with as or and vs v versus from before after during end".split()
+    [
+        "a",
+        "an",
+        "the",
+        "of",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "by",
+        "will",
+        "be",
+        "is",
+        "are",
+        "was",
+        "were",
+        "who",
+        "what",
+        "which",
+        "when",
+        "does",
+        "do",
+        "did",
+        "than",
+        "more",
+        "less",
+        "there",
+        "any",
+        "this",
+        "that",
+        "with",
+        "as",
+        "or",
+        "and",
+        "vs",
+        "v",
+        "versus",
+        "from",
+        "before",
+        "after",
+        "during",
+        "end",
+    ]
 )
 ALIASES = {
     "gop": "republican",
@@ -87,9 +129,35 @@ TICKERS = {
 
 
 GENERIC_CAPS = set(
-    "midterm midterms general presidential parliamentary legislative election elections federal "
-    "national party us world cup award awards championship league series prize game games final "
-    "finals season day winner".split()
+    [
+        "midterm",
+        "midterms",
+        "general",
+        "presidential",
+        "parliamentary",
+        "legislative",
+        "election",
+        "elections",
+        "federal",
+        "national",
+        "party",
+        "us",
+        "world",
+        "cup",
+        "award",
+        "awards",
+        "championship",
+        "league",
+        "series",
+        "prize",
+        "game",
+        "games",
+        "final",
+        "finals",
+        "season",
+        "day",
+        "winner",
+    ]
 )
 
 
@@ -140,12 +208,101 @@ def numbers(s: str) -> set[str]:
 # Words that change *what* is being measured: a mismatch on any of them means a different
 # market even when everything else agrees ("1+ touchdowns" vs "1+ passing touchdowns").
 QUALIFIERS = set(
-    """passing rushing receiving hit run rbi rbis home homer stolen base strikeout assist rebound point
-three pointer 1st 2nd first second third half quarter inning period set map game goal corner card yard touchdown
-reception sack save shot ace spread total moneyline margin exact popular electoral turnout primary runoff
-increase decrease hike cut raise lower change pause hold up down above below higher highest lowest over under
-more fewer less reach dip drop rise fall before after low high
-cease stop leave resign remain stay still former removed impeach fail lose miss not""".split()
+    [
+        "passing",
+        "rushing",
+        "receiving",
+        "hit",
+        "run",
+        "rbi",
+        "rbis",
+        "home",
+        "homer",
+        "stolen",
+        "base",
+        "strikeout",
+        "assist",
+        "rebound",
+        "point",
+        "three",
+        "pointer",
+        "1st",
+        "2nd",
+        "first",
+        "second",
+        "third",
+        "half",
+        "quarter",
+        "inning",
+        "period",
+        "set",
+        "map",
+        "game",
+        "goal",
+        "corner",
+        "card",
+        "yard",
+        "touchdown",
+        "reception",
+        "sack",
+        "save",
+        "shot",
+        "ace",
+        "spread",
+        "total",
+        "moneyline",
+        "margin",
+        "exact",
+        "popular",
+        "electoral",
+        "turnout",
+        "primary",
+        "runoff",
+        "increase",
+        "decrease",
+        "hike",
+        "cut",
+        "raise",
+        "lower",
+        "change",
+        "pause",
+        "hold",
+        "up",
+        "down",
+        "above",
+        "below",
+        "higher",
+        "highest",
+        "lowest",
+        "over",
+        "under",
+        "more",
+        "fewer",
+        "less",
+        "reach",
+        "dip",
+        "drop",
+        "rise",
+        "fall",
+        "before",
+        "after",
+        "low",
+        "high",
+        "cease",
+        "stop",
+        "leave",
+        "resign",
+        "remain",
+        "stay",
+        "still",
+        "former",
+        "removed",
+        "impeach",
+        "fail",
+        "lose",
+        "miss",
+        "not",
+    ]
 )
 
 MONTHS = {
@@ -207,9 +364,44 @@ def thresholds(s: str) -> set[str]:
 
 
 CALENDAR = set(
-    "monday tuesday wednesday thursday friday saturday sunday january february march april may june "
-    "july august september october november december jan feb mar apr jun jul aug sep sept oct nov dec "
-    "today tomorrow tonight week weekend".split()
+    [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "sept",
+        "oct",
+        "nov",
+        "dec",
+        "today",
+        "tomorrow",
+        "tonight",
+        "week",
+        "weekend",
+    ]
 )
 
 
@@ -223,8 +415,32 @@ def entities(s: str) -> set[str]:
 
 
 OPENERS = STOP | set(
-    "over under above below more less new total exact first any how who what why where "
-    "if can could should would has have had".split()
+    [
+        "over",
+        "under",
+        "above",
+        "below",
+        "more",
+        "less",
+        "new",
+        "total",
+        "exact",
+        "first",
+        "any",
+        "how",
+        "who",
+        "what",
+        "why",
+        "where",
+        "if",
+        "can",
+        "could",
+        "should",
+        "would",
+        "has",
+        "have",
+        "had",
+    ]
 )
 
 
@@ -317,10 +533,13 @@ def score(market: Market, contract: Contract, q: ExternalQuote) -> Candidate:
         return Candidate(q, -1.0, False, f"rejected: {reject}")
     s = text_similarity(a, b)
     why = [f"text {s:.2f}"]
-    if not binary and q.outcome.lower() not in YES_NO:
-        if not set(norm_tokens(contract.name)) & set(norm_tokens(q.outcome)):
-            s -= 0.3
-            why.append("outcome differs")
+    if (
+        not binary
+        and q.outcome.lower() not in YES_NO
+        and not set(norm_tokens(contract.name)) & set(norm_tokens(q.outcome))
+    ):
+        s -= 0.3
+        why.append("outcome differs")
     if market.resolves_at and q.end:
         lead = (market.resolves_at - q.end).total_seconds() / 86400  # > 0: the reference ends first
         if lead > 10:  # it closes well before the contest resolves: an earlier event
@@ -376,6 +595,4 @@ def parse_price_question(market: Market) -> PriceQuestion | None:
     if not tk:
         return None
     above = m.group("dir").lower() in ("above", "over", "higher than")
-    return PriceQuestion(
-        tk.upper(), float(m.group("k").replace(",", "")), above, market.resolves_at.astimezone(timezone.utc)
-    )
+    return PriceQuestion(tk.upper(), float(m.group("k").replace(",", "")), above, market.resolves_at.astimezone(UTC))

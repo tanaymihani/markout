@@ -13,8 +13,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from markout.lob.fills import MODELS
-from markout.lob.lobster import TICKERS, load_day
-from markout.lob.lobster import SPLIT
+from markout.lob.lobster import SPLIT, TICKERS, load_day
 from markout.lob.postcross import TAKER_FEE_TICKS, block_bootstrap_ci, decisions, evaluate_rule
 
 OUT = Path(__file__).resolve().parents[1] / "generated" / "rebates.json"

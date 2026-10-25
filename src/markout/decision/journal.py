@@ -31,9 +31,9 @@ import csv
 import math
 import shutil
 import sys
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -62,7 +62,7 @@ MIN_ROWS_TO_JUDGE = 10  # below this, "did you beat the market?" is not answered
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return datetime.now(UTC).replace(microsecond=0).isoformat()
 
 
 def as_prob(x: float | str) -> float:

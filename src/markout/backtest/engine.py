@@ -117,7 +117,7 @@ def daily(tr: pl.DataFrame, days: tuple[int, int]) -> pl.DataFrame:
     )
     all_days = pl.DataFrame(
         {"date_id": np.arange(days[0], days[1] + 1)},
-        schema={"date_id": tr.schema["date_id"] if "date_id" in tr.schema else pl.Int16},
+        schema={"date_id": tr.schema.get("date_id", pl.Int16)},
     )
     out = (
         all_days.join(agg, on="date_id", how="left")

@@ -134,7 +134,7 @@ def git_state(cwd: str | Path = ROOT) -> dict[str, Any]:
 
 
 def utc_now() -> str:
-    return dt.datetime.now(dt.timezone.utc).isoformat()
+    return dt.datetime.now(dt.UTC).isoformat()
 
 
 def append_line(path: Path, obj: Mapping[str, Any]) -> None:

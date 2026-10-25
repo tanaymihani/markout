@@ -15,7 +15,7 @@ Both return None when data is missing; the bot then simply has no estimate from 
 from __future__ import annotations
 
 import math
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from markout.cup.sources.base import ExternalQuote
 
@@ -64,7 +64,7 @@ def prob_above(ticker: str, strike: float, when: datetime, r: float = 0.04) -> E
         "model",
         lo,
         hi,
-        end=datetime.fromisoformat(exp).replace(tzinfo=timezone.utc),
+        end=datetime.fromisoformat(exp).replace(tzinfo=UTC),
         url=f"https://finance.yahoo.com/quote/{ticker}/options",
         note=f"call spread on the {exp} expiry" + (f" ({lag} days after the question's date)" if lag else ""),
     )

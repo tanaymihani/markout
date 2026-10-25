@@ -12,8 +12,8 @@ from __future__ import annotations
 import argparse
 import gc
 import time
+from collections.abc import Callable
 from dataclasses import asdict
-from typing import Callable
 
 import numpy as np
 
@@ -58,10 +58,10 @@ from markout.lob.ofi import (
     window_regressions,
 )
 from markout.lob.postcross import (
-    H,
     SIGNAL_LABELS,
     TAKER_FEE_TICKS,
     TAKER_FEE_USD,
+    H,
     cell_table,
     decisions,
     evaluate_rule,
@@ -354,10 +354,8 @@ def one_line_answer(res: dict) -> str:
         if pos:
             how = each(
                 pos,
-                lambda t: (
-                    "{} only because it trades on {} of decisions for {:+.2f} ticks each".format(
-                        t, pct(tick[t]["fifo_share_traded"], 0), tick[t]["fifo_per_trade"]
-                    )
+                lambda t: "{} only because it trades on {} of decisions for {:+.2f} ticks each".format(
+                    t, pct(tick[t]["fifo_share_traded"], 0), tick[t]["fifo_per_trade"]
                 ),
             )
             details.append(f"positive for {how}, which a {fee:.1f}-tick taker fee wipes out")
@@ -515,9 +513,7 @@ def section_facts(res: dict) -> list[str]:
         }
         for t in tickers
     ]
-    acf_rows = [
-        {"ticker": t, **{f"lag {k + 1}": "{:.3f}".format(a) for k, a in enumerate(f[t]["sign_acf"])}} for t in tickers
-    ]
+    acf_rows = [{"ticker": t, **{f"lag {k + 1}": f"{a:.3f}" for k, a in enumerate(f[t]["sign_acf"])}} for t in tickers]
     return [
         "### 2. Two tick-size regimes",
         "",
@@ -670,7 +666,7 @@ def section_predictive(res: dict) -> list[str]:
         f"{lagged} (out-of-sample R² against the training mean; zero or below means no forecasting "
         "value)." + (" That gap is why a high CKS R² is not an alpha." if gap else "")
     )
-    aucs = each(tickers, lambda t: "{:.3f} ({})".format(auc[t], t))
+    aucs = each(tickers, lambda t: f"{auc[t]:.3f} ({t})")
     large_min = min((auc[t] for t in large), default=float("nan"))
     small_max = max((auc[t] for t in small), default=float("nan"))
     if large and small and large_min > small_max:
@@ -698,7 +694,7 @@ def section_predictive(res: dict) -> list[str]:
                 "contemp. R² (OOS)": "{:.3f}".format(pred[t]["contemporaneous"]["r2_oos"]),
                 "lagged R² (OOS)": "{:+.4f}".format(pred[t]["lagged"]["r2_oos"]),
                 "lagged R² vs zero": "{:+.4f}".format(pred[t]["lagged"]["r2_oos_zero"]),
-                "imbalance AUC (OOS)": "{:.3f}".format(auc[t]),
+                "imbalance AUC (OOS)": f"{auc[t]:.3f}",
                 "AUC (train)": "{:.3f}".format(imb[t]["auc_train"]),
                 "logit slope": "{:.2f}".format(imb[t]["coef"]),
                 "Brier (model)": "{:.4f}".format(imb[t]["brier_test"]),

@@ -28,13 +28,12 @@ Every function broadcasts over NumPy arrays; `kind` is "call"/"put" (or "C"/"P")
 from __future__ import annotations
 
 import math
-from typing import Union
 
 import numpy as np
 from scipy.optimize import brentq
 from scipy.special import ndtr
 
-ArrayLike = Union[float, np.ndarray]
+ArrayLike = float | np.ndarray
 _CALLS = ("call", "c", "C")
 _PUTS = ("put", "p", "P")
 

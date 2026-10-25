@@ -37,8 +37,8 @@ gives an interior optimum N* ~ k / kappa.
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
-from typing import Sequence
 
 import numpy as np
 from scipy.special import ndtr
@@ -79,7 +79,7 @@ class HedgeConfig:
     def drift(self) -> float:
         return self.r - self.q if self.mu is None else self.mu
 
-    def with_(self, **kw) -> "HedgeConfig":
+    def with_(self, **kw) -> HedgeConfig:
         return replace(self, **kw)
 
 

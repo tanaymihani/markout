@@ -6,7 +6,7 @@ questions that the real-money venues don't list."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.sources.http import DEFAULT, Http
@@ -19,7 +19,7 @@ def parse_market(m: dict) -> ExternalQuote | None:
     if m.get("outcomeType") != "BINARY" or m.get("isResolved") or p is None or not 0 < p < 1:
         return None
     try:  # some markets "never close" (close times past the year 9999)
-        end = datetime.fromtimestamp(m["closeTime"] / 1000, tz=timezone.utc) if m.get("closeTime") else None
+        end = datetime.fromtimestamp(m["closeTime"] / 1000, tz=UTC) if m.get("closeTime") else None
     except (ValueError, OverflowError, OSError):
         end = None
     return ExternalQuote(

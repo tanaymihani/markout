@@ -1,6 +1,6 @@
 """Predictions Cup bot: sizing, engine, matcher, paper exchange."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -12,7 +12,7 @@ from markout.cup.paper import PaperContest, PaperMarketSpec
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.types import Account, Book, Contract, Market
 
-T0 = datetime(2026, 10, 1, 16, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 16, tzinfo=UTC)
 
 
 def mk_market(mid="m", title="Will X happen?", names=("Yes", "No"), hours=48, category="other"):

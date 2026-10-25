@@ -38,7 +38,7 @@ class Design:
     weight_days: tuple[int, int] = (0, 120)  # index weights estimated before any test block
 
     @classmethod
-    def scaled(cls, n_days: int, embargo: int = 1) -> "Design":
+    def scaled(cls, n_days: int, embargo: int = 1) -> Design:
         """Same proportions as the real 481-day design, for smaller (synthetic) data."""
         f = (n_days - 1) / 480
         research_end = round(420 * f)

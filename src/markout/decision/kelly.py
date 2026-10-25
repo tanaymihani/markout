@@ -30,11 +30,9 @@ optimizer's curse, Smith & Winkler 2006). Fractional Kelly partly corrects for t
 
 from __future__ import annotations
 
-from typing import Union
-
 import numpy as np
 
-ArrayLike = Union[float, np.ndarray]
+ArrayLike = float | np.ndarray
 SIDES = ("YES", "NO")
 
 

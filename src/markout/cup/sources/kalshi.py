@@ -3,7 +3,7 @@ Multivariate combo markets are excluded (mve_filter=exclude)."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.sources.http import DEFAULT, Http
@@ -41,7 +41,7 @@ def parse_market(m: dict) -> ExternalQuote | None:
         ask,
         _f(m.get("liquidity_dollars")),
         _f(m.get("volume_24h_fp")),
-        end_dt.astimezone(timezone.utc) if end_dt else None,
+        end_dt.astimezone(UTC) if end_dt else None,
         f"https://kalshi.com/markets/{(m.get('event_ticker') or '').lower()}",
     )
 

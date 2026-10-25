@@ -93,8 +93,10 @@ def micro_data() -> dict | None:
         }
         if rb:
 
-            def rule(model, rebate, rows=rb):
-                r = next(x for x in rows if x["ticker"] == t and x["model"] == model and x["rebate_ticks"] == rebate)
+            def rule(model, rebate, rows=rb, ticker=t):
+                r = next(
+                    x for x in rows if x["ticker"] == ticker and x["model"] == model and x["rebate_ticks"] == rebate
+                )
                 return {
                     "rule": [_r(r["out_of_sample"])] + _ci(r),
                     "always": [_r(r["always_post"])] + _ci(r, "always_post_ci"),

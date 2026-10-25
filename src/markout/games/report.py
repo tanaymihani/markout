@@ -99,7 +99,7 @@ def share_text(x: float) -> str:
 
 def small(x: float) -> str:
     """Fixed 5 decimals, or scientific notation for tiny magnitudes."""
-    return "{:.5f}".format(x) if abs(x) >= 1e-3 or x == 0 else "{:.2e}".format(x)
+    return f"{x:.5f}" if abs(x) >= 1e-3 or x == 0 else f"{x:.2e}"
 
 
 # ---------------------------------------------------------------------------
@@ -1171,7 +1171,7 @@ def text_gm(res: dict) -> list[str]:
     idx = [mus.index(x) for x in (0.1, 0.2, 0.3, 0.5, 0.7, 0.9)]
     curve_rows = [
         {
-            "μ": "{:g}".format(mus[i]),
+            "μ": f"{mus[i]:g}",
             "π = 0.5": "{:.4f}".format(g["curves_mu"]["pi_0.5"][i]),
             "π = 0.75": "{:.4f}".format(g["curves_mu"]["pi_0.75"][i]),
             "π = 0.9": "{:.4f}".format(g["curves_mu"]["pi_0.9"][i]),
@@ -1254,7 +1254,7 @@ def text_kyle(res: dict) -> list[str]:
     pick = [rel.index(x) for x in (0.25, 0.5, 0.75, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0, 2.5)]
     mc_rows = [
         {
-            "β/β*": "{:g}".format(rel[i]),
+            "β/β*": f"{rel[i]:g}",
             "analytic": "{:.4f}".format(mc["analytic"][i]),
             "Monte Carlo": "{:.4f}".format(mc["mean"][i]),
             "95% CI": "{:.4f} to {:.4f}".format(mc["mean"][i] - Z95 * mc["se"][i], mc["mean"][i] + Z95 * mc["se"][i]),
@@ -1785,7 +1785,7 @@ def text_card(res: dict) -> list[str]:
         for r in c["by_width"]
     ]
     err_rows = [
-        {"round": i + 1, "Bayes quoter |mid − S|": "{:.2f}".format(eb), "ignore-trades |mid − S|": "{:.2f}".format(ep)}
+        {"round": i + 1, "Bayes quoter |mid − S|": f"{eb:.2f}", "ignore-trades |mid − S|": f"{ep:.2f}"}
         for i, (eb, ep) in enumerate(zip(m["mid_error_bayes"], m["mid_error_prior"]))
     ]
     diffs = [r["diff"]["mean"] for r in c["by_width"]]
