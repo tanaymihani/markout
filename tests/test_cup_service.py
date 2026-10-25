@@ -28,10 +28,19 @@ def bot(tmp_path, monkeypatch):
     clock = ManualClock(T0)
     specs = load_scenario(SCENARIO, T0)
     api = PaperContest(specs, start_cash=10_000, seed=3, clock=clock)
-    static = {cid: from_scenario([r for r in s.references if r["contract_id"] == cid])
-              for s in specs for cid in {r["contract_id"] for r in s.references}}
-    b = Bot(api, Store(tmp_path / "t.db"), References(live=False, static=static), P.Config(mode="steady"),
-            journal_path=tmp_path / "journal.csv", clock=clock)
+    static = {
+        cid: from_scenario([r for r in s.references if r["contract_id"] == cid])
+        for s in specs
+        for cid in {r["contract_id"] for r in s.references}
+    }
+    b = Bot(
+        api,
+        Store(tmp_path / "t.db"),
+        References(live=False, static=static),
+        P.Config(mode="steady"),
+        journal_path=tmp_path / "journal.csv",
+        clock=clock,
+    )
     b.clock_ref = clock
     return b
 
@@ -125,8 +134,11 @@ def desk(bot):
 
 
 def call(port, path, body=None, token=None, host=None):
-    req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", data=None if body is None else json.dumps(body).encode(),
-                                 method="GET" if body is None else "POST")
+    req = urllib.request.Request(
+        f"http://127.0.0.1:{port}{path}",
+        data=None if body is None else json.dumps(body).encode(),
+        method="GET" if body is None else "POST",
+    )
     if token:
         req.add_header("X-Markout-Token", token)
     if host:
@@ -166,28 +178,62 @@ def test_kelly_is_a_target_exposure_and_decided_contracts_cool_down(bot):
     bot.refresh()  # same prices, minutes later: the decided contract is not asked again
     assert all(x["contract_id"] != p["contract_id"] for x in bot.store.proposals("pending"))
     held = {x.contract_id: x.qty for x in bot.api.positions()}
-    cands = P.screen(*[bot.api.markets()], bot.api.books([c.id for m in bot.api.markets() for c in m.contracts]),
-                     {}, bot.cfg, bot.now())
+    cands = P.screen(
+        *[bot.api.markets()],
+        bot.api.books([c.id for m in bot.api.markets() for c in m.contracts]),
+        {},
+        bot.cfg,
+        bot.now(),
+    )
     assert cands == []  # (no estimates given: nothing to screen)
     from markout.cup.engine import Estimate
     from markout.cup.proposals import Candidate as Cand
+
     b = bot.api.books([p["contract_id"]])[p["contract_id"]]
     m = next(m for m in bot.api.markets() if m.id == p["market_id"])
-    c = Cand(m, p["contract_id"], p["contract_name"], Estimate(p["p"], p["lo"], p["hi"], b.mid), b,
-             p["kelly"], p["edge"], True, [], [])
+    c = Cand(
+        m,
+        p["contract_id"],
+        p["contract_name"],
+        Estimate(p["p"], p["lo"], p["hi"], b.mid),
+        b,
+        p["kelly"],
+        p["edge"],
+        True,
+        [],
+        [],
+    )
     target = bot.cfg.kelly_mult * p["kelly"] * bot.api.account().equity
-    (_, stake_fresh, _), = P.size([c], bot.api.account(), bot.cfg, held={})
-    (_, stake_held, why), = P.size([c], bot.api.account(), bot.cfg, held=held)
+    ((_, stake_fresh, _),) = P.size([c], bot.api.account(), bot.cfg, held={})
+    ((_, stake_held, why),) = P.size([c], bot.api.account(), bot.cfg, held=held)
     assert stake_held < stake_fresh  # what is already held counts toward the target
-    assert stake_held == pytest.approx(max(min(target, 0.25 * bot.api.account().equity)
-                                           - held[p["contract_id"]] * b.best_ask, 0.0), abs=1e-6) or stake_held == 0
+    assert (
+        stake_held
+        == pytest.approx(
+            max(min(target, 0.25 * bot.api.account().equity) - held[p["contract_id"]] * b.best_ask, 0.0), abs=1e-6
+        )
+        or stake_held == 0
+    )
 
 
 def test_manual_mapping_brings_an_unmatched_contract_into_play(bot):
     from markout.cup.sources.base import ExternalQuote
 
-    bot.refs.set_pool([ExternalQuote("polymarket", "pm-77", "Comets vs Hawks: over 2.5 goals", "Yes", 0.70,
-                                     bid=0.69, ask=0.71, liquidity=5e5, volume_24h=1e5)])
+    bot.refs.set_pool(
+        [
+            ExternalQuote(
+                "polymarket",
+                "pm-77",
+                "Comets vs Hawks: over 2.5 goals",
+                "Yes",
+                0.70,
+                bid=0.69,
+                ask=0.71,
+                liquidity=5e5,
+                volume_24h=1e5,
+            )
+        ]
+    )
     bot.refresh()
     assert all(p["contract_id"] != "m8-yes" for p in bot.store.proposals("pending"))  # no reference yet
     hits = bot.search("m8-yes", "comets goals")["results"]

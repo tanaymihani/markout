@@ -33,8 +33,8 @@ def _row_sharpe(x: np.ndarray, axis: int) -> np.ndarray:
 #   "after running only N=46 independent trials ... DSR would have been 0.9505"
 #   "If the strategy had exhibited Normal returns (g3 = 0, g4 = 3), DSR = 0.9505 after
 #    N=88 independent trials."
-PAPER_SR = 2.5 / math.sqrt(250)   # annualized 2.5 -> per day
-PAPER_VAR = 0.5 / 250             # annualized variance 1/2 -> per day
+PAPER_SR = 2.5 / math.sqrt(250)  # annualized 2.5 -> per day
+PAPER_VAR = 0.5 / 250  # annualized variance 1/2 -> per day
 PAPER_T = 1250
 
 
@@ -71,6 +71,7 @@ def test_deflated_sharpe_wires_the_same_formulas():
 # (b) E[max SR] against Monte Carlo and against the exact order statistic
 # ---------------------------------------------------------------------------------------
 
+
 def test_expected_max_sr_matches_monte_carlo_of_max_sample_sharpe():
     """N iid zero-mean normal strategies with T observations: the average of the max
     sample Sharpe should match expected_max_sr(var_sr=1/T, N).
@@ -94,19 +95,18 @@ def test_expected_max_sr_matches_monte_carlo_of_max_sample_sharpe():
 def test_expected_max_sr_close_to_exact_and_conservative(n):
     """Against E[max of n iid N(0,1)] computed by quadrature, the approximation is within
     2.5% and errs high (conservative) for n >= 10."""
-    exact, _ = integrate.quad(lambda x: x * n * stats.norm.pdf(x) * stats.norm.cdf(x) ** (n - 1),
-                              -12, 12, limit=400)
+    exact, _ = integrate.quad(lambda x: x * n * stats.norm.pdf(x) * stats.norm.cdf(x) ** (n - 1), -12, 12, limit=400)
     approx = expected_max_sr(1.0, n)
     assert approx >= exact
     assert approx == pytest.approx(exact, rel=0.025)
 
 
 def test_expected_max_sr_edge_cases_and_scaling():
-    assert expected_max_sr(0.3, 1) == 0.0                      # no selection, no deflation
+    assert expected_max_sr(0.3, 1) == 0.0  # no selection, no deflation
     assert expected_max_sr(4.0, 50) == pytest.approx(2 * expected_max_sr(1.0, 50))
     vals = [expected_max_sr(1.0, n) for n in (2, 5, 10, 100, 1000)]
-    assert all(b > a for a, b in zip(vals, vals[1:]))          # more trials, higher bar
-    assert expected_max_sr(1.0, 1.05) >= 0.0                   # floored near N = 1
+    assert all(b > a for a, b in zip(vals, vals[1:]))  # more trials, higher bar
+    assert expected_max_sr(1.0, 1.05) >= 0.0  # floored near N = 1
     with pytest.raises(ValueError):
         expected_max_sr(-1.0, 10)
     with pytest.raises(ValueError):
@@ -116,6 +116,7 @@ def test_expected_max_sr_edge_cases_and_scaling():
 # ---------------------------------------------------------------------------------------
 # (c) Under the null, PSR(0) is Uniform(0, 1)
 # ---------------------------------------------------------------------------------------
+
 
 def _psr_many(x: np.ndarray, sr_star: float, *, normal: bool = False) -> np.ndarray:
     T = x.shape[1]
@@ -146,13 +147,14 @@ def test_psr_null_calibration_survives_fat_tails():
 # (d) Non-normality lowers PSR for the same Sharpe, and by the right amount
 # ---------------------------------------------------------------------------------------
 
+
 def test_negative_skew_and_fat_tails_lower_psr_for_the_same_sr():
     sr, T = 0.1, 250
     base = psr(sr, 0.0, T, 0.0, 3.0)
-    assert psr(sr, 0.0, T, -1.0, 3.0) < base          # negative skew alone
-    assert psr(sr, 0.0, T, 0.0, 8.0) < base           # fat tails alone
+    assert psr(sr, 0.0, T, -1.0, 3.0) < base  # negative skew alone
+    assert psr(sr, 0.0, T, 0.0, 8.0) < base  # fat tails alone
     assert psr(sr, 0.0, T, -2.0, 10.0) < psr(sr, 0.0, T, -1.0, 6.0) < base
-    assert psr(sr, 0.0, T, +1.0, 3.0) > base          # positive skew helps a positive SR
+    assert psr(sr, 0.0, T, +1.0, 3.0) > base  # positive skew helps a positive SR
     assert psr(sr, sr, T, -2.0, 10.0) == pytest.approx(0.5)
 
 
@@ -162,8 +164,8 @@ def test_same_mean_and_std_but_skewed_data_gets_lower_psr():
     rng = np.random.default_rng(5)
     T, mu = 500, 0.08
     normal = rng.standard_normal(T)
-    skewed = -rng.lognormal(0.0, 0.8, T)             # long left tail
-    std = lambda v: (v - v.mean()) / v.std(ddof=1)   # noqa: E731
+    skewed = -rng.lognormal(0.0, 0.8, T)  # long left tail
+    std = lambda v: (v - v.mean()) / v.std(ddof=1)  # noqa: E731
     a, b = mu + std(normal), mu + std(skewed)
     ra = deflated_sharpe(a, n_trials=1)
     rb = deflated_sharpe(b, n_trials=1)
@@ -191,11 +193,12 @@ def test_non_normality_adjustment_is_calibrated_not_just_directional():
 # plumbing: sharpe(), argument checks
 # ---------------------------------------------------------------------------------------
 
+
 def test_sharpe_basics_and_degenerate_cases():
     x = np.array([1.0, 2.0, 3.0, 4.0])
     assert sharpe(x) == pytest.approx(x.mean() / x.std(ddof=1))
     assert sharpe([np.nan, 1.0, 2.0, 3.0, 4.0]) == pytest.approx(sharpe(x))  # NaNs dropped
-    assert sharpe(np.zeros(10)) == 0.0          # never traded: earned nothing
+    assert sharpe(np.zeros(10)) == 0.0  # never traded: earned nothing
     assert math.isnan(sharpe(np.full(10, 0.3)))  # riskless non-zero return: undefined
     assert math.isnan(sharpe([1.0]))
     with pytest.raises(ValueError):
@@ -209,7 +212,7 @@ def test_deflated_sharpe_demands_the_trial_count():
     with pytest.raises(ValueError, match="n_trials"):
         deflated_sharpe(x)
     with pytest.raises(ValueError):
-        deflated_sharpe(x, n_trials=10)          # N > 1 but no dispersion given
+        deflated_sharpe(x, n_trials=10)  # N > 1 but no dispersion given
     one = deflated_sharpe(x, n_trials=1)
     assert one["sr_star"] == 0.0 and one["dsr"] == one["psr_0"]
 

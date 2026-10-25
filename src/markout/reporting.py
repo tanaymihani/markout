@@ -50,8 +50,12 @@ def usd(x: float | None) -> str:
     return f"{'-' if x < 0 else ''}${abs(x):,.0f}"
 
 
-def table(rows: Sequence[Mapping], columns: Sequence[str] | None = None,
-          formats: Mapping[str, str] | None = None, headers: Mapping[str, str] | None = None) -> str:
+def table(
+    rows: Sequence[Mapping],
+    columns: Sequence[str] | None = None,
+    formats: Mapping[str, str] | None = None,
+    headers: Mapping[str, str] | None = None,
+) -> str:
     """GitHub-flavoured markdown table from a list of dicts."""
     if not rows:
         return "_(no rows)_"

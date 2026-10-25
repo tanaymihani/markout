@@ -75,8 +75,17 @@ def estimate(book: Book, refs: list[Candidate], min_band: float = 0.02) -> Estim
         return None
     comps = [{"label": "contest mid", "p": book.mid, "w": contest_weight(book), "url": "", "source": "contest"}]
     for c in refs:
-        comps.append({"label": f"{c.quote.source}{' (1-p)' if c.invert else ''}", "p": c.p, "w": source_weight(c),
-                      "url": c.quote.url, "source": c.quote.source, "note": c.quote.note, "match": c.why})
+        comps.append(
+            {
+                "label": f"{c.quote.source}{' (1-p)' if c.invert else ''}",
+                "p": c.p,
+                "w": source_weight(c),
+                "url": c.quote.url,
+                "source": c.quote.source,
+                "note": c.quote.note,
+                "match": c.why,
+            }
+        )
     W = sum(x["w"] for x in comps)
     p = sigmoid(sum(x["w"] * logit(x["p"]) for x in comps) / W)
     # Uncertainty comes from the references alone: how much they disagree with each other and

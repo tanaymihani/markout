@@ -25,8 +25,15 @@ from markout.decision import journal
 
 
 class Bot:
-    def __init__(self, api, store: Store, refs: References, cfg: P.Config | None = None,
-                 journal_path: Path = journal.JOURNAL, clock=utcnow):
+    def __init__(
+        self,
+        api,
+        store: Store,
+        refs: References,
+        cfg: P.Config | None = None,
+        journal_path: Path = journal.JOURNAL,
+        clock=utcnow,
+    ):
         self.api, self.store, self.refs, self.clock = api, store, refs, clock
         self.cfg = cfg or P.Config()
         saved = store.get("mode")
@@ -64,10 +71,21 @@ class Bot:
                 for cand in cands:
                     if self.store.mapping_status(cid, cand.key) is None:
                         auto = cand.why == "bundled reference"  # demo references are pre-matched
-                        self.store.put_mapping(cid, cand.key, "confirmed" if auto else "suggested",
-                                               {"score": cand.score, "why": cand.why, "question": cand.quote.question,
-                                                "outcome": cand.quote.outcome, "source": cand.quote.source,
-                                                "p": cand.p, "url": cand.quote.url, "invert": cand.invert})
+                        self.store.put_mapping(
+                            cid,
+                            cand.key,
+                            "confirmed" if auto else "suggested",
+                            {
+                                "score": cand.score,
+                                "why": cand.why,
+                                "question": cand.quote.question,
+                                "outcome": cand.quote.outcome,
+                                "source": cand.quote.source,
+                                "p": cand.p,
+                                "url": cand.quote.url,
+                                "invert": cand.invert,
+                            },
+                        )
                 known = {x.key for x in cands}
                 for row in self.store.mappings(cid):  # manual mappings chosen by the user in the desk
                     if row.get("manual") and row["status"] == "confirmed" and row["key"] not in known:
@@ -86,9 +104,10 @@ class Bot:
             new = P.build(list(markets.values()), books, estimates, account, self.cfg, now, held)
             new = self._cool_down(new, now)
             self._merge(new, now)
-            self.store.snapshot(now.isoformat(timespec="seconds"),
-                                {"cash": account.cash, "equity": account.equity, "rank": account.rank,
-                                 "n": account.n_players})
+            self.store.snapshot(
+                now.isoformat(timespec="seconds"),
+                {"cash": account.cash, "equity": account.equity, "rank": account.rank, "n": account.n_players},
+            )
             self.last_refresh = now
             return {"markets": len(markets), "contracts": len(ids), "estimates": len(estimates), "proposals": len(new)}
 
@@ -105,8 +124,11 @@ class Bot:
         keep = []
         for p in new:
             prev = last.get(p.contract_id)
-            moved = prev is None or abs(p.p - prev["p"]) >= self.cfg.requote_move \
+            moved = (
+                prev is None
+                or abs(p.p - prev["p"]) >= self.cfg.requote_move
                 or abs(p.ask - prev["ask"]) >= self.cfg.requote_move
+            )
             if moved:
                 keep.append(p)
         return keep
@@ -121,8 +143,13 @@ class Bot:
                 self.store.put_proposal(old)
         for p in new:
             old = pending.get(p.contract_id)
-            if old and old["status"] == "pending" and abs(old["ask"] - p.ask) < 1e-9 and abs(old["p"] - p.p) < 0.005 \
-                    and abs(old["stake"] - p.stake) < 1e-6:
+            if (
+                old
+                and old["status"] == "pending"
+                and abs(old["ask"] - p.ask) < 1e-9
+                and abs(old["p"] - p.p) < 0.005
+                and abs(old["stake"] - p.stake) < 1e-6
+            ):
                 continue  # unchanged: keep the original (and its id)
             if old and old["status"] == "pending":
                 old["status"], old["decided"] = "expired", now.isoformat(timespec="seconds")
@@ -149,9 +176,18 @@ class Bot:
             reason = ("DEVIATION: " if deviation else "") + (note + " | " if note else "") + p["rationale"]
             q_ref = book.best_ask if book and book.best_ask else p["ask"]
             if stake == 0:
-                journal.add(self.journal_path, market=p["contract_id"], side="YES", p=p["p"], q=q_ref, stake=0,
-                            bankroll=max(account.equity, 1e-9), question=f"{p['market_title']} :: {p['contract_name']}",
-                            reason=reason, timestamp=now.isoformat(timespec="seconds"))
+                journal.add(
+                    self.journal_path,
+                    market=p["contract_id"],
+                    side="YES",
+                    p=p["p"],
+                    q=q_ref,
+                    stake=0,
+                    bankroll=max(account.equity, 1e-9),
+                    question=f"{p['market_title']} :: {p['contract_name']}",
+                    reason=reason,
+                    timestamp=now.isoformat(timespec="seconds"),
+                )
                 p.update(status="logged", decided=now.isoformat(timespec="seconds"), decided_stake=0.0, note=note)
                 self.store.put_proposal(p)
                 self.store.log(p["decided"], "logged", {"proposal": pid})
@@ -165,18 +201,38 @@ class Bot:
             filled = order.filled_qty
             fills = [f for f in self.api.fills() if f.order_id == order.id]
             px = sum(f.price * f.qty for f in fills) / filled if filled else None
-            p.update(status="executed" if filled else "rejected",
-                     decided=now.isoformat(timespec="seconds"), decided_stake=stake, note=note, order_id=order.id,
-                     fill_price=px, fill_qty=filled)
+            p.update(
+                status="executed" if filled else "rejected",
+                decided=now.isoformat(timespec="seconds"),
+                decided_stake=stake,
+                note=note,
+                order_id=order.id,
+                fill_price=px,
+                fill_qty=filled,
+            )
             self.store.put_proposal(p)
-            self.store.log(p["decided"], "order", {"proposal": pid, "order": order.id, "status": order.status,
-                                                   "filled": filled, "price": px})
+            self.store.log(
+                p["decided"],
+                "order",
+                {"proposal": pid, "order": order.id, "status": order.status, "filled": filled, "price": px},
+            )
             if filled:
-                journal.add(self.journal_path, market=p["contract_id"], side="YES", p=p["p"], q=px, stake=filled * px,
-                            bankroll=max(account.equity, filled * px), question=f"{p['market_title']} :: {p['contract_name']}",
-                            reason=reason, timestamp=now.isoformat(timespec="seconds"))
-            return {"ok": bool(filled), "message": f"order {order.status}: {filled:g} @ {px:.2f}" if filled
-                    else f"order {order.status}"}
+                journal.add(
+                    self.journal_path,
+                    market=p["contract_id"],
+                    side="YES",
+                    p=p["p"],
+                    q=px,
+                    stake=filled * px,
+                    bankroll=max(account.equity, filled * px),
+                    question=f"{p['market_title']} :: {p['contract_name']}",
+                    reason=reason,
+                    timestamp=now.isoformat(timespec="seconds"),
+                )
+            return {
+                "ok": bool(filled),
+                "message": f"order {order.status}: {filled:g} @ {px:.2f}" if filled else f"order {order.status}",
+            }
 
     def skip(self, pid: str, note: str = "") -> dict:
         with self.lock:
@@ -209,9 +265,17 @@ class Bot:
             for m in self.api.markets():
                 for c in m.contracts:
                     rows = self.store.mappings(c.id)
-                    out.append({"market_id": m.id, "title": m.title, "category": m.category, "contract_id": c.id,
-                                "contract": c.name, "confirmed": sum(r["status"] == "confirmed" for r in rows),
-                                "suggested": sum(r["status"] == "suggested" for r in rows)})
+                    out.append(
+                        {
+                            "market_id": m.id,
+                            "title": m.title,
+                            "category": m.category,
+                            "contract_id": c.id,
+                            "contract": c.name,
+                            "confirmed": sum(r["status"] == "confirmed" for r in rows),
+                            "suggested": sum(r["status"] == "suggested" for r in rows),
+                        }
+                    )
             return out
 
     def search(self, contract_id: str, query: str) -> dict:
@@ -224,9 +288,18 @@ class Bot:
             res = []
             for q in self.refs.search(query or text):
                 cand = match.score(m, c, q)
-                res.append({"source": q.source, "qid": q.id, "question": q.question, "outcome": q.outcome,
-                            "p": q.p, "url": q.url, "invert": cand.invert,
-                            "warning": cand.why if cand.score < 0 else ""})
+                res.append(
+                    {
+                        "source": q.source,
+                        "qid": q.id,
+                        "question": q.question,
+                        "outcome": q.outcome,
+                        "p": q.p,
+                        "url": q.url,
+                        "invert": cand.invert,
+                        "warning": cand.why if cand.score < 0 else "",
+                    }
+                )
             return {"ok": True, "message": f"{len(res)} results", "results": res}
 
     def add_manual_mapping(self, contract_id: str, source: str, qid: str, outcome: str, invert: bool) -> dict:
@@ -234,10 +307,23 @@ class Bot:
         if q is None:
             return {"ok": False, "message": "reference not found in the current pool"}
         key = f"{source}:{qid}:{outcome}:{int(bool(invert))}"
-        self.store.put_mapping(contract_id, key, "confirmed", {"manual": True, "source": source, "qid": qid,
-                                                               "outcome": outcome, "invert": bool(invert),
-                                                               "question": q.question, "p": q.p, "url": q.url,
-                                                               "score": 1.0, "why": "manual mapping"})
+        self.store.put_mapping(
+            contract_id,
+            key,
+            "confirmed",
+            {
+                "manual": True,
+                "source": source,
+                "qid": qid,
+                "outcome": outcome,
+                "invert": bool(invert),
+                "question": q.question,
+                "p": q.p,
+                "url": q.url,
+                "score": 1.0,
+                "why": "manual mapping",
+            },
+        )
         return {"ok": True, "message": "mapping confirmed; it is used from the next refresh"}
 
     def set_mode(self, mode: str) -> dict:
@@ -260,7 +346,9 @@ class Bot:
                 if cid in self._resolved_logged:
                     continue
                 try:
-                    journal.resolve(self.journal_path, cid, int(y), resolved_at=self.now().isoformat(timespec="seconds"))
+                    journal.resolve(
+                        self.journal_path, cid, int(y), resolved_at=self.now().isoformat(timespec="seconds")
+                    )
                 except (ValueError, KeyError):
                     pass  # no journal rows for that contract
                 self._resolved_logged.add(cid)
@@ -275,19 +363,36 @@ class Bot:
             for p in self.api.positions():
                 m, c = by_contract.get(p.contract_id, (None, None))
                 mid = books.get(p.contract_id).mid if p.contract_id in books else None
-                pos.append({"contract_id": p.contract_id, "market": m.title if m else p.contract_id,
-                            "contract": c.name if c else "", "qty": p.qty, "avg_price": p.avg_price, "mid": mid,
-                            "pnl": (mid - p.avg_price) * p.qty if mid is not None else None})
+                pos.append(
+                    {
+                        "contract_id": p.contract_id,
+                        "market": m.title if m else p.contract_id,
+                        "contract": c.name if c else "",
+                        "qty": p.qty,
+                        "avg_price": p.avg_price,
+                        "mid": mid,
+                        "pnl": (mid - p.avg_price) * p.qty if mid is not None else None,
+                    }
+                )
             maps = {}
             for r in self.store.mappings():
                 maps.setdefault(r["contract_id"], []).append(r)
             pend = self.store.proposals("pending")
             for p in pend:
                 p["mappings"] = maps.get(p["contract_id"], [])
-            return {"now": self.now().isoformat(timespec="seconds"), "adapter": self.api.name, "mode": self.cfg.mode,
-                    "config": self.cfg.to_dict(), "account": acct.__dict__, "in_top3": acct.in_top3,
-                    "kill_switch": risk.STOP_FILE.exists(), "last_refresh": self.last_refresh.isoformat(timespec="seconds")
-                    if self.last_refresh else None, "last_error": self.last_error, "pending": pend,
-                    "recent": [p for p in self.store.proposals() if p["status"] != "pending"][:30],
-                    "positions": pos, "snapshots": self.store.snapshots()[-500:],
-                    "source_errors": self.refs.errors[-5:]}
+            return {
+                "now": self.now().isoformat(timespec="seconds"),
+                "adapter": self.api.name,
+                "mode": self.cfg.mode,
+                "config": self.cfg.to_dict(),
+                "account": acct.__dict__,
+                "in_top3": acct.in_top3,
+                "kill_switch": risk.STOP_FILE.exists(),
+                "last_refresh": self.last_refresh.isoformat(timespec="seconds") if self.last_refresh else None,
+                "last_error": self.last_error,
+                "pending": pend,
+                "recent": [p for p in self.store.proposals() if p["status"] != "pending"][:30],
+                "positions": pos,
+                "snapshots": self.store.snapshots()[-500:],
+                "source_errors": self.refs.errors[-5:],
+            }

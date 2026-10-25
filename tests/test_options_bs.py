@@ -61,7 +61,7 @@ def test_greeks_match_finite_differences(S, K, T, r, q, sigma, kind):
         "delta": (V(S=S + hS) - V(S=S - hS)) / (2 * hS),
         "gamma": (V(S=S + hS) - 2 * V() + V(S=S - hS)) / hS**2,
         "vega": (V(sigma=sigma + hv) - V(sigma=sigma - hv)) / (2 * hv),
-        "theta": -(V(T=T + hT) - V(T=T - hT)) / (2 * hT),   # dV/dt = -dV/dT
+        "theta": -(V(T=T + hT) - V(T=T - hT)) / (2 * hT),  # dV/dt = -dV/dT
         "rho": (V(r=r + hr) - V(r=r - hr)) / (2 * hr),
     }
     g = bs.greeks(S, K, T, r, q, sigma, kind)
@@ -94,8 +94,8 @@ def test_iv_is_nan_when_no_vol_fits():
     S, K, T, r, q = 100.0, 90.0, 0.5, 0.04, 0.01
     lo_c, hi_c = bs.bounds(S, K, T, r, q, "call")
     lo_p, hi_p = bs.bounds(S, 110.0, T, r, q, "put")
-    assert math.isnan(bs.implied_vol(lo_c - 0.01, S, K, T, r, q, "call"))       # below intrinsic
-    assert math.isnan(bs.implied_vol(hi_c + 0.01, S, K, T, r, q, "call"))       # above S e^{-qT}
+    assert math.isnan(bs.implied_vol(lo_c - 0.01, S, K, T, r, q, "call"))  # below intrinsic
+    assert math.isnan(bs.implied_vol(hi_c + 0.01, S, K, T, r, q, "call"))  # above S e^{-qT}
     assert math.isnan(bs.implied_vol(lo_p - 0.01, S, 110.0, T, r, q, "put"))
     assert math.isnan(bs.implied_vol(hi_p + 0.01, S, 110.0, T, r, q, "put"))
     assert math.isnan(bs.implied_vol(float("nan"), S, K, T, r, q, "call"))
@@ -107,8 +107,8 @@ def test_static_arbitrage_shape_in_strike():
     K = np.linspace(50.0, 150.0, 101)
     c = bs.price(S, K, T, r, q, sigma, "call")
     p = bs.price(S, K, T, r, q, sigma, "put")
-    assert np.all(np.diff(c) < 0) and np.all(np.diff(p) > 0)          # monotone in K
-    assert np.all(c[:-2] - 2 * c[1:-1] + c[2:] > 0)                    # butterflies cost money
+    assert np.all(np.diff(c) < 0) and np.all(np.diff(p) > 0)  # monotone in K
+    assert np.all(c[:-2] - 2 * c[1:-1] + c[2:] > 0)  # butterflies cost money
     assert np.all(-np.diff(c) <= np.diff(K) * math.exp(-r * T) + 1e-12)  # call spread <= PV(K2 - K1)
     sigmas = np.linspace(0.05, 1.0, 20)
     assert np.all(np.diff(bs.price(S, 100.0, T, r, q, sigmas, "call")) > 0)  # vega > 0

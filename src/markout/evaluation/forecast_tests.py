@@ -70,10 +70,13 @@ def _paired(loss_a: ArrayLike1D, loss_b: ArrayLike1D) -> np.ndarray:
     return d[~np.isnan(d)]
 
 
-def diebold_mariano(loss_a: ArrayLike1D, loss_b: ArrayLike1D, h: int = 1,
-                    lag: int | None = None,
-                    alternative: Literal["two-sided", "less", "greater"] = "two-sided",
-                    ) -> dict[str, Any]:
+def diebold_mariano(
+    loss_a: ArrayLike1D,
+    loss_b: ArrayLike1D,
+    h: int = 1,
+    lag: int | None = None,
+    alternative: Literal["two-sided", "less", "greater"] = "two-sided",
+) -> dict[str, Any]:
     """Diebold-Mariano test with the Harvey-Leybourne-Newbold small-sample correction.
 
         d_t   = loss_a_t - loss_b_t

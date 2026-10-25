@@ -34,15 +34,15 @@ def test_har_forecast_never_sees_the_future():
     f = vrp.har_forecast(r, h=21, min_train=500)
     t = 900
     r2 = r.copy()
-    r2.iloc[t + 1:] = np.random.default_rng(9).normal(0, 0.05, len(r) - t - 1)  # a different future
+    r2.iloc[t + 1 :] = np.random.default_rng(9).normal(0, 0.05, len(r) - t - 1)  # a different future
     f2 = vrp.har_forecast(r2, h=21, min_train=500)
-    np.testing.assert_allclose(f.iloc[:t + 1].to_numpy(), f2.iloc[:t + 1].to_numpy(), equal_nan=True)
+    np.testing.assert_allclose(f.iloc[: t + 1].to_numpy(), f2.iloc[: t + 1].to_numpy(), equal_nan=True)
 
 
 def test_har_recovers_a_constant_variance():
     r = returns(sigma=0.01)
     f = vrp.har_forecast(r, h=21, min_train=500).dropna()
-    assert f.mean() == pytest.approx(252 * 0.01 ** 2, rel=0.1)
+    assert f.mean() == pytest.approx(252 * 0.01**2, rel=0.1)
 
 
 def test_rules_use_the_term_structure_and_the_forecast():
@@ -89,7 +89,7 @@ def test_hedged_straddle_earns_the_price_difference_on_average():
     # zero-drift paths at 15% vol, straddle sold at 20%: whatever the hedge does, the mean PnL is V(20%) - V(15%)
     rng = np.random.default_rng(0)
     real, implied, n = 0.15, 0.20, 4000
-    paths = rng.normal(-0.5 * real ** 2 / 252, real / np.sqrt(252), size=(n, 21))
+    paths = rng.normal(-0.5 * real**2 / 252, real / np.sqrt(252), size=(n, 21))
     pnl = np.array([ST.hedge_month(p, implied)["gross"] for p in paths])
     vega_pt = 2 * bs.vega(1.0, 1.0, 21 / 252, 0.0, 0.0, implied) / 100
     expected = (straddle_value(implied) - straddle_value(real)) / vega_pt
@@ -111,8 +111,8 @@ def test_straddle_months_line_up_with_the_variance_swap():
     assert list(res.index) == list(S.rolls(fr, "2000-01-03").index)
     d = res.index[1]
     p = fr.index.get_loc(d)
-    month = fr["r"].to_numpy()[p + 1:p + 22]  # the returns behind the swap's realized vol
-    assert 100 * np.sqrt(252 / 21 * np.sum(month ** 2)) == pytest.approx(res.loc[d, "rv_vol"])
+    month = fr["r"].to_numpy()[p + 1 : p + 22]  # the returns behind the swap's realized vol
+    assert 100 * np.sqrt(252 / 21 * np.sum(month**2)) == pytest.approx(res.loc[d, "rv_vol"])
     assert res.loc[d, "straddle"] == pytest.approx(ST.hedge_month(month, 0.20)["pnl"])
     assert res.loc[d, "var_swap"] == pytest.approx(float(S.short_var_pnl(20.0, res.loc[d, "rv_vol"])))
     costly = ST.run(fr, "2000-01-03", cost_vol=0.0, hedge_bps=1.0)

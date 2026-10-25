@@ -24,12 +24,37 @@ EPS = 1e-9
 
 FEATURES: dict[str, list[str]] = {
     "book": ["spread_bps", "book_imb", "wap_vs_mid_bps", "log_depth"],
-    "auction": ["imb_ratio", "imb_to_depth", "log_matched", "ref_vs_wap_bps", "near_vs_wap_bps",
-                "far_vs_wap_bps", "near_minus_far_bps", "imb_flag", "is_post300", "seconds_f"],
-    "dynamics": ["wap_ret_1", "wap_ret_3", "wap_ret_6", "wap_from_open_bps", "imb_ratio_d1",
-                 "imb_ratio_d3", "matched_chg_1", "book_imb_d1"],
-    "xs": ["rel_ret_1", "rel_ret_6", "rel_from_open_bps", "rank_imb_ratio", "rank_book_imb",
-           "rank_ref_vs_wap", "z_rel_ret_6"],
+    "auction": [
+        "imb_ratio",
+        "imb_to_depth",
+        "log_matched",
+        "ref_vs_wap_bps",
+        "near_vs_wap_bps",
+        "far_vs_wap_bps",
+        "near_minus_far_bps",
+        "imb_flag",
+        "is_post300",
+        "seconds_f",
+    ],
+    "dynamics": [
+        "wap_ret_1",
+        "wap_ret_3",
+        "wap_ret_6",
+        "wap_from_open_bps",
+        "imb_ratio_d1",
+        "imb_ratio_d3",
+        "matched_chg_1",
+        "book_imb_d1",
+    ],
+    "xs": [
+        "rel_ret_1",
+        "rel_ret_6",
+        "rel_from_open_bps",
+        "rank_imb_ratio",
+        "rank_book_imb",
+        "rank_ref_vs_wap",
+        "z_rel_ret_6",
+    ],
     "hist": ["stock_absret_20d", "stock_spread_20d"],
 }
 
@@ -109,10 +134,11 @@ def _history(df: pl.DataFrame, window: int = 20) -> pl.DataFrame:
 
     Targets of earlier days are fully realized by day d, so using them is causal.
     """
-    daily = (df.group_by(GROUP)
-               .agg(pl.col("target").abs().mean().alias("_absret"),
-                    pl.col("spread_bps").mean().alias("_spread"))
-               .sort(GROUP))
+    daily = (
+        df.group_by(GROUP)
+        .agg(pl.col("target").abs().mean().alias("_absret"), pl.col("spread_bps").mean().alias("_spread"))
+        .sort(GROUP)
+    )
     daily = daily.with_columns(
         stock_absret_20d=pl.col("_absret").shift(1).rolling_mean(window, min_samples=5).over("stock_id"),
         stock_spread_20d=pl.col("_spread").shift(1).rolling_mean(window, min_samples=5).over("stock_id"),
@@ -128,4 +154,5 @@ def build(df: pl.DataFrame, weights: pl.DataFrame) -> pl.DataFrame:
     out = _history(out)
     feats = feature_list(list(FEATURES))
     return out.with_columns([pl.col(f).cast(pl.Float32) for f in feats]).sort(
-        ["stock_id", "date_id", "seconds_in_bucket"])
+        ["stock_id", "date_id", "seconds_in_bucket"]
+    )

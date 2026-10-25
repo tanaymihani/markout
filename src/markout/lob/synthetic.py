@@ -20,10 +20,10 @@ from markout.lob.lobster import DUMMY_ASK, DUMMY_BID, LEVELS, Book, Messages, Ms
 @dataclass
 class SyntheticExchange:
     levels: int = LEVELS
-    orders: dict[int, list] = field(default_factory=dict)        # id -> [side, price, size]
+    orders: dict[int, list] = field(default_factory=dict)  # id -> [side, price, size]
     queues: dict[int, dict[int, deque]] = field(default_factory=lambda: {1: {}, -1: {}})
-    rows: list[tuple] = field(default_factory=list)              # message rows
-    books: list[np.ndarray] = field(default_factory=list)        # (4, levels) per row
+    rows: list[tuple] = field(default_factory=list)  # message rows
+    books: list[np.ndarray] = field(default_factory=list)  # (4, levels) per row
     next_id: int = 1
 
     # ------------------------------------------------------------------ book state
@@ -144,15 +144,24 @@ KINDS = ("submit", "cancel", "delete", "market", "hidden", "cross", "halt")
 SIZES = (1, 50, 100, 100, 200, 300, 500)
 
 
-def apply_action(ex: SyntheticExchange, t: float, kind: str, side: int, offset: int, size: int,
-                 pick: int, tick: int = 100, mid: int = 1_000_000) -> None:
+def apply_action(
+    ex: SyntheticExchange,
+    t: float,
+    kind: str,
+    side: int,
+    offset: int,
+    size: int,
+    pick: int,
+    tick: int = 100,
+    mid: int = 1_000_000,
+) -> None:
     """Turn one action into a valid event. Actions that cannot apply to the current book
     (a cancel with no resting orders, a one-sided book...) fall back to a submission, so
     every action list maps to a well-formed LOBSTER stream."""
     own, opp = ex.best(side), ex.best(-side)
     if kind == "submit" or own is None or opp is None or not ex.orders:
         ref = own if own is not None else (opp - side * tick if opp is not None else mid)
-        price = ref - side * tick * offset                    # offset -1 improves the quote
+        price = ref - side * tick * offset  # offset -1 improves the quote
         if opp is not None and (price >= opp if side > 0 else price <= opp):
             price = opp - side * tick
         ex.submit(t, side, price, size)
@@ -167,7 +176,7 @@ def apply_action(ex: SyntheticExchange, t: float, kind: str, side: int, offset: 
         ex.delete(t, sorted(ex.orders)[pick % len(ex.orders)])
     elif kind == "market":
         ex.market(t, side, size)
-    elif kind == "hidden":                   # usually inside the spread, sometimes at the touch
+    elif kind == "hidden":  # usually inside the spread, sometimes at the touch
         bb, ba = ex.best(1), ex.best(-1)
         steps = (ba - bb) // tick
         ex.hidden(t, bb + tick * (pick % (steps + 1)), size, side)
@@ -177,8 +186,9 @@ def apply_action(ex: SyntheticExchange, t: float, kind: str, side: int, offset: 
         ex.halt(t, (-1, 0, 1)[pick % 3])
 
 
-def seeded_exchange(levels: int, mid: int = 1_000_000, tick: int = 100, depth: int = 3,
-                    size: int = 100) -> SyntheticExchange:
+def seeded_exchange(
+    levels: int, mid: int = 1_000_000, tick: int = 100, depth: int = 3, size: int = 100
+) -> SyntheticExchange:
     """A two-sided book with `depth` levels per side around `mid`."""
     ex = SyntheticExchange(levels=levels)
     for side in (1, -1):
@@ -187,8 +197,9 @@ def seeded_exchange(levels: int, mid: int = 1_000_000, tick: int = 100, depth: i
     return ex
 
 
-def random_stream(rng: np.random.Generator, n_events: int = 400, levels: int = 5,
-                  mid: int = 1_000_000, tick: int = 100) -> tuple[Messages, Book]:
+def random_stream(
+    rng: np.random.Generator, n_events: int = 400, levels: int = 5, mid: int = 1_000_000, tick: int = 100
+) -> tuple[Messages, Book]:
     """A random but valid event stream: submits near the touch, partial cancels,
     deletes, marketable orders that walk the book, hidden prints, rare cross trades and
     halts. Few levels make orders leave the visible range often."""
@@ -196,9 +207,17 @@ def random_stream(rng: np.random.Generator, n_events: int = 400, levels: int = 5
     probs = np.array([0.45, 0.15, 0.20, 0.15, 0.04, 0.005, 0.005])
     t = 34_200.0
     for _ in range(n_events):
-        if rng.random() < 0.7:                # the rest share a timestamp, as in real data
+        if rng.random() < 0.7:  # the rest share a timestamp, as in real data
             t += float(rng.exponential(0.5))
-        apply_action(ex, t, KINDS[rng.choice(len(KINDS), p=probs / probs.sum())],
-                     1 if rng.random() < 0.5 else -1, int(rng.integers(-1, 4)),
-                     int(rng.choice(SIZES)), int(rng.integers(0, 1_000_000)), tick, mid)
+        apply_action(
+            ex,
+            t,
+            KINDS[rng.choice(len(KINDS), p=probs / probs.sum())],
+            1 if rng.random() < 0.5 else -1,
+            int(rng.integers(-1, 4)),
+            int(rng.choice(SIZES)),
+            int(rng.integers(0, 1_000_000)),
+            tick,
+            mid,
+        )
     return ex.build()

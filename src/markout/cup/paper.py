@@ -57,9 +57,16 @@ class PaperContest:
 
     name = "paper"
 
-    def __init__(self, specs: list[PaperMarketSpec], start_cash: float = 10_000.0, seed: int = 0,
-                 clock: Callable[[], datetime] | None = None, drift_per_day: float = 0.35,
-                 noise_per_day: float = 0.25, n_field: int = 1000):
+    def __init__(
+        self,
+        specs: list[PaperMarketSpec],
+        start_cash: float = 10_000.0,
+        seed: int = 0,
+        clock: Callable[[], datetime] | None = None,
+        drift_per_day: float = 0.35,
+        noise_per_day: float = 0.25,
+        n_field: int = 1000,
+    ):
         self.specs = {s.market.id: s for s in specs}
         self.rng = np.random.default_rng(seed)
         self.clock = clock or utcnow
@@ -89,8 +96,11 @@ class PaperContest:
                 if m in self.resolved:
                     continue
                 truth = self.specs[m].truth[cid]
-                x = logit(p) + self.drift * dt_days * (logit(truth) - logit(p)) \
+                x = (
+                    logit(p)
+                    + self.drift * dt_days * (logit(truth) - logit(p))
                     + self.noise * math.sqrt(dt_days) * self.rng.standard_normal()
+                )
                 self.crowd[cid] = sigmoid(x)
             self.field_log += self.field_sigma * math.sqrt(dt_days) * self.rng.standard_normal(len(self.field_log))
             self._cross_resting()
@@ -239,10 +249,26 @@ def load_scenario(path: Path, start: datetime | None = None) -> list[PaperMarket
     specs = []
     for m in raw["markets"]:
         contracts = tuple(Contract(c["id"], m["id"], c["name"]) for c in m["contracts"])
-        market = Market(m["id"], m["title"], m.get("category", "other"), contracts, when(m.get("closes_at")),
-                        when(m.get("resolves_at")), m.get("description", ""), m.get("url", ""))
-        specs.append(PaperMarketSpec(market, {c["id"]: c["truth"] for c in m["contracts"]},
-                                     {c["id"]: c["crowd"] for c in m["contracts"]}, m.get("spread", 0.06),
-                                     m.get("depth", 150.0), m.get("exclusive", False), m.get("outcome"),
-                                     m.get("references", [])))
+        market = Market(
+            m["id"],
+            m["title"],
+            m.get("category", "other"),
+            contracts,
+            when(m.get("closes_at")),
+            when(m.get("resolves_at")),
+            m.get("description", ""),
+            m.get("url", ""),
+        )
+        specs.append(
+            PaperMarketSpec(
+                market,
+                {c["id"]: c["truth"] for c in m["contracts"]},
+                {c["id"]: c["crowd"] for c in m["contracts"]},
+                m.get("spread", 0.06),
+                m.get("depth", 150.0),
+                m.get("exclusive", False),
+                m.get("outcome"),
+                m.get("references", []),
+            )
+        )
     return specs

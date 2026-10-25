@@ -28,13 +28,22 @@ def corrupt_future(df: pl.DataFrame, d_cut: int, t_cut: int, seed: int = 0) -> p
     rng = np.random.default_rng(seed)
     future = (pl.col("date_id") > d_cut) | ((pl.col("date_id") == d_cut) & (pl.col("seconds_in_bucket") > t_cut))
     cols = [c for c in df.columns if c not in KEYS]
-    out = df.with_columns([
-        pl.when(future).then(pl.Series(rng.normal(1.0, 0.5, df.height)).cast(df.schema[c])).otherwise(pl.col(c)).alias(c)
-        for c in cols if c != "target"
-    ])
+    out = df.with_columns(
+        [
+            pl.when(future)
+            .then(pl.Series(rng.normal(1.0, 0.5, df.height)).cast(df.schema[c]))
+            .otherwise(pl.col(c))
+            .alias(c)
+            for c in cols
+            if c != "target"
+        ]
+    )
     return out.with_columns(
-        pl.when(pl.col("date_id") >= d_cut).then(pl.Series(rng.normal(0, 50, df.height)).cast(pl.Float32))
-        .otherwise(pl.col("target")).alias("target"))
+        pl.when(pl.col("date_id") >= d_cut)
+        .then(pl.Series(rng.normal(0, 50, df.height)).cast(pl.Float32))
+        .otherwise(pl.col("target"))
+        .alias("target")
+    )
 
 
 def past_rows(frame: pl.DataFrame, d_cut: int, t_cut: int, cols: list[str]) -> pl.DataFrame:

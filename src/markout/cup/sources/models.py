@@ -55,10 +55,19 @@ def prob_above(ticker: str, strike: float, when: datetime, r: float = 0.04) -> E
         return None
     p, lo, hi = res
     lag = (date.fromisoformat(exp) - when.date()).days
-    return ExternalQuote("options", f"{ticker}:{exp}:{strike:g}", f"{ticker} above {strike:g} on {exp}", "Yes", p,
-                         "model", lo, hi, end=datetime.fromisoformat(exp).replace(tzinfo=timezone.utc),
-                         url=f"https://finance.yahoo.com/quote/{ticker}/options",
-                         note=f"call spread on the {exp} expiry" + (f" ({lag} days after the question's date)" if lag else ""))
+    return ExternalQuote(
+        "options",
+        f"{ticker}:{exp}:{strike:g}",
+        f"{ticker} above {strike:g} on {exp}",
+        "Yes",
+        p,
+        "model",
+        lo,
+        hi,
+        end=datetime.fromisoformat(exp).replace(tzinfo=timezone.utc),
+        url=f"https://finance.yahoo.com/quote/{ticker}/options",
+        note=f"call spread on the {exp} expiry" + (f" ({lag} days after the question's date)" if lag else ""),
+    )
 
 
 def beat_posterior(beats: int, n: int, a: float = PRIOR_A, b: float = PRIOR_B) -> float:
@@ -77,6 +86,14 @@ def beat_probability(ticker: str, quarters: int = 12) -> ExternalQuote | None:
     if n == 0:
         return None
     beats = int((past["Reported EPS"] > past["EPS Estimate"]).sum())
-    return ExternalQuote("earnings", f"{ticker}:eps-beat", f"{ticker} beats EPS consensus", "Yes",
-                         beat_posterior(beats, n), "model", n=n, url=f"https://finance.yahoo.com/quote/{ticker}/analysis",
-                         note=f"{beats}/{n} beats in the last {n} reported quarters, prior Beta({PRIOR_A:g}, {PRIOR_B:g})")
+    return ExternalQuote(
+        "earnings",
+        f"{ticker}:eps-beat",
+        f"{ticker} beats EPS consensus",
+        "Yes",
+        beat_posterior(beats, n),
+        "model",
+        n=n,
+        url=f"https://finance.yahoo.com/quote/{ticker}/analysis",
+        note=f"{beats}/{n} beats in the last {n} reported quarters, prior Beta({PRIOR_A:g}, {PRIOR_B:g})",
+    )

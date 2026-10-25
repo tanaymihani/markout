@@ -254,7 +254,7 @@ def pbo(pnl: pd.DataFrame | np.ndarray, n_blocks: int = 16, metric: Metric = sha
         block_rows = [np.arange(edges[b], edges[b + 1]) for b in range(S)]
 
     for lo in range(0, C, chunk):
-        Ac = A[lo:lo + chunk]
+        Ac = A[lo : lo + chunk]
         if isinstance(kind, str):
             R_is, R_oos = bs.metric(Ac, kind), bs.metric(~Ac, kind)
         else:
@@ -266,9 +266,9 @@ def pbo(pnl: pd.DataFrame | np.ndarray, n_blocks: int = 16, metric: Metric = sha
                 R_is[i] = _generic_metric(X, is_rows, kind)
                 R_oos[i] = _generic_metric(X, oos_rows, kind)
         res = _select_and_rank(R_is, R_oos)
-        omega[lo:lo + chunk] = res["omega"]
-        is_sel[lo:lo + chunk] = res["is_sel"]
-        oos_sel[lo:lo + chunk] = res["oos_sel"]
+        omega[lo : lo + chunk] = res["omega"]
+        is_sel[lo : lo + chunk] = res["is_sel"]
+        oos_sel[lo : lo + chunk] = res["oos_sel"]
         credit += res["credit"]
 
     used = ~np.isnan(omega)

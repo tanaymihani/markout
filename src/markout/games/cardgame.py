@@ -57,7 +57,7 @@ def card_name(v: int) -> str:
 
 @dataclass(frozen=True)
 class Config:
-    n_cards: int = 5                 # hidden cards whose sum is traded
+    n_cards: int = 5  # hidden cards whose sum is traded
     bots_per_round: int = 3
     p_informed: float = 0.4
     max_width: float = 4.0
@@ -73,24 +73,27 @@ class Config:
 @dataclass(frozen=True)
 class Bot:
     informed: bool
-    slot_u: float      # uniform draw that picks which face-down card an informed bot sees
-    side: int          # noise direction, +1 buy / −1 sell
+    slot_u: float  # uniform draw that picks which face-down card an informed bot sees
+    side: int  # noise direction, +1 buy / −1 sell
 
 
 @dataclass(frozen=True)
 class Deal:
     """Everything random about one game, fixed in advance (so quoters can be compared)."""
 
-    cards: tuple[int, ...]                 # in the order they will be revealed
-    bots: tuple[tuple[Bot, ...], ...]      # one tuple of bots per round
+    cards: tuple[int, ...]  # in the order they will be revealed
+    bots: tuple[tuple[Bot, ...], ...]  # one tuple of bots per round
 
 
 def deal(cfg: Config, rng: np.random.Generator) -> Deal:
-    cards = tuple(int(c) for c in rng.permutation(np.array(cfg.deck))[:cfg.n_cards])
-    bots = tuple(tuple(Bot(bool(rng.random() < cfg.p_informed), float(rng.random()),
-                           1 if rng.random() < 0.5 else -1)
-                       for _ in range(cfg.bots_per_round))
-                 for _ in range(cfg.n_cards))
+    cards = tuple(int(c) for c in rng.permutation(np.array(cfg.deck))[: cfg.n_cards])
+    bots = tuple(
+        tuple(
+            Bot(bool(rng.random() < cfg.p_informed), float(rng.random()), 1 if rng.random() < 0.5 else -1)
+            for _ in range(cfg.bots_per_round)
+        )
+        for _ in range(cfg.n_cards)
+    )
     return Deal(cards, bots)
 
 
@@ -120,10 +123,10 @@ def bot_action(value: float, bid: float, ask: float) -> int:
 class Event:
     """One bot's action against a quote, as the quoter sees it."""
 
-    round: int      # cards revealed before this round = round
+    round: int  # cards revealed before this round = round
     bid: float
     ask: float
-    action: int     # +1 bot bought at the ask, −1 sold at the bid, 0 passed
+    action: int  # +1 bot bought at the ask, −1 sold at the bid, 0 passed
 
 
 @dataclass
@@ -138,7 +141,7 @@ class Game:
 
     @property
     def revealed(self) -> list[int]:
-        return list(self.deal.cards[:self.round])
+        return list(self.deal.cards[: self.round])
 
     @property
     def done(self) -> bool:
@@ -180,9 +183,9 @@ class Game:
         s = sum(self.deal.cards)
         per = [0.0] * self.cfg.n_cards
         for e in self.events:
-            if e.action == 1:        # you sold at the ask
+            if e.action == 1:  # you sold at the ask
                 per[e.round] += e.ask - s
-            elif e.action == -1:     # you bought at the bid
+            elif e.action == -1:  # you bought at the bid
                 per[e.round] += s - e.bid
         return per
 
@@ -190,6 +193,7 @@ class Game:
 # ---------------------------------------------------------------------------
 # Bayes benchmark
 # ---------------------------------------------------------------------------
+
 
 def _event_likelihood(cfg: Config, e: Event, cards: np.ndarray) -> np.ndarray:
     """P(event | cards) for each row of ``cards`` (full deals in reveal order)."""
@@ -212,9 +216,13 @@ def _event_likelihood(cfg: Config, e: Event, cards: np.ndarray) -> np.ndarray:
     return cfg.p_informed * inf + (1 - cfg.p_informed) * noise
 
 
-def posterior_mean(cfg: Config, revealed: Sequence[int], events: Sequence[Event],
-                   n_samples: int = 20_000, rng: np.random.Generator | None = None
-                   ) -> dict[str, float]:
+def posterior_mean(
+    cfg: Config,
+    revealed: Sequence[int],
+    events: Sequence[Event],
+    n_samples: int = 20_000,
+    rng: np.random.Generator | None = None,
+) -> dict[str, float]:
     """E[S | revealed cards, events] by importance sampling over the face-down cards.
 
     Returns the posterior mean, its Monte Carlo standard error, and the
@@ -289,6 +297,7 @@ def bayes_quoter(n_samples: int = 20_000, seed: int = 0) -> Quoter:
     def quote(g: Game) -> tuple[float, float]:
         m = posterior_mean(g.cfg, g.revealed, g.events, n_samples, rng)["mean"]
         return m - g.cfg.max_width / 2, m + g.cfg.max_width / 2
+
     return quote
 
 
@@ -309,8 +318,9 @@ class RoundRecord:
     pnl: float
 
 
-def play(cfg: Config, d: Deal, quoter: Quoter, n_samples: int = 20_000,
-         seed: int = 0, benchmark: bool = True) -> tuple[Game, list[RoundRecord]]:
+def play(
+    cfg: Config, d: Deal, quoter: Quoter, n_samples: int = 20_000, seed: int = 0, benchmark: bool = True
+) -> tuple[Game, list[RoundRecord]]:
     """Play a full game with ``quoter``; record the Bayes mid before each round.
 
     With ``benchmark=False`` the Bayes mid is not computed (recorded as NaN).
@@ -319,8 +329,7 @@ def play(cfg: Config, d: Deal, quoter: Quoter, n_samples: int = 20_000,
     rng = np.random.default_rng(seed)
     recs = []
     while not g.done:
-        bm = (posterior_mean(cfg, g.revealed, g.events, n_samples, rng)["mean"]
-              if benchmark else float("nan"))
+        bm = posterior_mean(cfg, g.revealed, g.events, n_samples, rng)["mean"] if benchmark else float("nan")
         bid, ask = quoter(g)
         ev, card = g.play_round(bid, ask)
         recs.append(RoundRecord(g.round - 1, bid, ask, bm, [e.action for e in ev], card, 0.0))
@@ -332,13 +341,14 @@ def play(cfg: Config, d: Deal, quoter: Quoter, n_samples: int = 20_000,
 def summary_table(recs: Sequence[RoundRecord], total_sum: int) -> str:
     """Plain-text table of a finished game."""
     act = {1: "buy", -1: "sell", 0: "pass"}
-    lines = [f"{'rnd':>3} {'bid':>7} {'ask':>7} {'your mid':>8} {'Bayes mid':>9} "
-             f"{'bots':<16} {'card':>4} {'PnL':>7}"]
+    lines = [f"{'rnd':>3} {'bid':>7} {'ask':>7} {'your mid':>8} {'Bayes mid':>9} {'bots':<16} {'card':>4} {'PnL':>7}"]
     for r in recs:
         mid = 0.5 * (r.bid + r.ask)
         bots = ",".join(act[a] for a in r.actions)
-        lines.append(f"{r.round + 1:>3} {r.bid:>7.2f} {r.ask:>7.2f} {mid:>8.2f} {r.bayes_mid:>9.2f} "
-                     f"{bots:<16} {card_name(r.revealed_card):>4} {r.pnl:>+7.2f}")
+        lines.append(
+            f"{r.round + 1:>3} {r.bid:>7.2f} {r.ask:>7.2f} {mid:>8.2f} {r.bayes_mid:>9.2f} "
+            f"{bots:<16} {card_name(r.revealed_card):>4} {r.pnl:>+7.2f}"
+        )
     lines.append(f"final sum S = {total_sum}; total PnL {sum(r.pnl for r in recs):+.2f}")
     return "\n".join(lines)
 
@@ -346,6 +356,7 @@ def summary_table(recs: Sequence[RoundRecord], total_sum: int) -> str:
 # ---------------------------------------------------------------------------
 # Command line
 # ---------------------------------------------------------------------------
+
 
 def describe_round(g: Game, r: int) -> str:
     """One line per finished round: each bot's action and the card turned up."""
@@ -366,8 +377,7 @@ def _human_quoter(read: Callable[[str], str], write: Callable[[str], None]) -> Q
         if g.round > 0:
             write(describe_round(g, g.round - 1))
         shown = " ".join(card_name(c) for c in g.revealed) or "none"
-        write(f"\nRound {g.round + 1}/{g.cfg.n_cards}. Face up: {shown}. "
-              f"Face down: {g.cfg.n_cards - g.round}.")
+        write(f"\nRound {g.round + 1}/{g.cfg.n_cards}. Face up: {shown}. Face down: {g.cfg.n_cards - g.round}.")
         while True:
             raw = read(f"Your market 'bid ask' (max width {g.cfg.max_width:g}): ").strip()
             try:
@@ -376,11 +386,13 @@ def _human_quoter(read: Callable[[str], str], write: Callable[[str], None]) -> Q
                 return bid, ask
             except (ValueError, TypeError) as exc:
                 write(f"  invalid market ({exc}); try again, e.g. '33 39'")
+
     return quote
 
 
-def main(argv: Sequence[str] | None = None, read: Callable[[str], str] = input,
-         write: Callable[[str], None] = print) -> int:
+def main(
+    argv: Sequence[str] | None = None, read: Callable[[str], str] = input, write: Callable[[str], None] = print
+) -> int:
     ap = argparse.ArgumentParser(description="Make markets on the sum of hidden cards.")
     ap.add_argument("--auto", action="store_true", help="let the Bayes quoter play itself")
     ap.add_argument("--seed", type=int, default=None, help="deal seed (random if omitted)")
@@ -393,9 +405,11 @@ def main(argv: Sequence[str] | None = None, read: Callable[[str], str] = input,
     cfg = Config(args.cards, args.bots, args.p_informed, args.width)
     seed = args.seed if args.seed is not None else int(np.random.SeedSequence().entropy % 2**32)
     d = deal(cfg, np.random.default_rng(seed))
-    write(f"Card market game (seed {seed}): {cfg.n_cards} cards face down, sum S. "
-          f"{cfg.bots_per_round} bots per round, each informed with p = {cfg.p_informed:g}. "
-          f"E[S] before any card = {prior_mean(cfg, []):.2f}.")
+    write(
+        f"Card market game (seed {seed}): {cfg.n_cards} cards face down, sum S. "
+        f"{cfg.bots_per_round} bots per round, each informed with p = {cfg.p_informed:g}. "
+        f"E[S] before any card = {prior_mean(cfg, []):.2f}."
+    )
     quoter = bayes_quoter(args.samples, seed) if args.auto else _human_quoter(read, write)
     try:
         g, recs = play(cfg, d, quoter, args.samples, seed)
@@ -407,8 +421,7 @@ def main(argv: Sequence[str] | None = None, read: Callable[[str], str] = input,
     write("\n" + summary_table(recs, sum(d.cards)))
     if not args.auto:
         _, bayes_recs = play(cfg, d, bayes_quoter(args.samples, seed), args.samples, seed)
-        write(f"The Bayes quoter on the same deal and bots: total PnL "
-              f"{sum(r.pnl for r in bayes_recs):+.2f}")
+        write(f"The Bayes quoter on the same deal and bots: total PnL {sum(r.pnl for r in bayes_recs):+.2f}")
     return 0
 
 

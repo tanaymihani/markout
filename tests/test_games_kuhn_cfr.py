@@ -50,7 +50,7 @@ def test_cfr_value_and_exploitability(cfr_avg):
     assert kc.expected_value(avg) == pytest.approx(-1 / 18, abs=2e-3)
     assert kc.exploitability(avg) < 5e-3
     expl = [h["exploitability"] for h in hist]
-    assert all(b < a for a, b in zip(expl, expl[1:]))       # falls at every checkpoint
+    assert all(b < a for a, b in zip(expl, expl[1:]))  # falls at every checkpoint
 
 
 def test_cfr_lands_in_the_equilibrium_family(cfr_avg):
@@ -80,8 +80,7 @@ def test_mixture_is_realization_equivalent():
     e1 = kc.expected_value(kc.combine(br, opp))
     for lam in (0.25, 0.5, 0.9):
         m = kc.mix_p1(eq, kc.combine(br, eq), lam)
-        assert kc.expected_value(kc.combine(m, opp)) == pytest.approx(lam * e1 + (1 - lam) * e0,
-                                                                      abs=1e-12)
+        assert kc.expected_value(kc.combine(m, opp)) == pytest.approx(lam * e1 + (1 - lam) * e0, abs=1e-12)
 
 
 @pytest.mark.parametrize("leak", ["never_bluff_jack", "always_call_queen"])

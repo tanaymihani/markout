@@ -14,8 +14,9 @@ from markout.paths import DATA
 STOP_FILE = DATA / "cup" / "STOP"
 
 
-def check(p: dict, stake: float, account: Account, book: Book | None, market: Market | None, cfg: Config,
-          now: datetime) -> tuple[bool, str]:
+def check(
+    p: dict, stake: float, account: Account, book: Book | None, market: Market | None, cfg: Config, now: datetime
+) -> tuple[bool, str]:
     if STOP_FILE.exists():
         return False, "kill switch is on (data/cup/STOP)"
     if market is None:

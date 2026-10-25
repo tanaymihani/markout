@@ -25,7 +25,7 @@ from sklearn.metrics import roc_auc_score
 
 from markout.lob.lobster import SESSION, SPLIT, Day, state_index
 
-STEP = 1.0   # seconds between samples
+STEP = 1.0  # seconds between samples
 
 
 def queue_imbalance(bid_size: np.ndarray, ask_size: np.ndarray) -> np.ndarray:
@@ -47,21 +47,20 @@ def next_mid_change(mid: np.ndarray, idx: np.ndarray) -> np.ndarray:
 
 @dataclass(frozen=True)
 class Samples:
-    time: np.ndarray        # sample times
-    imbalance: np.ndarray   # I at the state in effect
-    up: np.ndarray          # 1 if the next mid change is up, 0 if down
-    resolve: np.ndarray     # time at which the label is known (the next mid change)
+    time: np.ndarray  # sample times
+    imbalance: np.ndarray  # I at the state in effect
+    up: np.ndarray  # 1 if the next mid change is up, 0 if down
+    resolve: np.ndarray  # time at which the label is known (the next mid change)
 
 
-def make_samples(day: Day, step: float = STEP,
-                 session: tuple[float, float] = SESSION) -> Samples:
+def make_samples(day: Day, step: float = STEP, session: tuple[float, float] = SESSION) -> Samples:
     m, b = day.messages, day.book
     t = np.arange(session[0], session[1], step)
     i = state_index(m.time, t)
     mid = b.mid()
     j = next_mid_change(mid, i)
-    ok = (j < len(mid))
-    ok[ok] &= m.time[j[ok]] < session[1]        # label must resolve inside the session
+    ok = j < len(mid)
+    ok[ok] &= m.time[j[ok]] < session[1]  # label must resolve inside the session
     i, j, t = i[ok], j[ok], t[ok]
     imb = queue_imbalance(b.bid_size[i, 0], b.ask_size[i, 0])
     return Samples(t, imb, (mid[j] > mid[i]).astype(np.int8), m.time[j])
@@ -69,16 +68,16 @@ def make_samples(day: Day, step: float = STEP,
 
 @dataclass(frozen=True)
 class ImbalanceFit:
-    auc: float              # out-of-sample
+    auc: float  # out-of-sample
     auc_train: float
-    coef: float             # logit slope on I
+    coef: float  # logit slope on I
     intercept: float
     n_train: int
     n_test: int
-    base_rate_test: float   # share of up moves in the test set
+    base_rate_test: float  # share of up moves in the test set
     brier_test: float
-    brier_base: float       # Brier score of always predicting the training base rate
-    curve: list[dict]       # binned P(up | I) on the test set
+    brier_base: float  # Brier score of always predicting the training base rate
+    curve: list[dict]  # binned P(up | I) on the test set
 
 
 def fit_imbalance(s: Samples, split: float = SPLIT, bins: int = 10) -> ImbalanceFit:
@@ -91,10 +90,16 @@ def fit_imbalance(s: Samples, split: float = SPLIT, bins: int = 10) -> Imbalance
     base = float(s.up[train].mean())
     edges = np.linspace(-1, 1, bins + 1)
     which = np.clip(np.digitize(s.imbalance[test], edges[1:-1]), 0, bins - 1)
-    curve = [{"lo": float(edges[k]), "hi": float(edges[k + 1]), "n": int(np.sum(which == k)),
-              "p_up": float(y[which == k].mean()) if np.any(which == k) else None,
-              "p_model": float(p[which == k].mean()) if np.any(which == k) else None}
-             for k in range(bins)]
+    curve = [
+        {
+            "lo": float(edges[k]),
+            "hi": float(edges[k + 1]),
+            "n": int(np.sum(which == k)),
+            "p_up": float(y[which == k].mean()) if np.any(which == k) else None,
+            "p_model": float(p[which == k].mean()) if np.any(which == k) else None,
+        }
+        for k in range(bins)
+    ]
     return ImbalanceFit(
         auc=float(roc_auc_score(y, p)),
         auc_train=float(roc_auc_score(s.up[train], model.predict_proba(X[train])[:, 1])),

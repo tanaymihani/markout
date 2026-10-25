@@ -39,8 +39,9 @@ for ticker in TICKERS:
             morning = d[(d["model"] == "fifo") & (d["t"] + horizon <= SPLIT)]["queue"].to_numpy()
             d["queue_bucket"] = queue_buckets(d["queue"].to_numpy(), float(np.median(morning)))
             for model in SEEDS:
-                rows.append({"ticker": ticker, "check": "morning_median", "horizon": horizon,
-                             **summary(d, model, horizon)})
+                rows.append(
+                    {"ticker": ticker, "check": "morning_median", "horizon": horizon, **summary(d, model, horizon)}
+                )
     print(ticker, "done")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(json.dumps(rows, indent=1))

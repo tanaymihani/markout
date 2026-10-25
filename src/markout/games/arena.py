@@ -90,12 +90,13 @@ import numpy as np
 
 from markout.games.stats import mean_ci, ratio_ci
 
-BIG = np.int64(1) << 40   # "no rival" sentinel for the undercutting rule (in ticks)
+BIG = np.int64(1) << 40  # "no rival" sentinel for the undercutting rule (in ticks)
 
 
 # ---------------------------------------------------------------------------
 # Market and the belief-indexed quote tables
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class Market:
@@ -104,10 +105,10 @@ class Market:
     v_low: float = 99.0
     v_high: float = 101.0
     prior: float = 0.5
-    mu: float = 0.2            # probability an arrival is informed
-    c_max: float = 1.2         # noise urgency c ~ U[0, c_max]
+    mu: float = 0.2  # probability an arrival is informed
+    c_max: float = 1.2  # noise urgency c ~ U[0, c_max]
     tick: float = 0.01
-    n_periods: int = 100       # T, arrivals per episode
+    n_periods: int = 100  # T, arrivals per episode
 
     def __post_init__(self) -> None:
         if not self.v_high > self.v_low:
@@ -189,18 +190,19 @@ def one_period_profit(a, b, pi, mkt: Market):
     return side_profit(a, pi, mkt, "ask") + side_profit(b, pi, mkt, "bid")
 
 
-def monopoly_edge(pi, mkt: Market, side: str = "ask", de: float = 0.0005,
-                  chunk: int = 128) -> tuple[np.ndarray, np.ndarray]:
+def monopoly_edge(
+    pi, mkt: Market, side: str = "ask", de: float = 0.0005, chunk: int = 128
+) -> tuple[np.ndarray, np.ndarray]:
     """Myopic monopoly edge on one side and its one-period profit (grid search)."""
     pi = np.atleast_1d(np.asarray(pi, dtype=float))
     es = np.arange(0.0, mkt.c_max + de, de)
     best_e = np.empty_like(pi)
     best_v = np.empty_like(pi)
     for s in range(0, pi.size, chunk):
-        v = side_profit(es[None, :], pi[s:s + chunk, None], mkt, side)
+        v = side_profit(es[None, :], pi[s : s + chunk, None], mkt, side)
         j = v.argmax(axis=1)
-        best_e[s:s + chunk] = es[j]
-        best_v[s:s + chunk] = v[np.arange(j.size), j]
+        best_e[s : s + chunk] = es[j]
+        best_v[s : s + chunk] = v[np.arange(j.size), j]
     return best_e, best_v
 
 
@@ -213,7 +215,7 @@ class QuoteTables:
     be_bid: np.ndarray
     mono_ask: np.ndarray
     mono_bid: np.ndarray
-    mono_profit: np.ndarray   # one-period profit of the monopoly quote
+    mono_profit: np.ndarray  # one-period profit of the monopoly quote
 
     @classmethod
     def build(cls, mkt: Market, n_grid: int = 2001) -> "QuoteTables":
@@ -221,8 +223,10 @@ class QuoteTables:
         a, b = zero_profit_edges(grid, mkt)
         if np.isnan(a).any() or np.isnan(b).any():
             bad = grid[np.isnan(a) | np.isnan(b)]
-            raise ValueError(f"no zero-profit quote for beliefs in [{bad.min():.3f}, "
-                             f"{bad.max():.3f}]: the market breaks down; raise c_max or lower mu")
+            raise ValueError(
+                f"no zero-profit quote for beliefs in [{bad.min():.3f}, "
+                f"{bad.max():.3f}]: the market breaks down; raise c_max or lower mu"
+            )
         ma, va = monopoly_edge(grid, mkt, "ask")
         mb, vb = monopoly_edge(grid, mkt, "bid")
         return cls(grid, a, b, ma, mb, va + vb)
@@ -236,6 +240,7 @@ class QuoteTables:
 # Agents
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Context:
     """What a maker sees when it quotes in period t (arrays over seeds)."""
@@ -244,16 +249,16 @@ class Context:
     t: int
     pi: np.ndarray
     mid: np.ndarray
-    q: np.ndarray          # this maker's inventory
-    be_ask: np.ndarray     # zero-profit edges at the public belief
+    q: np.ndarray  # this maker's inventory
+    be_ask: np.ndarray  # zero-profit edges at the public belief
     be_bid: np.ndarray
-    mono_ask: np.ndarray   # monopoly edges at the public belief
+    mono_ask: np.ndarray  # monopoly edges at the public belief
     mono_bid: np.ndarray
 
     @property
     def var_v(self) -> np.ndarray:
         """Var(V | tape) = π(1 − π)Δ²."""
-        return self.pi * (1 - self.pi) * self.mkt.dv ** 2
+        return self.pi * (1 - self.pi) * self.mkt.dv**2
 
     def ask_ticks(self, price) -> np.ndarray:
         """Round an ask up to the tick grid (away from the mid)."""
@@ -307,12 +312,12 @@ class InventorySkew:
     name: str = "inventory"
     half_spread: float = 0.25
     gamma: float = 0.02
-    sigma2: float | None = None   # None → Δ²/(4T): prior Var(V) spread evenly over T
+    sigma2: float | None = None  # None → Δ²/(4T): prior Var(V) spread evenly over T
     reactive: bool = field(default=False, init=False)
 
     def quote(self, c: Context) -> tuple[np.ndarray, np.ndarray]:
         T = c.mkt.n_periods
-        s2 = self.sigma2 if self.sigma2 is not None else c.mkt.dv ** 2 / (4 * T)
+        s2 = self.sigma2 if self.sigma2 is not None else c.mkt.dv**2 / (4 * T)
         r = c.mid - c.q * self.gamma * s2 * (T - c.t)
         return c.ask_ticks(r + self.half_spread), c.bid_ticks(r - self.half_spread)
 
@@ -330,8 +335,12 @@ class Undercutter:
     reactive: bool = field(default=True, init=False)
 
     def bounds(self, c: Context) -> tuple[np.ndarray, ...]:
-        return (c.ask_ticks(c.mid + c.be_ask), c.ask_ticks(c.mid + c.mono_ask),
-                c.bid_ticks(c.mid - c.mono_bid), c.bid_ticks(c.mid - c.be_bid))
+        return (
+            c.ask_ticks(c.mid + c.be_ask),
+            c.ask_ticks(c.mid + c.mono_ask),
+            c.bid_ticks(c.mid - c.mono_bid),
+            c.bid_ticks(c.mid - c.be_bid),
+        )
 
 
 @dataclass
@@ -348,23 +357,33 @@ class MarkoutQuoter:
 
     def bounds(self, c: Context) -> tuple[np.ndarray, ...]:
         g = self.gamma * c.var_v
-        r = c.mid - c.q * g                                     # reservation price
-        ask_floor = c.mid + c.be_ask + (1 - 2 * c.q) * g / 2    # E[V | buy] + AS premium
-        bid_floor = c.mid - c.be_bid - (1 + 2 * c.q) * g / 2    # E[V | sell] − AS premium
-        return (c.ask_ticks(ask_floor), c.ask_ticks(r + c.mono_ask),
-                c.bid_ticks(r - c.mono_bid), c.bid_ticks(bid_floor))
+        r = c.mid - c.q * g  # reservation price
+        ask_floor = c.mid + c.be_ask + (1 - 2 * c.q) * g / 2  # E[V | buy] + AS premium
+        bid_floor = c.mid - c.be_bid - (1 + 2 * c.q) * g / 2  # E[V | sell] − AS premium
+        return (
+            c.ask_ticks(ask_floor),
+            c.ask_ticks(r + c.mono_ask),
+            c.bid_ticks(r - c.mono_bid),
+            c.bid_ticks(bid_floor),
+        )
 
 
 def default_agents() -> list[Agent]:
     """The six tournament entrants with the parameters used in the report."""
-    return [GMQuoter("gm"), FixedSpread("tight", 0.05), FixedSpread("wide", 0.60),
-            InventorySkew("inventory", half_spread=0.25, gamma=0.02),
-            Undercutter("undercut"), MarkoutQuoter("markout", gamma=0.02)]
+    return [
+        GMQuoter("gm"),
+        FixedSpread("tight", 0.05),
+        FixedSpread("wide", 0.60),
+        InventorySkew("inventory", half_spread=0.25, gamma=0.02),
+        Undercutter("undercut"),
+        MarkoutQuoter("markout", gamma=0.02),
+    ]
 
 
 # ---------------------------------------------------------------------------
 # Engine
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ArenaRun:
@@ -372,33 +391,33 @@ class ArenaRun:
 
     mkt: Market
     names: list[str]
-    value_high: np.ndarray        # (S,)
-    pnl: np.ndarray               # (K, S) marked to V
-    fills: np.ndarray             # (K, S)
-    informed_fills: np.ndarray    # (K, S)
-    edge: np.ndarray              # (K, S) Σ d·(price − m_t) over fills
-    adverse: np.ndarray           # (K, S) Σ d·(V − m_t) over fills (markout to V)
-    q2: np.ndarray                # (K, S) time-average of inventory²
-    q_final: np.ndarray           # (K, S)
-    trades: np.ndarray            # (S,)
-    informed_trades: np.ndarray   # (S,)
-    noise_trades: np.ndarray      # (S,)
-    noise_arrivals: np.ndarray    # (S,)
-    noise_pnl: np.ndarray         # (S,) noise traders' trading PnL marked to V
-    noise_surplus: np.ndarray     # (S,) Σ (urgency c + trading PnL) over noise trades
-    informed_pnl: np.ndarray      # (S,)
-    quoted_spread: np.ndarray     # (S,) time-average inside spread
+    value_high: np.ndarray  # (S,)
+    pnl: np.ndarray  # (K, S) marked to V
+    fills: np.ndarray  # (K, S)
+    informed_fills: np.ndarray  # (K, S)
+    edge: np.ndarray  # (K, S) Σ d·(price − m_t) over fills
+    adverse: np.ndarray  # (K, S) Σ d·(V − m_t) over fills (markout to V)
+    q2: np.ndarray  # (K, S) time-average of inventory²
+    q_final: np.ndarray  # (K, S)
+    trades: np.ndarray  # (S,)
+    informed_trades: np.ndarray  # (S,)
+    noise_trades: np.ndarray  # (S,)
+    noise_arrivals: np.ndarray  # (S,)
+    noise_pnl: np.ndarray  # (S,) noise traders' trading PnL marked to V
+    noise_surplus: np.ndarray  # (S,) Σ (urgency c + trading PnL) over noise trades
+    informed_pnl: np.ndarray  # (S,)
+    quoted_spread: np.ndarray  # (S,) time-average inside spread
     zero_profit_spread: np.ndarray  # (S,) time-average of a* + b* at the public belief
-    eff_half: np.ndarray          # (S,) Σ d·(price − m_t) over all trades
-    spread_path: np.ndarray       # (T,) mean inside spread across seeds
+    eff_half: np.ndarray  # (S,) Σ d·(price − m_t) over all trades
+    spread_path: np.ndarray  # (T,) mean inside spread across seeds
     zero_profit_path: np.ndarray  # (T,) mean zero-profit spread across seeds
     belief_truth_path: np.ndarray  # (T+1,) mean P(V = realized V) across seeds
-    final_belief: np.ndarray      # (S,) public P(V = V_H) after the last period
-    fill_path: np.ndarray         # (K, T) mean fills per seed in each period
+    final_belief: np.ndarray  # (S,) public P(V = V_H) after the last period
+    fill_path: np.ndarray  # (K, T) mean fills per seed in each period
     informed_fill_path: np.ndarray  # (K, T) mean informed fills per seed in each period
-    edge_path: np.ndarray         # (K, T) mean Σ d·(price − m_t) per seed in each period
-    adverse_path: np.ndarray      # (K, T) mean Σ d·(V − m_t) per seed in each period
-    rounds_max: int               # most revision rounds any period needed
+    edge_path: np.ndarray  # (K, T) mean Σ d·(price − m_t) per seed in each period
+    adverse_path: np.ndarray  # (K, T) mean Σ d·(V − m_t) per seed in each period
+    rounds_max: int  # most revision rounds any period needed
 
     @property
     def n_seeds(self) -> int:
@@ -469,8 +488,9 @@ def _informed_side(v: float | np.ndarray, ask: np.ndarray, bid: np.ndarray):
     return buys, sells
 
 
-def simulate(mkt: Market, agents: Sequence[Agent], n_seeds: int = 1000, seed: int = 0,
-             max_rounds: int = 5000) -> ArenaRun:
+def simulate(
+    mkt: Market, agents: Sequence[Agent], n_seeds: int = 1000, seed: int = 0, max_rounds: int = 5000
+) -> ArenaRun:
     """Run one tournament configuration over ``n_seeds`` independent episodes.
 
     The exogenous randomness (V, who arrives, noise direction and urgency, tie
@@ -537,9 +557,9 @@ def simulate(mkt: Market, agents: Sequence[Agent], n_seeds: int = 1000, seed: in
                 fa, ca, cb, fb = ag.bounds(c)
                 lo_a[i], hi_a[i] = fa, np.maximum(fa, ca)
                 lo_b[i], hi_b[i] = np.minimum(cb, fb), fb
-                if t == 0:   # no last quotes yet: start from the monopoly quote
+                if t == 0:  # no last quotes yet: start from the monopoly quote
                     asks[i], bids[i] = hi_a[i], lo_b[i]
-                else:        # start from the last quote, re-centred on the new mid
+                else:  # start from the last quote, re-centred on the new mid
                     asks[i] = np.clip(c.ask_ticks(mid + prev_ask_edge[i]), lo_a[i], hi_a[i])
                     bids[i] = np.clip(c.bid_ticks(mid - prev_bid_edge[i]), lo_b[i], hi_b[i])
             else:
@@ -563,7 +583,7 @@ def simulate(mkt: Market, agents: Sequence[Agent], n_seeds: int = 1000, seed: in
         best_bid = bids.max(axis=0)
         ask_p = best_ask * mkt.tick
         bid_p = best_bid * mkt.tick
-        ask_edge = ask_p - mid          # what a noise buyer pays over the public mid
+        ask_edge = ask_p - mid  # what a noise buyer pays over the public mid
         bid_edge = mid - bid_p
 
         # the arriving trader
@@ -573,13 +593,13 @@ def simulate(mkt: Market, agents: Sequence[Agent], n_seeds: int = 1000, seed: in
         buy = (inf & ib) | (noise_go & noise_buy[t])
         sell = (inf & isl) | (noise_go & ~noise_buy[t])
         trade = buy | sell
-        d = np.where(buy, 1.0, np.where(sell, -1.0, 0.0))   # trader's direction
+        d = np.where(buy, 1.0, np.where(sell, -1.0, 0.0))  # trader's direction
         price = np.where(buy, ask_p, bid_p)
 
         win_ask = _pick(asks == best_ask[None, :], tie_u[t])
         win_bid = _pick(bids == best_bid[None, :], tie_u[t])
         winner = np.where(buy, win_ask, win_bid)
-        hit = (rows == winner[None, :]) & trade[None, :]      # (K, S) one-hot fill
+        hit = (rows == winner[None, :]) & trade[None, :]  # (K, S) one-hot fill
         q -= hit * d
         cash += hit * (d * price)
         fills += hit
@@ -624,16 +644,43 @@ def simulate(mkt: Market, agents: Sequence[Agent], n_seeds: int = 1000, seed: in
         q2 += q * q
 
     pnl = cash + q * V[None, :]
-    return ArenaRun(mkt, [a.name for a in agents], value_high, pnl, fills, inf_fills,
-                    edge, adverse, q2 / T, q.copy(), trades, inf_trades, noise_trades,
-                    noise_arr, noise_pnl, noise_surplus, inf_pnl, quoted / T, zp / T,
-                    eff_half, spread_path, zp_path, truth_path, pi.copy(), fill_path,
-                    inf_fill_path, edge_path, adverse_path, rounds_max)
+    return ArenaRun(
+        mkt,
+        [a.name for a in agents],
+        value_high,
+        pnl,
+        fills,
+        inf_fills,
+        edge,
+        adverse,
+        q2 / T,
+        q.copy(),
+        trades,
+        inf_trades,
+        noise_trades,
+        noise_arr,
+        noise_pnl,
+        noise_surplus,
+        inf_pnl,
+        quoted / T,
+        zp / T,
+        eff_half,
+        spread_path,
+        zp_path,
+        truth_path,
+        pi.copy(),
+        fill_path,
+        inf_fill_path,
+        edge_path,
+        adverse_path,
+        rounds_max,
+    )
 
 
 # ---------------------------------------------------------------------------
 # Experiments
 # ---------------------------------------------------------------------------
+
 
 def clone(agent, name: str):
     """A copy of ``agent`` under a new name (for line-ups of identical makers)."""
@@ -657,8 +704,7 @@ def head_to_head(run: ArenaRun) -> dict:
     return {"a": run.names[0], "b": run.names[1], "diff": ci, "winner": winner}
 
 
-def replicator(payoff: np.ndarray, x0: np.ndarray | None = None, dt: float = 0.05,
-               n_steps: int = 4000) -> np.ndarray:
+def replicator(payoff: np.ndarray, x0: np.ndarray | None = None, dt: float = 0.05, n_steps: int = 4000) -> np.ndarray:
     """Discrete-time replicator dynamics ẋ_i = x_i((Ax)_i − xᵀAx).
 
     ``payoff[i, j]`` is strategy i's mean payoff against j. Uses the exact

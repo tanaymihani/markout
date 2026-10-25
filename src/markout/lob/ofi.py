@@ -26,18 +26,21 @@ import statsmodels.api as sm
 
 from markout.lob.lobster import OPEN, SESSION, SPLIT, TICK, Day, state_index, time_average
 
-BUCKET = 10.0      # seconds
-WINDOW = 1800.0    # seconds: CKS estimate beta in 30-minute windows
+BUCKET = 10.0  # seconds
+WINDOW = 1800.0  # seconds: CKS estimate beta in 30-minute windows
 
 
-def ofi_events(bid_price: np.ndarray, bid_size: np.ndarray,
-               ask_price: np.ndarray, ask_size: np.ndarray) -> np.ndarray:
+def ofi_events(bid_price: np.ndarray, bid_size: np.ndarray, ask_price: np.ndarray, ask_size: np.ndarray) -> np.ndarray:
     """Per-event OFI e_n (shares) from the best quotes; e_0 = 0 (no previous state)."""
     pb, qb = bid_price, bid_size.astype(np.float64)
     pa, qa = ask_price, ask_size.astype(np.float64)
     e = np.zeros(len(pb))
-    e[1:] = (qb[1:] * (pb[1:] >= pb[:-1]) - qb[:-1] * (pb[1:] <= pb[:-1])
-             - qa[1:] * (pa[1:] <= pa[:-1]) + qa[:-1] * (pa[1:] >= pa[:-1]))
+    e[1:] = (
+        qb[1:] * (pb[1:] >= pb[:-1])
+        - qb[:-1] * (pb[1:] <= pb[:-1])
+        - qa[1:] * (pa[1:] <= pa[:-1])
+        + qa[:-1] * (pa[1:] >= pa[:-1])
+    )
     return e
 
 
@@ -45,17 +48,16 @@ def ofi_events(bid_price: np.ndarray, bid_size: np.ndarray,
 class Buckets:
     """Per-bucket OFI and mid change on a regular clock grid."""
 
-    start: np.ndarray       # bucket start times (s after midnight)
-    ofi: np.ndarray         # shares
-    dmid: np.ndarray        # mid change over the bucket, ticks
-    depth: np.ndarray       # time-weighted mean of (qB + qA)/2 at the best, shares
+    start: np.ndarray  # bucket start times (s after midnight)
+    ofi: np.ndarray  # shares
+    dmid: np.ndarray  # mid change over the bucket, ticks
+    depth: np.ndarray  # time-weighted mean of (qB + qA)/2 at the best, shares
 
     def __len__(self) -> int:
         return len(self.start)
 
 
-def make_buckets(day: Day, width: float = BUCKET,
-                 session: tuple[float, float] = SESSION) -> Buckets:
+def make_buckets(day: Day, width: float = BUCKET, session: tuple[float, float] = SESSION) -> Buckets:
     """Sum e_n over (t_k, t_k + width] and take the mid change between the states in
     effect at the two edges, so the events counted are exactly those that moved the
     state from one edge to the next."""
@@ -63,7 +65,7 @@ def make_buckets(day: Day, width: float = BUCKET,
     edges = np.arange(session[0], session[1] + width / 2, width)
     e = ofi_events(b.bid_price[:, 0], b.bid_size[:, 0], b.ask_price[:, 0], b.ask_size[:, 0])
     csum = np.concatenate([[0.0], np.cumsum(e)])
-    pos = np.searchsorted(m.time, edges, side="right")      # messages with time <= edge
+    pos = np.searchsorted(m.time, edges, side="right")  # messages with time <= edge
     ofi = csum[pos[1:]] - csum[pos[:-1]]
     mid = b.mid() / TICK
     at = state_index(m.time, edges)
@@ -93,23 +95,31 @@ def window_regressions(bk: Buckets, window: float = WINDOW, origin: float = OPEN
     for w in np.unique(wid):
         s = wid == w
         a, beta, r2 = ols(bk.ofi[s], bk.dmid[s])
-        rows.append({"window": int(w), "start": float(origin + w * window), "n": int(s.sum()),
-                     "alpha": a, "beta": beta, "r2": r2, "depth": float(np.nanmean(bk.depth[s]))})
+        rows.append(
+            {
+                "window": int(w),
+                "start": float(origin + w * window),
+                "n": int(s.sum()),
+                "alpha": a,
+                "beta": beta,
+                "r2": r2,
+                "depth": float(np.nanmean(bk.depth[s])),
+            }
+        )
     return rows
 
 
 @dataclass(frozen=True)
 class DepthSlope:
-    slope: float            # d log beta / d log depth (CKS: about -1)
-    ci: tuple[float, float] # 95%, HC3 heteroskedasticity-robust
+    slope: float  # d log beta / d log depth (CKS: about -1)
+    ci: tuple[float, float]  # 95%, HC3 heteroskedasticity-robust
     intercept: float
     r2: float
     n: int
-    n_dropped: int          # windows with beta <= 0 (log undefined)
+    n_dropped: int  # windows with beta <= 0 (log undefined)
 
 
-def beta_depth_slope(betas: np.ndarray, depths: np.ndarray,
-                     groups: np.ndarray | None = None) -> DepthSlope:
+def beta_depth_slope(betas: np.ndarray, depths: np.ndarray, groups: np.ndarray | None = None) -> DepthSlope:
     """OLS of log beta on log mean depth; with `groups`, adds one intercept per group
     (a within-ticker slope that ignores level differences between stocks)."""
     ok = (betas > 0) & (depths > 0)
@@ -123,16 +133,21 @@ def beta_depth_slope(betas: np.ndarray, depths: np.ndarray,
     fit = sm.OLS(y, X).fit(cov_type="HC3")
     j = 1 if groups is None else 0
     lo, hi = fit.conf_int(0.05)[j]
-    return DepthSlope(float(fit.params[j]), (float(lo), float(hi)),
-                      float(fit.params[0]) if groups is None else float("nan"),
-                      float(fit.rsquared), int(ok.sum()), int((~ok).sum()))
+    return DepthSlope(
+        float(fit.params[j]),
+        (float(lo), float(hi)),
+        float(fit.params[0]) if groups is None else float("nan"),
+        float(fit.rsquared),
+        int(ok.sum()),
+        int((~ok).sum()),
+    )
 
 
 @dataclass(frozen=True)
 class OutOfSample:
-    r2_oos: float           # 1 - SSE(model) / SSE(training-mean forecast), test set
-    r2_oos_zero: float      # same against a zero forecast
-    beta: float             # fitted on the training set
+    r2_oos: float  # 1 - SSE(model) / SSE(training-mean forecast), test set
+    r2_oos_zero: float  # same against a zero forecast
+    beta: float  # fitted on the training set
     alpha: float
     n_train: int
     n_test: int
@@ -144,8 +159,7 @@ def oos_r2(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndarray) ->
     sse = float(np.sum((y[test] - pred) ** 2))
     sse_mean = float(np.sum((y[test] - y[train].mean()) ** 2))
     sse_zero = float(np.sum(y[test] ** 2))
-    return OutOfSample(1 - sse / sse_mean, 1 - sse / sse_zero, beta, a,
-                       int(train.sum()), int(test.sum()))
+    return OutOfSample(1 - sse / sse_mean, 1 - sse / sse_zero, beta, a, int(train.sum()), int(test.sum()))
 
 
 def contemporaneous_vs_lagged(bk: Buckets, split: float = SPLIT) -> dict[str, OutOfSample]:

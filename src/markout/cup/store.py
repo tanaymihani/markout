@@ -40,8 +40,10 @@ class Store:
 
     # proposals
     def put_proposal(self, p: dict) -> None:
-        self._q("insert or replace into proposals values (?,?,?,?,?)",
-                (p["id"], p["contract_id"], p["status"], p["created"], json.dumps(p)))
+        self._q(
+            "insert or replace into proposals values (?,?,?,?,?)",
+            (p["id"], p["contract_id"], p["status"], p["created"], json.dumps(p)),
+        )
 
     def proposal(self, pid: str) -> dict | None:
         r = self._q("select body from proposals where id=?", (pid,))

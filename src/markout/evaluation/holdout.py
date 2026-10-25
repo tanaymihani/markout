@@ -36,8 +36,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from markout.evaluation.registry import (append_line, config_hash, git_state, read_lines,
-                                         to_jsonable, utc_now)
+from markout.evaluation.registry import append_line, config_hash, git_state, read_lines, to_jsonable, utc_now
 from markout.paths import REGISTRY, ROOT
 
 
@@ -52,7 +51,8 @@ class HoldoutAlreadyUsed(RuntimeError):
             f"holdout already accessed {accessed} time(s); first access {lock.get('started_at')} "
             f"(status={lock.get('status')}, config_hash={str(lock.get('config_hash'))[:12]}, "
             f"git_sha={str(lock.get('git_sha'))[:12]}). Lock file: {lock_path}. Pass force=True "
-            "to run again; the run will be logged as forced and counted.")
+            "to run again; the run will be logged as forced and counted."
+        )
 
 
 def _summarize(result: Any) -> dict[str, Any]:
@@ -76,9 +76,12 @@ def _summarize(result: Any) -> dict[str, Any]:
 class HoldoutGuard:
     """Run-once guard around the holdout evaluation. See the module docstring."""
 
-    def __init__(self, lock_path: str | Path = REGISTRY / "holdout.lock",
-                 audit_path: str | Path = REGISTRY / "holdout_audit.jsonl",
-                 repo_dir: str | Path = ROOT) -> None:
+    def __init__(
+        self,
+        lock_path: str | Path = REGISTRY / "holdout.lock",
+        audit_path: str | Path = REGISTRY / "holdout_audit.jsonl",
+        repo_dir: str | Path = ROOT,
+    ) -> None:
         self.lock_path = Path(lock_path)
         self.audit_path = Path(audit_path)
         self.repo_dir = Path(repo_dir)
@@ -109,8 +112,7 @@ class HoldoutGuard:
     def _update_lock(self, updates: Mapping[str, Any]) -> None:
         lock = {**(self._read_lock() or {}), **updates}
         tmp = self.lock_path.with_name(f".{self.lock_path.name}.{uuid.uuid4().hex[:8]}.tmp")
-        tmp.write_text(json.dumps(to_jsonable(lock), indent=2, allow_nan=False) + "\n",
-                       encoding="utf-8")
+        tmp.write_text(json.dumps(to_jsonable(lock), indent=2, allow_nan=False) + "\n", encoding="utf-8")
         os.replace(tmp, self.lock_path)  # atomic
 
     # ---- API -------------------------------------------------------------------------------
@@ -130,11 +132,15 @@ class HoldoutGuard:
         fn propagate after being recorded as a failed access.
         """
         run_id = uuid.uuid4().hex[:12]
-        prov = {"run_id": run_id, "config_hash": config_hash(config), **git_state(self.repo_dir),
-                "pid": os.getpid(), "host": socket.gethostname()}
+        prov = {
+            "run_id": run_id,
+            "config_hash": config_hash(config),
+            **git_state(self.repo_dir),
+            "pid": os.getpid(),
+            "host": socket.gethostname(),
+        }
         started = utc_now()
-        claimed = self._claim({"status": "running", "started_at": started, **prov,
-                               "config": to_jsonable(config)})
+        claimed = self._claim({"status": "running", "started_at": started, **prov, "config": to_jsonable(config)})
         if not claimed and not force:
             append_line(self.audit_path, {"event": "refused", "at": started, **prov})
             raise HoldoutAlreadyUsed(self._read_lock() or {}, self.lock_path, self.accessed_count())
@@ -146,18 +152,35 @@ class HoldoutGuard:
         except BaseException as exc:
             err = f"{type(exc).__name__}: {exc}"
             finished = utc_now()
-            append_line(self.audit_path, {"event": "finish", "at": finished, "status": "error",
-                                          "forced": forced, "error": err, "run_id": run_id})
+            append_line(
+                self.audit_path,
+                {
+                    "event": "finish",
+                    "at": finished,
+                    "status": "error",
+                    "forced": forced,
+                    "error": err,
+                    "run_id": run_id,
+                },
+            )
             if claimed:
                 self._update_lock({"status": "error", "finished_at": finished, "error": err})
             raise
         summary = _summarize(result)
         finished = utc_now()
-        append_line(self.audit_path, {"event": "finish", "at": finished, "status": "complete",
-                                      "forced": forced, "result_summary": summary, "run_id": run_id})
+        append_line(
+            self.audit_path,
+            {
+                "event": "finish",
+                "at": finished,
+                "status": "complete",
+                "forced": forced,
+                "result_summary": summary,
+                "run_id": run_id,
+            },
+        )
         if claimed:
-            self._update_lock({"status": "complete", "finished_at": finished,
-                               "result_summary": summary})
+            self._update_lock({"status": "complete", "finished_at": finished, "result_summary": summary})
         return result
 
     def audit(self) -> list[dict[str, Any]]:

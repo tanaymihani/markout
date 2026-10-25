@@ -22,8 +22,7 @@ MODELS: list[ModelSpec] = [
     ModelSpec("zero", groups=()),
     ModelSpec("median", groups=()),
     ModelSpec("ridge", groups=ALL, params={"alpha": 10.0}),
-    ModelSpec("lgbm", groups=("book", "auction", "dynamics"),
-              params={"num_leaves": 63, "min_data_in_leaf": 500}),
+    ModelSpec("lgbm", groups=("book", "auction", "dynamics"), params={"num_leaves": 63, "min_data_in_leaf": 500}),
     ModelSpec("lgbm", groups=ALL, params={"num_leaves": 63, "min_data_in_leaf": 500}),
     ModelSpec("lgbm", groups=ALL, params={"num_leaves": 255, "min_data_in_leaf": 2000}),
 ]
@@ -50,12 +49,17 @@ class Trial:
 
     @property
     def config(self) -> dict:
-        return {"model": self.spec.to_dict(), "policy": self.policy.to_dict(), "costs": COSTS.to_dict(),
-                "cost_mult": 1.0}
+        return {
+            "model": self.spec.to_dict(),
+            "policy": self.policy.to_dict(),
+            "costs": COSTS.to_dict(),
+            "cost_mult": 1.0,
+        }
 
 
-def run_policies(spec: ModelSpec, dec: pl.DataFrame, days: tuple[int, int], registry=None,
-                 policies: list[Policy] = POLICIES) -> list[Trial]:
+def run_policies(
+    spec: ModelSpec, dec: pl.DataFrame, days: tuple[int, int], registry=None, policies: list[Policy] = POLICIES
+) -> list[Trial]:
     """Backtest every policy on one model's decision frame; log each as a trial."""
     out = []
     for pol in policies:
@@ -63,8 +67,17 @@ def run_policies(spec: ModelSpec, dec: pl.DataFrame, days: tuple[int, int], regi
         t = Trial(spec, pol, summary, day)
         if registry is not None:
             pnl = day.select("date_id", "pnl_usd").to_pandas().set_index("date_id")["pnl_usd"]
-            metrics = {k: summary[k] for k in ("sharpe_daily", "sharpe_annualized", "total_pnl_usd", "trades",
-                                               "hit_rate", "net_bps_per_trade")}
+            metrics = {
+                k: summary[k]
+                for k in (
+                    "sharpe_daily",
+                    "sharpe_annualized",
+                    "total_pnl_usd",
+                    "trades",
+                    "hit_rate",
+                    "net_bps_per_trade",
+                )
+            }
             t.trial_id = registry.log(t.config, metrics, pnl, tags={"model": model_label(spec)})
         out.append(t)
     return out

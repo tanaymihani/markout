@@ -52,8 +52,7 @@ LIGHT = {
     "muted": "#898781",
     "grid": "#e1e0d9",
     "baseline": "#c3c2b7",
-    "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-               "#e87ba4", "#008300", "#4a3aa7", "#e34948"],
+    "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"],
     "div": ("#e34948", "#f0efec", "#2a78d6"),  # negative, zero, positive
     "seq": ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"],
 }
@@ -66,8 +65,7 @@ DARK = {
     "muted": "#898781",
     "grid": "#2c2c2a",
     "baseline": "#383835",
-    "series": ["#3987e5", "#d95926", "#199e70", "#c98500",
-               "#d55181", "#008300", "#9085e9", "#e66767"],
+    "series": ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
     "div": ("#e66767", "#383835", "#3987e5"),
     # low values recede into the dark surface, so the ramp runs dark -> light
     "seq": ["#0d366b", "#184f95", "#256abf", "#3987e5", "#6da7ec", "#9ec5f4", "#cde2fb"],
@@ -186,9 +184,17 @@ def title(ax, text: str, subtitle: str | None = None) -> None:
     """Left-aligned title, with an optional secondary-ink subtitle under it."""
     if subtitle:
         ax.set_title(text, loc="left", pad=24)
-        ax.annotate(subtitle, xy=(0, 1), xycoords="axes fraction", xytext=(0, 7),
-                    textcoords="offset points", ha="left", va="bottom",
-                    fontsize=9, color=ink("secondary"))
+        ax.annotate(
+            subtitle,
+            xy=(0, 1),
+            xycoords="axes fraction",
+            xytext=(0, 7),
+            textcoords="offset points",
+            ha="left",
+            va="bottom",
+            fontsize=9,
+            color=ink("secondary"),
+        )
     else:
         ax.set_title(text, loc="left")
 
@@ -205,12 +211,19 @@ def zero_line(ax, y: float = 0.0) -> None:
 def end_label(ax, x: float, y: float, text: str, dx: float = 5, dy: float = 0, **kw) -> None:
     """Direct label at a line's end, in secondary ink (never the series color)."""
     kw.setdefault("fontsize", 9)
-    ax.annotate(text, xy=(x, y), xytext=(dx, dy), textcoords="offset points",
-                ha="left", va="center", color=ink("secondary"), **kw)
+    ax.annotate(
+        text,
+        xy=(x, y),
+        xytext=(dx, dy),
+        textcoords="offset points",
+        ha="left",
+        va="center",
+        color=ink("secondary"),
+        **kw,
+    )
 
 
-def bars(ax, x, heights, width: float = 0.62, color: str | None = None,
-         horizontal: bool = False, **kw):
+def bars(ax, x, heights, width: float = 0.62, color: str | None = None, horizontal: bool = False, **kw):
     """Bars with a surface-colored gap between neighbours (no drawn borders)."""
     color = color or series(0)
     style = dict(color=color, edgecolor=surface(), linewidth=1.5, zorder=2, **kw)

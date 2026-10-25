@@ -36,7 +36,7 @@ EVERY = 5.0
 SIZE = 100
 SIGNAL_EDGES = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
 SIGNAL_LABELS = ("0-0.2", "0.2-0.4", "0.4-0.6", "0.6-0.8", "0.8-1")
-BLOCK = 300.0        # seconds per bootstrap block (autocorrelated, overlapping horizons)
+BLOCK = 300.0  # seconds per bootstrap block (autocorrelated, overlapping horizons)
 # Fees are excluded from EV. For scale we charge crosses the Reg NMS Rule 610(c) access-fee
 # cap ($0.003 per share for quotes >= $1), the most an exchange may charge a taker; posts
 # would earn a rebate of similar size, which we conservatively leave out.
@@ -44,8 +44,9 @@ TAKER_FEE_USD = 0.003
 TAKER_FEE_TICKS = TAKER_FEE_USD / (TICK / 1e4)
 
 
-def decisions(day: Day, horizon: float = H, every: float = EVERY, engine: str = "auto",
-              session: tuple[float, float] = SESSION) -> pd.DataFrame:
+def decisions(
+    day: Day, horizon: float = H, every: float = EVERY, engine: str = "auto", session: tuple[float, float] = SESSION
+) -> pd.DataFrame:
     """One row per decision (I != 0) and fill model, with EV(cross) and EV(post) in ticks."""
     m, b = day.messages, day.book
     t = np.arange(session[0], session[1] - horizon + 1e-9, every)
@@ -60,16 +61,23 @@ def decisions(day: Day, horizon: float = H, every: float = EVERY, engine: str = 
     mid0, mid_h = mid_at(day, t), mid_at(day, t + horizon)
     ev_cross = side * (mid_h - cross_px) / TICK
     orders = Orders.make(i, side, post_px, SIZE, t + horizon - m.time[i])
-    base = pd.DataFrame({
-        "t": t, "side": side, "imbalance": imb, "strength": np.abs(imb),
-        "signal_bucket": np.clip(np.digitize(np.abs(imb), SIGNAL_EDGES[1:-1], right=True),
-                                 0, len(SIGNAL_LABELS) - 1),
-        "queue": queue, "queue_bucket": queue_buckets(queue, float(np.median(queue))),
-        "spread": (b.ask_price[i, 0] - b.bid_price[i, 0]) / TICK,
-        "tick_bps": TICK / mid0 * 1e4,
-        "move": side * (mid_h - mid0) / TICK,     # the signal's realised alpha, ticks
-        "ev_cross": ev_cross,
-    })
+    base = pd.DataFrame(
+        {
+            "t": t,
+            "side": side,
+            "imbalance": imb,
+            "strength": np.abs(imb),
+            "signal_bucket": np.clip(
+                np.digitize(np.abs(imb), SIGNAL_EDGES[1:-1], right=True), 0, len(SIGNAL_LABELS) - 1
+            ),
+            "queue": queue,
+            "queue_bucket": queue_buckets(queue, float(np.median(queue))),
+            "spread": (b.ask_price[i, 0] - b.bid_price[i, 0]) / TICK,
+            "tick_bps": TICK / mid0 * 1e4,
+            "move": side * (mid_h - mid0) / TICK,  # the signal's realised alpha, ticks
+            "ev_cross": ev_cross,
+        }
+    )
     frames = []
     for model in MODELS:
         f = simulate(m, b, orders, model, engine)
@@ -96,10 +104,17 @@ def grid(df: pd.DataFrame, value: str = "diff", min_n: int = 20) -> np.ndarray:
 def cell_table(df: pd.DataFrame) -> list[dict]:
     rows = []
     for (qb, sb), g in df.groupby(["queue_bucket", "signal_bucket"]):
-        rows.append({"queue_bucket": QUEUE_LABELS[int(qb)], "signal_bucket": SIGNAL_LABELS[int(sb)],
-                     "n": int(len(g)), "p_fill": float((g["fill_frac"] > 0).mean()),
-                     "ev_post": float(g["ev_post"].mean()), "ev_cross": float(g["ev_cross"].mean()),
-                     "diff": float(g["diff"].mean())})
+        rows.append(
+            {
+                "queue_bucket": QUEUE_LABELS[int(qb)],
+                "signal_bucket": SIGNAL_LABELS[int(sb)],
+                "n": int(len(g)),
+                "p_fill": float((g["fill_frac"] > 0).mean()),
+                "ev_post": float(g["ev_post"].mean()),
+                "ev_cross": float(g["ev_cross"].mean()),
+                "diff": float(g["diff"].mean()),
+            }
+        )
     return rows
 
 
@@ -121,8 +136,9 @@ def apply(rule: dict[tuple[int, int], str], df: pd.DataFrame) -> np.ndarray:
     return np.where(act == "post", df["ev_post"], np.where(act == "cross", df["ev_cross"], 0.0))
 
 
-def block_bootstrap_ci(t: np.ndarray, x: np.ndarray, block: float = BLOCK, reps: int = 2000,
-                       seed: int = 0) -> tuple[float, float]:
+def block_bootstrap_ci(
+    t: np.ndarray, x: np.ndarray, block: float = BLOCK, reps: int = 2000, seed: int = 0
+) -> tuple[float, float]:
     """95% CI of the mean, resampling whole clock blocks (keeps within-block dependence)."""
     if len(x) == 0:
         return float("nan"), float("nan")
@@ -140,28 +156,33 @@ def block_bootstrap_ci(t: np.ndarray, x: np.ndarray, block: float = BLOCK, reps:
 @dataclass(frozen=True)
 class RuleResult:
     model: str
-    in_sample: float        # mean EV per decision of the chosen rule, on the training half
-    out_of_sample: float    # the same rule on the test half
+    in_sample: float  # mean EV per decision of the chosen rule, on the training half
+    out_of_sample: float  # the same rule on the test half
     ci: tuple[float, float]
     oos_bps: float
-    always_post: float      # test half, for comparison
+    always_post: float  # test half, for comparison
     always_cross: float
-    share_post: float       # of test decisions routed to each action
+    share_post: float  # of test decisions routed to each action
     share_cross: float
     n_test: int
-    per_trade: float        # test EV per decision on which the rule trades (post or cross)
-    net_of_fee: float       # test EV per decision after charging TAKER_FEE_TICKS on every cross
+    per_trade: float  # test EV per decision on which the rule trades (post or cross)
+    net_of_fee: float  # test EV per decision after charging TAKER_FEE_TICKS on every cross
     net_ci: tuple[float, float]
 
 
-def evaluate_rule(df: pd.DataFrame, model: str, split: float = SPLIT, horizon: float = H,
-                  seed: int = 0, fee_ticks: float = TAKER_FEE_TICKS) -> RuleResult:
+def evaluate_rule(
+    df: pd.DataFrame,
+    model: str,
+    split: float = SPLIT,
+    horizon: float = H,
+    seed: int = 0,
+    fee_ticks: float = TAKER_FEE_TICKS,
+) -> RuleResult:
     d = df[df["model"] == model]
     train, test = d[d["t"] + horizon <= split], d[d["t"] >= split]
     rule = choose(train)
     ins, oos = apply(rule, train), apply(rule, test)
-    act = np.array([rule.get((int(q), int(s)), "none")
-                    for q, s in zip(test["queue_bucket"], test["signal_bucket"])])
+    act = np.array([rule.get((int(q), int(s)), "none") for q, s in zip(test["queue_bucket"], test["signal_bucket"])])
     traded = act != "none"
     net = oos - fee_ticks * (act == "cross")
     t = test["t"].to_numpy()

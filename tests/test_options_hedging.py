@@ -69,13 +69,13 @@ def test_premium_and_initial_hedge_are_black_scholes():
     assert th["premium"] == pytest.approx(bs.call_price(cfg.S0, cfg.K, cfg.T, cfg.r, cfg.q, cfg.sigma_imp))
     assert th["vega"] == pytest.approx(bs.vega(cfg.S0, cfg.K, cfg.T, cfg.r, cfg.q, cfg.sigma_imp))
     with pytest.raises(ValueError):
-        hg.simulate(cfg, (7,))          # 7 does not divide 320 steps
+        hg.simulate(cfg, (7,))  # 7 does not divide 320 steps
 
 
 def test_frontier_picks_finer_hedging_when_costs_are_lower(fair):
     _, choices = hg.frontier(fair, kappas=[0.0, 1e-3], risk_weights=[1.0])
     by_kappa = {c["kappa"]: c for c in choices}
-    assert by_kappa[0.0]["interval"] == min(INTERVALS)            # free hedging: hedge as often as possible
+    assert by_kappa[0.0]["interval"] == min(INTERVALS)  # free hedging: hedge as often as possible
     assert by_kappa[1e-3]["n_rebalances"] <= by_kappa[0.0]["n_rebalances"]
 
 

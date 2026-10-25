@@ -71,7 +71,7 @@ MODEL_CODE = {name: k for k, name in enumerate(MODELS)}
 
 
 class End(IntEnum):
-    ACTIVE = 0          # internal only; never in the output
+    ACTIVE = 0  # internal only; never in the output
     FILLED = 1
     TIMEOUT = 2
     LEVEL_EXIT = 3
@@ -87,11 +87,11 @@ END_NAMES = {e.value: e.name.lower() for e in End}
 class Orders:
     """Hypothetical orders as a struct of arrays."""
 
-    place_idx: np.ndarray   # int64, index of the message after which the order is placed
-    side: np.ndarray        # int8, +1 buy, -1 sell
-    price: np.ndarray       # int64, limit price in LOBSTER units (dollars x 10^4)
-    size: np.ndarray        # int64, shares
-    max_wait: np.ndarray    # float64, seconds after time[place_idx]
+    place_idx: np.ndarray  # int64, index of the message after which the order is placed
+    side: np.ndarray  # int8, +1 buy, -1 sell
+    price: np.ndarray  # int64, limit price in LOBSTER units (dollars x 10^4)
+    size: np.ndarray  # int64, shares
+    max_wait: np.ndarray  # float64, seconds after time[place_idx]
 
     def __len__(self) -> int:
         return len(self.place_idx)
@@ -113,17 +113,16 @@ class Orders:
 class Fills:
     """One row per order for one fill model (same order as the input orders)."""
 
-    filled_qty: np.ndarray   # int64
-    fill_idx: np.ndarray     # int64, message of the last fill (-1 if none)
-    fill_time: np.ndarray    # float64, time of the last fill (NaN if none)
-    fill_price: np.ndarray   # int64, our limit price if anything filled, else 0
-    end_idx: np.ndarray      # int64, last message the order was alive for
-    end_time: np.ndarray     # float64, when it ended (the deadline for a timeout)
-    end_reason: np.ndarray   # int8, End
+    filled_qty: np.ndarray  # int64
+    fill_idx: np.ndarray  # int64, message of the last fill (-1 if none)
+    fill_time: np.ndarray  # float64, time of the last fill (NaN if none)
+    fill_price: np.ndarray  # int64, our limit price if anything filled, else 0
+    end_idx: np.ndarray  # int64, last message the order was alive for
+    end_time: np.ndarray  # float64, when it ended (the deadline for a timeout)
+    end_reason: np.ndarray  # int8, End
     queue_ahead: np.ndarray  # int64, displayed depth ahead of us at placement
 
-    FIELDS = ("filled_qty", "fill_idx", "fill_time", "fill_price",
-              "end_idx", "end_time", "end_reason", "queue_ahead")
+    FIELDS = ("filled_qty", "fill_idx", "fill_time", "fill_price", "end_idx", "end_time", "end_reason", "queue_ahead")
 
     def __len__(self) -> int:
         return len(self.filled_qty)
@@ -196,13 +195,13 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
     end_time = [math.nan] * k_ord
     reason = [int(End.ACTIVE)] * k_ord
     queue0 = [0] * k_ord
-    ahead = [0] * k_ord                  # FIFO: displayed shares still ahead of us
-    behind: list[set | None] = [None] * k_ord   # FIFO: ids that joined our level after us
+    ahead = [0] * k_ord  # FIFO: displayed shares still ahead of us
+    behind: list[set | None] = [None] * k_ord  # FIFO: ids that joined our level after us
     deadline = [0.0] * k_ord
 
     # live orders by side and price: {price: [order indices]}
     live = {1: {}, -1: {}}
-    heap: list[tuple[float, int]] = []   # (deadline, order) for timeouts
+    heap: list[tuple[float, int]] = []  # (deadline, order) for timeouts
 
     def finish(j: int, why: End, n: int, when: float) -> None:
         reason[j] = int(why)
@@ -352,16 +351,27 @@ def simulate_cpp(messages: Messages, book: Book, orders: Orders, model: str) -> 
 
     _validate(messages, book, orders, model)
     out = _queue_sim.simulate(
-        messages.time, messages.type, messages.order_id, messages.size, messages.price,
-        messages.direction, book.bid_price, book.bid_size, book.ask_price, book.ask_size,
-        orders.place_idx, orders.side, orders.price, orders.size, orders.max_wait,
+        messages.time,
+        messages.type,
+        messages.order_id,
+        messages.size,
+        messages.price,
+        messages.direction,
+        book.bid_price,
+        book.bid_size,
+        book.ask_price,
+        book.ask_size,
+        orders.place_idx,
+        orders.side,
+        orders.price,
+        orders.size,
+        orders.max_wait,
         MODEL_CODE[model],
     )
     return Fills(**{f: out[f] for f in Fills.FIELDS})
 
 
-def simulate(messages: Messages, book: Book, orders: Orders, model: str = "fifo",
-             engine: str = "auto") -> Fills:
+def simulate(messages: Messages, book: Book, orders: Orders, model: str = "fifo", engine: str = "auto") -> Fills:
     """Run one fill model. engine: "python" (reference), "cpp", or "auto"."""
     if engine == "auto":
         engine = "cpp" if cpp_available() else "python"
@@ -372,21 +382,24 @@ def simulate(messages: Messages, book: Book, orders: Orders, model: str = "fifo"
     raise ValueError("engine must be 'auto', 'python' or 'cpp'")
 
 
-def simulate_all(day: Day, orders: Orders, models: tuple[str, ...] = MODELS,
-                 engine: str = "auto") -> pd.DataFrame:
+def simulate_all(day: Day, orders: Orders, models: tuple[str, ...] = MODELS, engine: str = "auto") -> pd.DataFrame:
     """One row per order and model: order fields plus fill results."""
     frames = []
     for model in models:
         f = simulate(day.messages, day.book, orders, model, engine)
-        frames.append(pd.DataFrame({
-            "order": np.arange(len(orders)),
-            "model": model,
-            "place_idx": orders.place_idx,
-            "side": orders.side,
-            "price": orders.price,
-            "size": orders.size,
-            **{name: getattr(f, name) for name in Fills.FIELDS},
-        }))
+        frames.append(
+            pd.DataFrame(
+                {
+                    "order": np.arange(len(orders)),
+                    "model": model,
+                    "place_idx": orders.place_idx,
+                    "side": orders.side,
+                    "price": orders.price,
+                    "size": orders.size,
+                    **{name: getattr(f, name) for name in Fills.FIELDS},
+                }
+            )
+        )
     df = pd.concat(frames, ignore_index=True)
     df["end_reason_name"] = df["end_reason"].map(END_NAMES)
     return df

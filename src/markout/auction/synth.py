@@ -24,9 +24,14 @@ STEPS_OBSERVED = 55  # 0..540 s
 STEPS_TOTAL = 61  # 0..600 s; the last six only exist to build targets
 
 
-def make_synthetic(n_stocks: int = 30, n_days: int = 120, seed: int = 0,
-                   signal_bps: float = 0.35, drop_frac: float = 0.02,
-                   null_target_frac: float = 0.001) -> tuple[pl.DataFrame, np.ndarray]:
+def make_synthetic(
+    n_stocks: int = 30,
+    n_days: int = 120,
+    seed: int = 0,
+    signal_bps: float = 0.35,
+    drop_frac: float = 0.02,
+    null_target_frac: float = 0.001,
+) -> tuple[pl.DataFrame, np.ndarray]:
     """Return (frame with the Optiver schema, true index weights by stock_id)."""
     rng = np.random.default_rng(seed)
     D, S, T = n_days, n_stocks, STEPS_TOTAL
@@ -78,13 +83,21 @@ def make_synthetic(n_stocks: int = 30, n_days: int = 120, seed: int = 0,
     obs = slice(0, STEPS_OBSERVED)
     dd, ss, tt = np.meshgrid(np.arange(D), np.arange(S), seconds[obs], indexing="ij")
     cols = {
-        "stock_id": ss, "date_id": dd, "seconds_in_bucket": tt,
-        "imbalance_size": imbalance_size[:, :, obs], "imbalance_buy_sell_flag": flag[:, :, obs],
-        "reference_price": reference[:, :, obs], "matched_size": matched[:, :, obs],
-        "far_price": far[:, :, obs], "near_price": near[:, :, obs],
-        "bid_price": bid[:, :, obs], "bid_size": bid_size[:, :, obs],
-        "ask_price": ask[:, :, obs], "ask_size": ask_size[:, :, obs],
-        "wap": wap[:, :, obs], "target": target,
+        "stock_id": ss,
+        "date_id": dd,
+        "seconds_in_bucket": tt,
+        "imbalance_size": imbalance_size[:, :, obs],
+        "imbalance_buy_sell_flag": flag[:, :, obs],
+        "reference_price": reference[:, :, obs],
+        "matched_size": matched[:, :, obs],
+        "far_price": far[:, :, obs],
+        "near_price": near[:, :, obs],
+        "bid_price": bid[:, :, obs],
+        "bid_size": bid_size[:, :, obs],
+        "ask_price": ask[:, :, obs],
+        "ask_size": ask_size[:, :, obs],
+        "wap": wap[:, :, obs],
+        "target": target,
     }
     df = pl.DataFrame({k: v.reshape(-1) for k, v in cols.items()})
     df = df.with_columns([pl.col(c).cast(t) for c, t in SCHEMA.items()])
@@ -93,14 +106,14 @@ def make_synthetic(n_stocks: int = 30, n_days: int = 120, seed: int = 0,
 
     # drop whole stock-days (the index still included them) and a few targets
     keep = rng.random((D, S)) >= drop_frac
-    keep_rows = pl.DataFrame({
-        "date_id": np.repeat(np.arange(D), S).astype(np.int16),
-        "stock_id": np.tile(np.arange(S), D).astype(np.int16),
-        "_keep": keep.reshape(-1),
-    })
+    keep_rows = pl.DataFrame(
+        {
+            "date_id": np.repeat(np.arange(D), S).astype(np.int16),
+            "stock_id": np.tile(np.arange(S), D).astype(np.int16),
+            "_keep": keep.reshape(-1),
+        }
+    )
     df = df.join(keep_rows, on=["date_id", "stock_id"]).filter(pl.col("_keep")).drop("_keep")
     null_mask = rng.random(df.height) < null_target_frac
-    df = df.with_columns(
-        pl.when(pl.Series(null_mask)).then(None).otherwise(pl.col("target")).alias("target")
-    )
+    df = df.with_columns(pl.when(pl.Series(null_mask)).then(None).otherwise(pl.col("target")).alias("target"))
     return df.sort(["stock_id", "date_id", "seconds_in_bucket"]), weights

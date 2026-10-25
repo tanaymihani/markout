@@ -79,7 +79,7 @@ def test_maker_profit_ci_is_calibrated():
         zs.append(ci["mean"] / ci["se"])
     zs = np.array(zs)
     coverage = float(np.mean(np.abs(zs) < 1.959963984540054))
-    assert coverage >= 0.85, coverage              # nominal 0.95; P(< 0.85) ≈ 0.1%
+    assert coverage >= 0.85, coverage  # nominal 0.95; P(< 0.85) ≈ 0.1%
     assert abs(zs.sum() / np.sqrt(zs.size)) < 3.0  # pooled z over 600k runs
 
 
@@ -110,8 +110,7 @@ def test_spread_shrinks_as_trades_reveal_v(paths):
 
 def test_belief_depends_only_on_net_order_flow(paths):
     net = np.cumsum(paths.side, axis=1)
-    np.testing.assert_allclose(paths.belief[:, 1:], gm.belief_after_net_flow(net, paths.params),
-                               rtol=1e-9, atol=1e-12)
+    np.testing.assert_allclose(paths.belief[:, 1:], gm.belief_after_net_flow(net, paths.params), rtol=1e-9, atol=1e-12)
 
 
 def test_params_validation():

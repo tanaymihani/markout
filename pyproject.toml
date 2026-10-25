@@ -39,3 +39,20 @@ markers = [
   "data: needs downloaded datasets (skipped when missing)",
   "slow: takes more than ~30 s",
 ]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["data", "build", "reports", "docs/api"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+ignore = [
+  "E501",   # long lines: the formatter wraps code; long strings and URLs are left alone
+  "E731",   # small named lambdas are used deliberately in reports and tests
+  "B905",   # zip() without strict=: lengths are equal by construction where it matters
+  "SIM108", # ternaries are not always clearer than an if/else block
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["markout"]

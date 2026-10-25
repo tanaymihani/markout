@@ -14,8 +14,7 @@ from markout.lob.fills import MODELS, simulate
 from markout.lob.lobster import TICK, TICKERS, available, check_consistency, load_day
 from markout.lob.markouts import mid_at, order_markouts, sample_orders, spread_decomposition
 
-pytestmark = [pytest.mark.data,
-              pytest.mark.skipif(not available(), reason="LOBSTER Parquet files not downloaded")]
+pytestmark = [pytest.mark.data, pytest.mark.skipif(not available(), reason="LOBSTER Parquet files not downloaded")]
 
 
 @pytest.fixture(scope="module")
@@ -31,13 +30,12 @@ def test_messages_replay_exactly_against_the_book(ticker):
     c = check_consistency(day.messages, day.book)
     assert c.coverage > 0.99
     assert c.pass_rate >= 0.999, f"{ticker}: {len(c.failures)} failures"
-    assert np.all(day.book.best_bid < day.book.best_ask)          # never crossed or locked
+    assert np.all(day.book.best_bid < day.book.best_ask)  # never crossed or locked
 
 
 def test_tick_size_regimes_match_the_plan():
     cls = {t: compute_facts(load_day(t)).tick_class for t in ("INTC", "MSFT", "AAPL", "GOOG")}
-    assert cls == {"INTC": "large-tick", "MSFT": "large-tick",
-                   "AAPL": "small-tick", "GOOG": "small-tick"}
+    assert cls == {"INTC": "large-tick", "MSFT": "large-tick", "AAPL": "small-tick", "GOOG": "small-tick"}
 
 
 def test_fill_models_nest_on_real_data(goog):
@@ -45,7 +43,7 @@ def test_fill_models_nest_on_real_data(goog):
     touch, fifo, through = (simulate(goog.messages, goog.book, o, m, engine="python") for m in MODELS)
     assert np.all(through.filled_qty <= fifo.filled_qty)
     assert np.all(fifo.filled_qty <= touch.filled_qty)
-    assert np.all(fifo.queue_ahead == touch.queue_ahead)          # same book row at placement
+    assert np.all(fifo.queue_ahead == touch.queue_ahead)  # same book row at placement
     filled = fifo.filled_qty > 0
     assert np.all(fifo.fill_time[filled] >= goog.messages.time[o.place_idx[filled]])
 

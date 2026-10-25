@@ -36,11 +36,14 @@ def expanding_slopes(preds: pl.DataFrame, max_slope: float = 5.0) -> dict[int, f
 
 def apply(preds: pl.DataFrame, slopes: dict[int, float]) -> pl.DataFrame:
     """edge = slope[fold] * pred."""
-    s = pl.DataFrame({"fold": list(slopes), "_b": list(slopes.values())},
-                     schema={"fold": preds.schema["fold"], "_b": pl.Float64})
-    return (preds.join(s, on="fold", how="left")
-                 .with_columns((pl.col("pred") * pl.col("_b").fill_null(0.0)).alias("edge"))
-                 .drop("_b"))
+    s = pl.DataFrame(
+        {"fold": list(slopes), "_b": list(slopes.values())}, schema={"fold": preds.schema["fold"], "_b": pl.Float64}
+    )
+    return (
+        preds.join(s, on="fold", how="left")
+        .with_columns((pl.col("pred") * pl.col("_b").fill_null(0.0)).alias("edge"))
+        .drop("_b")
+    )
 
 
 def decile_table(pred: np.ndarray, target: np.ndarray, n_bins: int = 10) -> list[dict]:
@@ -52,6 +55,13 @@ def decile_table(pred: np.ndarray, target: np.ndarray, n_bins: int = 10) -> list
         return []
     edges = np.quantile(pred, np.linspace(0, 1, n_bins + 1))
     idx = np.clip(np.searchsorted(edges, pred, side="right") - 1, 0, n_bins - 1)
-    return [{"decile": int(i + 1), "mean_pred_bps": float(pred[idx == i].mean()),
-             "mean_target_bps": float(target[idx == i].mean()), "n": int((idx == i).sum())}
-            for i in range(n_bins) if (idx == i).any()]
+    return [
+        {
+            "decile": int(i + 1),
+            "mean_pred_bps": float(pred[idx == i].mean()),
+            "mean_target_bps": float(target[idx == i].mean()),
+            "n": int((idx == i).sum()),
+        }
+        for i in range(n_bins)
+        if (idx == i).any()
+    ]

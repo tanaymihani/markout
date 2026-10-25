@@ -32,7 +32,7 @@ assert set(KIND_WEIGHTS) == set(KINDS)
 action = st.tuples(
     st.sampled_from([k for k, w in KIND_WEIGHTS.items() for _ in range(w)]),
     st.sampled_from([1, -1]),
-    st.sampled_from([0, 0, 0, 0, -1, 1, 2, 4]),       # submit offset: mostly at the touch
+    st.sampled_from([0, 0, 0, 0, -1, 1, 2, 4]),  # submit offset: mostly at the touch
     st.sampled_from(SIZES),
     st.integers(0, 10**6),
     st.sampled_from([0.0, 0.0, 0.001, 0.3, 1.0, 4.0]),  # timestamp ties are common in LOBSTER
@@ -56,8 +56,7 @@ def orders_for(data, messages, book, k_max: int = 25) -> Orders:
     idx = np.array(data.draw(st.lists(st.integers(0, n - 1), min_size=k, max_size=k)))
     side = np.array(data.draw(st.lists(st.sampled_from([1, -1]), min_size=k, max_size=k)), np.int8)
     # ticks behind our own best (-1 = inside the spread, large = deep or out of view)
-    off = np.array(data.draw(st.lists(st.sampled_from([0, 0, 0, 1, 2, -1, -2, 12]),
-                                      min_size=k, max_size=k)))
+    off = np.array(data.draw(st.lists(st.sampled_from([0, 0, 0, 1, 2, -1, -2, 12]), min_size=k, max_size=k)))
     best = np.where(side > 0, book.bid_price[idx, 0], book.ask_price[idx, 0])
     price = best - side.astype(np.int64) * off * TICK
     size = data.draw(st.lists(st.sampled_from([1, 100, 100, 250]), min_size=k, max_size=k))
@@ -72,7 +71,7 @@ def assert_identical(messages, book, orders) -> None:
         for field in Fills.FIELDS:
             a, b = getattr(ref, field), getattr(got, field)
             assert a.dtype == b.dtype, (model, field)
-            if a.dtype.kind == "f":      # compare bit patterns: NaN == NaN, -0.0 != 0.0
+            if a.dtype.kind == "f":  # compare bit patterns: NaN == NaN, -0.0 != 0.0
                 a, b = a.view(np.int64), b.view(np.int64)
             assert np.array_equal(a, b), (model, field, np.flatnonzero(a != b)[:5])
 
@@ -91,8 +90,9 @@ def test_seeded_streams_with_many_concurrent_orders(seed):
     k = 400
     idx = np.sort(rng.integers(0, len(messages), k))
     side = rng.choice([1, -1], k).astype(np.int8)
-    price = np.where(side > 0, book.bid_price[idx, 0], book.ask_price[idx, 0]) \
-        - side * rng.choice([0, 0, 1, 3], k) * TICK
+    price = (
+        np.where(side > 0, book.bid_price[idx, 0], book.ask_price[idx, 0]) - side * rng.choice([0, 0, 1, 3], k) * TICK
+    )
     orders = Orders.make(idx, side, price, rng.choice([1, 100, 300], k), rng.uniform(0, 60, k))
     assert_identical(messages, book, orders)
 
@@ -102,7 +102,7 @@ def test_seeded_streams_with_many_concurrent_orders(seed):
 @pytest.mark.parametrize("ticker", TICKERS)
 def test_real_days_match_python(ticker):
     day = load_day(ticker)
-    orders = sample_orders(day).orders       # the exact order set behind report 02
+    orders = sample_orders(day).orders  # the exact order set behind report 02
     assert_identical(day.messages, day.book, orders)
 
 
@@ -112,12 +112,25 @@ def test_empty_orders_and_bad_input():
     for model in MODELS:
         assert len(simulate(messages, book, none, model, engine="cpp")) == 0
     from markout.lob import _queue_sim
-    good = dict(time=messages.time, type=messages.type, order_id=messages.order_id,
-                size=messages.size, price=messages.price, direction=messages.direction,
-                bid_price=book.bid_price, bid_size=book.bid_size, ask_price=book.ask_price,
-                ask_size=book.ask_size, place_idx=np.array([0]), side=np.array([1], np.int8),
-                order_price=np.array([book.bid_price[0, 0]]), order_size=np.array([100]),
-                max_wait=np.array([1.0]), model=1)
+
+    good = dict(
+        time=messages.time,
+        type=messages.type,
+        order_id=messages.order_id,
+        size=messages.size,
+        price=messages.price,
+        direction=messages.direction,
+        bid_price=book.bid_price,
+        bid_size=book.bid_size,
+        ask_price=book.ask_price,
+        ask_size=book.ask_size,
+        place_idx=np.array([0]),
+        side=np.array([1], np.int8),
+        order_price=np.array([book.bid_price[0, 0]]),
+        order_size=np.array([100]),
+        max_wait=np.array([1.0]),
+        model=1,
+    )
     assert _queue_sim.simulate(**good)["filled_qty"].shape == (1,)
     with pytest.raises(ValueError):
         _queue_sim.simulate(**{**good, "place_idx": np.array([len(messages)])})
@@ -131,4 +144,5 @@ def test_auto_engine_uses_cpp():
     messages, book = random_stream(np.random.default_rng(1), n_events=200)
     orders = Orders.make([10, 20], [1, -1], [book.bid_price[10, 0], book.ask_price[20, 0]])
     assert simulate(messages, book, orders, "fifo", engine="auto").equals(
-        simulate(messages, book, orders, "fifo", engine="cpp"))
+        simulate(messages, book, orders, "fifo", engine="cpp")
+    )

@@ -30,9 +30,11 @@ def with_forward_return(df: pl.DataFrame) -> pl.DataFrame:
 
 def missingness(df: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
     """Share of nulls per column at each seconds_in_bucket."""
-    return (df.group_by("seconds_in_bucket")
-              .agg([pl.col(c).is_null().mean().alias(c) for c in columns])
-              .sort("seconds_in_bucket"))
+    return (
+        df.group_by("seconds_in_bucket")
+        .agg([pl.col(c).is_null().mean().alias(c) for c in columns])
+        .sort("seconds_in_bucket")
+    )
 
 
 def coverage(df: pl.DataFrame) -> dict:
@@ -52,8 +54,7 @@ def coverage(df: pl.DataFrame) -> dict:
 
 
 def distributions(df: pl.DataFrame) -> dict:
-    spread = ((pl.col("ask_price") - pl.col("bid_price"))
-              / ((pl.col("ask_price") + pl.col("bid_price")) / 2) * 1e4)
+    spread = (pl.col("ask_price") - pl.col("bid_price")) / ((pl.col("ask_price") + pl.col("bid_price")) / 2) * 1e4
     q = [0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99]
     s = df.select(spread.alias("spread_bps"))["spread_bps"].drop_nulls().to_numpy()
     t = df["target"].drop_nulls().to_numpy().astype(np.float64)
@@ -64,7 +65,7 @@ def distributions(df: pl.DataFrame) -> dict:
         "target_std": float(t.std()),
         "target_mae_vs_zero": float(np.abs(t).mean()),
         "target_quantiles": dict(zip([f"q{int(100 * p):02d}" for p in q], np.quantile(t, q))),
-        "target_excess_kurtosis": float((tc ** 4).mean() / (tc ** 2).mean() ** 2 - 3.0),
+        "target_excess_kurtosis": float((tc**4).mean() / (tc**2).mean() ** 2 - 3.0),
         "target_share_abs_gt_20bps": float((np.abs(t) > 20).mean()),
         "target_null_share": float(df["target"].is_null().mean()),
     }
@@ -73,12 +74,16 @@ def distributions(df: pl.DataFrame) -> dict:
 def reconstruction(df: pl.DataFrame) -> dict:
     """Check that ret60 - target is common to all stocks at each (date, second)."""
     x = with_forward_return(df).with_columns((pl.col("ret60") - pl.col("target")).alias("implied_index"))
-    per = (x.drop_nulls(["implied_index"])
-             .group_by(XS)
-             .agg(pl.col("implied_index").std().alias("implied_std"),
-                  pl.col("ret60").std().alias("ret_std"),
-                  pl.len().alias("n"))
-             .filter(pl.col("n") >= 5))
+    per = (
+        x.drop_nulls(["implied_index"])
+        .group_by(XS)
+        .agg(
+            pl.col("implied_index").std().alias("implied_std"),
+            pl.col("ret60").std().alias("ret_std"),
+            pl.len().alias("n"),
+        )
+        .filter(pl.col("n") >= 5)
+    )
     return {
         "median_cross_stock_std_implied_index_bps": float(per["implied_std"].median()),
         "median_cross_stock_std_ret60_bps": float(per["ret_std"].median()),
@@ -98,32 +103,49 @@ def index_weights(df: pl.DataFrame, days: tuple[int, int]) -> tuple[pl.DataFrame
     x = x.with_columns((pl.col("ret60") - pl.col("target")).alias("implied_index")).drop_nulls(["ret60"])
     stocks = np.sort(x["stock_id"].unique().to_numpy())
     wide = x.pivot(on="stock_id", index=XS, values="ret60").sort(XS)
-    y = (x.drop_nulls(["implied_index"]).group_by(XS)
-          .agg(pl.col("implied_index").median().alias("y")))
+    y = x.drop_nulls(["implied_index"]).group_by(XS).agg(pl.col("implied_index").median().alias("y"))
     wide = wide.join(y, on=XS, how="inner").drop_nulls()
     cols = [str(s) for s in stocks]
     X = wide.select(cols).to_numpy().astype(np.float64)
     yv = wide["y"].to_numpy().astype(np.float64)
     first_seen = df.group_by("stock_id").agg(pl.col("date_id").min().alias("first_day"))
     absent = first_seen.filter(~pl.col("stock_id").is_in(stocks.tolist())).sort("stock_id")
-    info = {"n_timestamps": int(X.shape[0]), "n_stocks": int(X.shape[1]), "days": list(days),
-            "absent_stocks": absent.rows()}  # (stock_id, first day seen): weight unknown, set to 0
+    info = {
+        "n_timestamps": int(X.shape[0]),
+        "n_stocks": int(X.shape[1]),
+        "days": list(days),
+        "absent_stocks": absent.rows(),
+    }  # (stock_id, first day seen): weight unknown, set to 0
     if X.shape[0] < 2 * X.shape[1]:
         w = np.full(len(stocks), 1.0 / len(stocks))
         info.update(method="equal (too few complete timestamps)", r2=float("nan"))
     else:
         w, *_ = np.linalg.lstsq(X, yv, rcond=None)
         resid = yv - X @ w
-        info.update(method="least squares", r2=float(1 - resid.var() / yv.var()),
-                    resid_std_bps=float(resid.std()), weight_sum=float(w.sum()),
-                    min_weight=float(w.min()), max_weight=float(w.max()))
+        info.update(
+            method="least squares",
+            r2=float(1 - resid.var() / yv.var()),
+            resid_std_bps=float(resid.std()),
+            weight_sum=float(w.sum()),
+            min_weight=float(w.min()),
+            max_weight=float(w.max()),
+        )
     return pl.DataFrame({"stock_id": stocks.astype(np.int16), "index_weight": w.astype(np.float64)}), info
 
 
 def run(df: pl.DataFrame, weight_days: tuple[int, int]) -> dict:
     """Everything the report's audit section needs, as plain data."""
-    cols = ["imbalance_size", "reference_price", "matched_size", "far_price", "near_price",
-            "bid_price", "ask_price", "wap", "target"]
+    cols = [
+        "imbalance_size",
+        "reference_price",
+        "matched_size",
+        "far_price",
+        "near_price",
+        "bid_price",
+        "ask_price",
+        "wap",
+        "target",
+    ]
     miss = missingness(df, cols)
     cov = coverage(df)
     per_day = cov.pop("per_day")

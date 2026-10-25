@@ -51,20 +51,22 @@ def _pdf(x: ArrayLike) -> ArrayLike:
     return np.exp(-0.5 * np.square(x)) / math.sqrt(2.0 * math.pi)
 
 
-def d1_d2(S: ArrayLike, K: ArrayLike, T: ArrayLike, r: ArrayLike, q: ArrayLike,
-          sigma: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
+def d1_d2(
+    S: ArrayLike, K: ArrayLike, T: ArrayLike, r: ArrayLike, q: ArrayLike, sigma: ArrayLike
+) -> tuple[ArrayLike, ArrayLike]:
     """The two BSM standardized moneyness terms (requires T > 0, sigma > 0)."""
     v = np.multiply(sigma, np.sqrt(T))
     d1 = (np.log(np.divide(S, K)) + (np.subtract(r, q) + 0.5 * np.square(sigma)) * T) / v
     return d1, d1 - v
 
 
-def price(S: ArrayLike, K: ArrayLike, T: ArrayLike, r: ArrayLike, q: ArrayLike,
-          sigma: ArrayLike, kind="call") -> ArrayLike:
+def price(
+    S: ArrayLike, K: ArrayLike, T: ArrayLike, r: ArrayLike, q: ArrayLike, sigma: ArrayLike, kind="call"
+) -> ArrayLike:
     """European call or put price. sigma*sqrt(T) = 0 returns the discounted intrinsic value."""
     call = _is_call(kind)
-    fwd_s = np.multiply(S, np.exp(-np.multiply(q, T)))      # S e^{-qT}
-    pv_k = np.multiply(K, np.exp(-np.multiply(r, T)))       # K e^{-rT}
+    fwd_s = np.multiply(S, np.exp(-np.multiply(q, T)))  # S e^{-qT}
+    pv_k = np.multiply(K, np.exp(-np.multiply(r, T)))  # K e^{-rT}
     v = np.multiply(sigma, np.sqrt(T))
     with np.errstate(divide="ignore", invalid="ignore"):
         d1, d2 = d1_d2(S, K, T, r, q, sigma)
@@ -127,9 +129,14 @@ def rho(S, K, T, r, q, sigma, kind="call"):
 
 def greeks(S, K, T, r, q, sigma, kind="call") -> dict:
     """All five Greeks plus the price."""
-    return {"price": price(S, K, T, r, q, sigma, kind), "delta": delta(S, K, T, r, q, sigma, kind),
-            "gamma": gamma(S, K, T, r, q, sigma), "vega": vega(S, K, T, r, q, sigma),
-            "theta": theta(S, K, T, r, q, sigma, kind), "rho": rho(S, K, T, r, q, sigma, kind)}
+    return {
+        "price": price(S, K, T, r, q, sigma, kind),
+        "delta": delta(S, K, T, r, q, sigma, kind),
+        "gamma": gamma(S, K, T, r, q, sigma),
+        "vega": vega(S, K, T, r, q, sigma),
+        "theta": theta(S, K, T, r, q, sigma, kind),
+        "rho": rho(S, K, T, r, q, sigma, kind),
+    }
 
 
 def bounds(S, K, T, r, q, kind="call") -> tuple[ArrayLike, ArrayLike]:
@@ -142,8 +149,18 @@ def bounds(S, K, T, r, q, kind="call") -> tuple[ArrayLike, ArrayLike]:
     return lower, upper
 
 
-def implied_vol(target: float, S: float, K: float, T: float, r: float, q: float,
-                kind: str = "call", lo: float = 1e-6, hi: float = 10.0, xtol: float = 1e-12) -> float:
+def implied_vol(
+    target: float,
+    S: float,
+    K: float,
+    T: float,
+    r: float,
+    q: float,
+    kind: str = "call",
+    lo: float = 1e-6,
+    hi: float = 10.0,
+    xtol: float = 1e-12,
+) -> float:
     """The sigma in [lo, hi] with price(sigma) = target, by Brent's method (Brent 1973).
 
     The BSM price is strictly increasing in sigma (vega > 0), rising from the discounted
@@ -165,9 +182,15 @@ def implied_vol(target: float, S: float, K: float, T: float, r: float, q: float,
 
 def implied_vol_array(targets, S, K, T, r, q, kinds, **kw) -> np.ndarray:
     """Elementwise `implied_vol` over broadcast arrays."""
-    b = np.broadcast_arrays(np.asarray(targets, float), np.asarray(S, float), np.asarray(K, float),
-                            np.asarray(T, float), np.asarray(r, float), np.asarray(q, float),
-                            np.asarray(kinds))
+    b = np.broadcast_arrays(
+        np.asarray(targets, float),
+        np.asarray(S, float),
+        np.asarray(K, float),
+        np.asarray(T, float),
+        np.asarray(r, float),
+        np.asarray(q, float),
+        np.asarray(kinds),
+    )
     out = np.full(b[0].shape, np.nan)
     for idx in np.ndindex(out.shape):
         t, s, k, tt, rr, qq, kd = (x[idx] for x in b)

@@ -46,27 +46,28 @@ def _reference_pbo(X: np.ndarray, S: int, metric) -> dict:
         is_m.append(best)
         oos_m.append(np.mean([Rb[j] for j in winners]))
     om = np.array(omegas)
-    return {"pbo": float(np.mean(np.log(om / (1 - om)) <= 0)), "oos_rank": om,
-            "is_metric": np.array(is_m), "oos_metric": np.array(oos_m)}
+    return {
+        "pbo": float(np.mean(np.log(om / (1 - om)) <= 0)),
+        "oos_rank": om,
+        "is_metric": np.array(is_m),
+        "oos_metric": np.array(oos_m),
+    }
 
 
 def test_hand_computed_two_block_example():
     # Blocks: rows 0-1 (IS in combo 1) and rows 2-3. Metric = mean.
-    X = np.array([[1, 0, 2],
-                  [1, 0, 2],
-                  [0, 3, 1],
-                  [0, 3, 1]], dtype=float)
+    X = np.array([[1, 0, 2], [1, 0, 2], [0, 3, 1], [0, 3, 1]], dtype=float)
     r = pbo(X, n_blocks=2, metric="mean")
     # combo 1: IS means (1, 0, 2) -> col 2 wins; OOS means (0, 3, 1) -> rank 2 of 3 -> omega 2/4
     # combo 2: IS means (0, 3, 1) -> col 1 wins; OOS means (1, 0, 2) -> rank 1 of 3 -> omega 1/4
     np.testing.assert_allclose(r["oos_rank"], [0.5, 0.25])
     np.testing.assert_allclose(r["logits"], [0.0, math.log(1 / 3)])
-    assert r["pbo"] == 1.0                           # lambda <= 0 in both combinations
+    assert r["pbo"] == 1.0  # lambda <= 0 in both combinations
     np.testing.assert_allclose(r["is_metric"], [2.0, 3.0])
     np.testing.assert_allclose(r["oos_metric"], [1.0, 0.0])
     assert r["degradation_slope"] == pytest.approx(-1.0)
     assert r["degradation_intercept"] == pytest.approx(3.0)
-    assert r["prob_oos_loss"] == 0.0                 # OOS means 1 and 0, neither < 0
+    assert r["prob_oos_loss"] == 0.0  # OOS means 1 and 0, neither < 0
     np.testing.assert_allclose(r["selection_freq"].to_numpy(), [0.0, 0.5, 0.5])
     assert r["n_combinations"] == 2 and r["n_used"] == 2
 
@@ -74,10 +75,10 @@ def test_hand_computed_two_block_example():
 def _messy_matrix(seed: int, T: int = 124, N: int = 7) -> np.ndarray:
     rng = np.random.default_rng(seed)
     X = rng.standard_normal((T, N)) + 0.04 * np.arange(N)
-    X[rng.random(X.shape) < 0.08] = np.nan           # scattered missing days
-    X[: T // 2, 3] = 0.0                             # flat for the whole first half...
-    X[T // 2:, 5] = np.nan                           # ...and no data for a whole half
-    X[: T // 2, 6] = 0.25                            # constant non-zero for a whole half
+    X[rng.random(X.shape) < 0.08] = np.nan  # scattered missing days
+    X[: T // 2, 3] = 0.0  # flat for the whole first half...
+    X[T // 2 :, 5] = np.nan  # ...and no data for a whole half
+    X[: T // 2, 6] = 0.25  # constant non-zero for a whole half
     return X
 
 
@@ -96,8 +97,8 @@ def test_vectorized_matches_naive_reference(S, metric):
 
 def test_generic_callable_path_matches_fast_path():
     X = _messy_matrix(seed=11)
-    fast = pbo(X, n_blocks=4)                                   # dsr.sharpe -> fast path
-    slow = pbo(X, n_blocks=4, metric=lambda v: sharpe(v))       # opaque callable
+    fast = pbo(X, n_blocks=4)  # dsr.sharpe -> fast path
+    slow = pbo(X, n_blocks=4, metric=lambda v: sharpe(v))  # opaque callable
     np.testing.assert_allclose(slow["oos_rank"], fast["oos_rank"], atol=1e-12)
     np.testing.assert_allclose(slow["is_metric"], fast["is_metric"], rtol=1e-9)
     assert slow["pbo"] == fast["pbo"]
@@ -118,14 +119,14 @@ def test_pure_noise_gives_pbo_near_one_half():
         vals.append(r["pbo"])
         ranks.append(r["oos_rank"].mean())
     assert abs(np.mean(vals) - 0.5) < 0.12
-    assert abs(np.mean(ranks) - 0.5) < 0.06          # OOS rank of the IS winner ~ uniform
+    assert abs(np.mean(ranks) - 0.5) < 0.06  # OOS rank of the IS winner ~ uniform
 
 
 @pytest.mark.parametrize("seed", [0, 1, 2])
 def test_one_real_edge_among_noise_gives_pbo_near_zero(seed):
     rng = np.random.default_rng(100 + seed)
     X = rng.standard_normal((240, 50))
-    X[:, 17] += 0.5                                 # daily Sharpe 0.5: a real, strong edge
+    X[:, 17] += 0.5  # daily Sharpe 0.5: a real, strong edge
     r = pbo(pd.DataFrame(X, columns=[f"trial{j}" for j in range(50)]), n_blocks=16)
     assert r["pbo"] < 0.05
     assert r["selection_freq"]["trial17"] > 0.95
@@ -147,7 +148,7 @@ def test_ties_and_duplicates():
     rng = np.random.default_rng(4)
     X = rng.standard_normal((240, 10))
     X[:, 2] += 0.6
-    X = np.column_stack([X, X[:, 2]])               # column 10 duplicates column 2
+    X = np.column_stack([X, X[:, 2]])  # column 10 duplicates column 2
     r = pbo(X, n_blocks=8)
     # tied IS winners share credit instead of the lower column index taking it all
     assert r["selection_freq"].iloc[2] == pytest.approx(0.5)
@@ -173,23 +174,23 @@ def test_all_nan_column_changes_nothing_but_the_count():
 
 def test_is_winner_that_goes_flat_oos_is_a_flop_not_a_drop():
     rng = np.random.default_rng(6)
-    X = 0.5 + rng.standard_normal((100, 5))          # the others: steady, clearly positive
-    X[:50, 0] = 2.0 + 0.1 * rng.standard_normal(50)   # superb in the first half...
-    X[50:, 0] = 0.0                                   # ...then stops trading
+    X = 0.5 + rng.standard_normal((100, 5))  # the others: steady, clearly positive
+    X[:50, 0] = 2.0 + 0.1 * rng.standard_normal(50)  # superb in the first half...
+    X[50:, 0] = 0.0  # ...then stops trading
     r = pbo(X, n_blocks=2)
-    assert r["n_used"] == 2                           # the flat OOS half was ranked, not dropped
-    assert r["oos_rank"][0] == pytest.approx(1 / 6)   # Sharpe 0 ranks last among 5
+    assert r["n_used"] == 2  # the flat OOS half was ranked, not dropped
+    assert r["oos_rank"][0] == pytest.approx(1 / 6)  # Sharpe 0 ranks last among 5
     assert r["oos_metric"][0] == 0.0
 
 
 def test_input_validation():
     X = np.random.default_rng(0).standard_normal((40, 4))
     with pytest.raises(ValueError):
-        pbo(X, n_blocks=5)                            # odd
+        pbo(X, n_blocks=5)  # odd
     with pytest.raises(ValueError):
-        pbo(X[:3], n_blocks=4)                        # fewer rows than blocks
+        pbo(X[:3], n_blocks=4)  # fewer rows than blocks
     with pytest.raises(ValueError):
-        pbo(X[:, :1], n_blocks=4)                     # nothing to select among
+        pbo(X[:, :1], n_blocks=4)  # nothing to select among
     bad = X.copy()
     bad[0, 0] = np.inf
     with pytest.raises(ValueError):

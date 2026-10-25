@@ -51,8 +51,15 @@ def cmd_serve(a) -> int:
         clock = SimClock(speed=a.speed)
         specs = load_scenario(a.scenario, clock())
         api = PaperContest(specs, start_cash=a.cash, seed=a.seed, clock=clock)
-        static = {} if a.live_refs else {cid: from_scenario([r for r in s.references if r["contract_id"] == cid])
-                                         for s in specs for cid in {r["contract_id"] for r in s.references}}
+        static = (
+            {}
+            if a.live_refs
+            else {
+                cid: from_scenario([r for r in s.references if r["contract_id"] == cid])
+                for s in specs
+                for cid in {r["contract_id"] for r in s.references}
+            }
+        )
         refs = References(live=a.live_refs, static=static)
         store = Store(DATA / "cup" / "paper.db")
         journal_path = DATA / "cup" / "paper_journal.csv"
@@ -73,8 +80,9 @@ def cmd_refs(a) -> int:
     from markout.cup.sources import kalshi, polymarket
 
     q = " ".join(a.query).lower()
-    rows = [x for x in polymarket.search(q)] + [x for x in kalshi.open_markets(max_pages=2)
-                                                  if all(w in x.question.lower() for w in q.split())]
+    rows = [x for x in polymarket.search(q)] + [
+        x for x in kalshi.open_markets(max_pages=2) if all(w in x.question.lower() for w in q.split())
+    ]
     for x in rows[: a.limit]:
         print(f"{x.source:10s} {x.p:5.2f}  {x.question[:90]} [{x.outcome}]  liq {x.liquidity or 0:,.0f}")
     print(f"{len(rows)} matches")
@@ -96,8 +104,9 @@ def cmd_demo(a) -> int:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="python -m markout.cup", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        prog="python -m markout.cup", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("serve")
     g = s.add_mutually_exclusive_group()

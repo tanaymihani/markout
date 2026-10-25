@@ -10,12 +10,19 @@ from markout.decision import voi
 
 def dec_frame(edges, targets, spread=2.0, bid_size=1e6, ask_size=1e6, date=0, sec=0):
     n = len(edges)
-    return pl.DataFrame({
-        "stock_id": np.arange(n, dtype=np.int16), "date_id": np.full(n, date, np.int16),
-        "seconds_in_bucket": np.full(n, sec, np.int16), "edge": np.asarray(edges, float),
-        "target": np.asarray(targets, float), "bid_size": np.full(n, bid_size), "ask_size": np.full(n, ask_size),
-        "spread_entry_bps": np.full(n, spread), "spread_exit_bps": np.full(n, spread),
-    })
+    return pl.DataFrame(
+        {
+            "stock_id": np.arange(n, dtype=np.int16),
+            "date_id": np.full(n, date, np.int16),
+            "seconds_in_bucket": np.full(n, sec, np.int16),
+            "edge": np.asarray(edges, float),
+            "target": np.asarray(targets, float),
+            "bid_size": np.full(n, bid_size),
+            "ask_size": np.full(n, ask_size),
+            "spread_entry_bps": np.full(n, spread),
+            "spread_exit_bps": np.full(n, spread),
+        }
+    )
 
 
 def test_cost_is_one_spread_plus_fees_plus_hedge_scaled():
@@ -41,8 +48,9 @@ def test_threshold_side_size_and_pnl():
 def test_ramp_sizing_and_gross_cap():
     costs = CostModel(0.5, 0.5)
     d = dec_frame([3.5 * 1.5, 3.5 * 3.0], [0.0, 0.0])
-    tr = trades(d, Policy(threshold=1.0, sizing="ramp", ramp=1.0, max_notional=100.0, depth_frac=1.0,
-                          max_gross=1e9), costs)
+    tr = trades(
+        d, Policy(threshold=1.0, sizing="ramp", ramp=1.0, max_notional=100.0, depth_frac=1.0, max_gross=1e9), costs
+    )
     sizes = dict(zip(tr["stock_id"].to_list(), tr["notional"].to_list()))
     assert sizes[0] == pytest.approx(50.0) and sizes[1] == pytest.approx(100.0)
     capped = trades(d, Policy(threshold=1.0, max_notional=100.0, depth_frac=1.0, max_gross=100.0), costs)
@@ -69,8 +77,18 @@ def test_daily_fills_idle_days_and_drawdown():
 def test_decision_frame_uses_exit_spread_60s_later():
     rows = []
     for sec in (0, 10, 60, 540):
-        rows.append({"stock_id": 1, "date_id": 0, "seconds_in_bucket": sec, "target": 1.0,
-                     "bid_price": 1.0, "ask_price": 1.0 + (sec + 10) * 1e-5, "bid_size": 1.0, "ask_size": 1.0})
+        rows.append(
+            {
+                "stock_id": 1,
+                "date_id": 0,
+                "seconds_in_bucket": sec,
+                "target": 1.0,
+                "bid_price": 1.0,
+                "ask_price": 1.0 + (sec + 10) * 1e-5,
+                "bid_size": 1.0,
+                "ask_size": 1.0,
+            }
+        )
     market = pl.DataFrame(rows).with_columns(pl.col(["stock_id", "date_id", "seconds_in_bucket"]).cast(pl.Int16))
     edges = market.select(["stock_id", "date_id", "seconds_in_bucket"]).with_columns(edge=pl.lit(1.0))
     d = decision_frame(edges, market)

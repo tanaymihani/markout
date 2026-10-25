@@ -49,7 +49,7 @@ def with_synthetic(dec: pl.DataFrame, rho: float, seed: int = 0, n_bins: int = 1
     k = ((y - y.mean()) / sd).std()
     z = (y - y.mean()) / (sd * k)  # unit variance, comparable across stocks
     eps = np.random.default_rng(seed).standard_normal(len(y))
-    f = rho * z + np.sqrt(max(1 - rho ** 2, 0.0)) * eps
+    f = rho * z + np.sqrt(max(1 - rho**2, 0.0)) * eps
     if rho == 0:
         return dec.with_columns(pl.Series("edge", np.zeros(len(y))))
     edges = np.quantile(f, np.linspace(0, 1, n_bins + 1))
@@ -66,8 +66,15 @@ def top_decile(dec: pl.DataFrame, frac: float = 0.10) -> pl.DataFrame:
     return dec.filter(r <= frac)
 
 
-def curve(dec: pl.DataFrame, policy: Policy, costs: CostModel, days: tuple[int, int],
-          rhos: np.ndarray, mults=(1.0, 2.0, 3.0), seed: int = 0) -> list[dict]:
+def curve(
+    dec: pl.DataFrame,
+    policy: Policy,
+    costs: CostModel,
+    days: tuple[int, int],
+    rhos: np.ndarray,
+    mults=(1.0, 2.0, 3.0),
+    seed: int = 0,
+) -> list[dict]:
     rows = []
     for rho in rhos:
         syn = with_synthetic(dec, float(rho), seed)
@@ -75,14 +82,20 @@ def curve(dec: pl.DataFrame, policy: Policy, costs: CostModel, days: tuple[int, 
         for m in mults:
             _, _, s_thr = backtest(syn, policy, costs, days, decide_mult=m)
             # cost-blind: every pre-selected decile row, flat size (a ramp would re-introduce the cost filter)
-            _, _, s_blind = backtest(blind, Policy(**{**policy.to_dict(), "threshold": 0.0, "sizing": "flat"}),
-                                     costs, days, decide_mult=m)
-            rows.append({"rho": float(rho), "cost_mult": m,
-                         "threshold_sharpe_ann": s_thr["sharpe_annualized"],
-                         "threshold_trades_per_day": s_thr["trades_per_day"],
-                         "threshold_net_bps": s_thr["net_bps_per_trade"],
-                         "blind_net_bps": s_blind["net_bps_per_trade"],
-                         "blind_sharpe_ann": s_blind["sharpe_annualized"]})
+            _, _, s_blind = backtest(
+                blind, Policy(**{**policy.to_dict(), "threshold": 0.0, "sizing": "flat"}), costs, days, decide_mult=m
+            )
+            rows.append(
+                {
+                    "rho": float(rho),
+                    "cost_mult": m,
+                    "threshold_sharpe_ann": s_thr["sharpe_annualized"],
+                    "threshold_trades_per_day": s_thr["trades_per_day"],
+                    "threshold_net_bps": s_thr["net_bps_per_trade"],
+                    "blind_net_bps": s_blind["net_bps_per_trade"],
+                    "blind_sharpe_ann": s_blind["sharpe_annualized"],
+                }
+            )
     return rows
 
 

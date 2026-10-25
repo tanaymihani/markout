@@ -102,8 +102,13 @@ class Candidate:
     flags: list[str]
 
 
-def screen(markets: list[Market], books: dict[str, Book], estimates: dict[str, tuple[Estimate, bool, list[str]]],
-           cfg: Config, now: datetime) -> list[Candidate]:
+def screen(
+    markets: list[Market],
+    books: dict[str, Book],
+    estimates: dict[str, tuple[Estimate, bool, list[str]]],
+    cfg: Config,
+    now: datetime,
+) -> list[Candidate]:
     out = []
     for m in markets:
         if m.closes_at and m.closes_at < now + timedelta(minutes=cfg.min_minutes_to_close):
@@ -126,8 +131,9 @@ def screen(markets: list[Market], books: dict[str, Book], estimates: dict[str, t
     return sorted(out, key=lambda x: -x.kelly)
 
 
-def size(cands: list[Candidate], account: Account, cfg: Config,
-         held: dict[str, float] | None = None) -> list[tuple[Candidate, float, str]]:
+def size(
+    cands: list[Candidate], account: Account, cfg: Config, held: dict[str, float] | None = None
+) -> list[tuple[Candidate, float, str]]:
     """(candidate, stake, why) for every candidate; stake 0 = log the forecast only.
 
     Kelly is a target *exposure*, not a bet per refresh: what is already held in a contract
@@ -143,8 +149,11 @@ def size(cands: list[Candidate], account: Account, cfg: Config,
             else:
                 out.append((c, 0.0, "prize mode bets only the largest edge; logged as a forecast"))
         return out
-    why = ("prize mode, holding a top-3 place: 0.5x Kelly" if cfg.mode == "prize"
-           else f"steady mode: {cfg.kelly_mult:g}x Kelly, at most {cfg.max_frac_per_market:.0%} of equity")
+    why = (
+        "prize mode, holding a top-3 place: 0.5x Kelly"
+        if cfg.mode == "prize"
+        else f"steady mode: {cfg.kelly_mult:g}x Kelly, at most {cfg.max_frac_per_market:.0%} of equity"
+    )
     for c in cands:
         target = cfg.kelly_mult * c.kelly * eq
         if cfg.mode == "steady":
@@ -171,8 +180,9 @@ def fill_plan(book: Book, max_price: float, budget: float) -> tuple[int, float, 
     return qty, limit, cost
 
 
-def build(markets, books, estimates, account: Account, cfg: Config, now: datetime,
-          held: dict[str, float] | None = None) -> list[Proposal]:
+def build(
+    markets, books, estimates, account: Account, cfg: Config, now: datetime, held: dict[str, float] | None = None
+) -> list[Proposal]:
     props = []
     for c, stake, why in size(screen(markets, books, estimates, cfg, now), account, cfg, held):
         a = c.book.best_ask
@@ -181,15 +191,38 @@ def build(markets, books, estimates, account: Account, cfg: Config, now: datetim
         if stake > 0 and qty < math.floor(stake / a):
             c.flags.append("sized to the book: not enough contracts offered with edge")
         stake = cost
-        rationale = (f"Buy '{c.contract_name}' at {a:.2f}: pooled probability {c.est.p:.2f} "
-                     f"[{c.est.lo:.2f}, {c.est.hi:.2f}] vs ask {a:.2f}, edge {c.edge:+.2f}; Kelly {c.kelly:.1%} of "
-                     f"equity. Sizing: {why}. Sources: {c.est.explanation}.")
-        props.append(Proposal(
-            id=uuid.uuid4().hex[:10], created=now.isoformat(timespec="seconds"), market_id=c.market.id,
-            market_title=c.market.title, category=c.market.category, contract_id=c.contract_id,
-            contract_name=c.contract_name, p=c.est.p, lo=c.est.lo, hi=c.est.hi, bid=c.book.best_bid, ask=a,
-            edge=c.edge, kelly=c.kelly, mode=cfg.mode, stake=float(stake), qty=float(qty), limit_price=limit,
-            mapping_confirmed=c.confirmed, mapping_keys=c.keys, components=c.est.components, rationale=rationale,
-            flags=c.flags, expires=(now + timedelta(minutes=cfg.proposal_ttl_minutes)).isoformat(timespec="seconds"),
-            policy_stake=float(policy_stake)))
+        rationale = (
+            f"Buy '{c.contract_name}' at {a:.2f}: pooled probability {c.est.p:.2f} "
+            f"[{c.est.lo:.2f}, {c.est.hi:.2f}] vs ask {a:.2f}, edge {c.edge:+.2f}; Kelly {c.kelly:.1%} of "
+            f"equity. Sizing: {why}. Sources: {c.est.explanation}."
+        )
+        props.append(
+            Proposal(
+                id=uuid.uuid4().hex[:10],
+                created=now.isoformat(timespec="seconds"),
+                market_id=c.market.id,
+                market_title=c.market.title,
+                category=c.market.category,
+                contract_id=c.contract_id,
+                contract_name=c.contract_name,
+                p=c.est.p,
+                lo=c.est.lo,
+                hi=c.est.hi,
+                bid=c.book.best_bid,
+                ask=a,
+                edge=c.edge,
+                kelly=c.kelly,
+                mode=cfg.mode,
+                stake=float(stake),
+                qty=float(qty),
+                limit_price=limit,
+                mapping_confirmed=c.confirmed,
+                mapping_keys=c.keys,
+                components=c.est.components,
+                rationale=rationale,
+                flags=c.flags,
+                expires=(now + timedelta(minutes=cfg.proposal_ttl_minutes)).isoformat(timespec="seconds"),
+                policy_stake=float(policy_stake),
+            )
+        )
     return props

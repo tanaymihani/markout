@@ -48,18 +48,39 @@ def parse_market(m: dict) -> list[ExternalQuote]:
         bid, ask = (_f(m.get("bestBid")), _f(m.get("bestAsk"))) if i == 0 and len(outcomes) == 2 else (None, None)
         if bid is not None and ask is not None and 0 < bid <= ask < 1:
             p = (bid + ask) / 2  # the mid is a better estimate than the last trade
-        out.append(ExternalQuote("polymarket", str(m.get("id")), q, str(o), float(p), "market", bid, ask,
-                                 _f(m.get("liquidity")), _f(m.get("volume24hr")), _dt(m.get("endDate")),
-                                 f"https://polymarket.com/market/{m.get('slug', '')}"))
+        out.append(
+            ExternalQuote(
+                "polymarket",
+                str(m.get("id")),
+                q,
+                str(o),
+                float(p),
+                "market",
+                bid,
+                ask,
+                _f(m.get("liquidity")),
+                _f(m.get("volume24hr")),
+                _dt(m.get("endDate")),
+                f"https://polymarket.com/market/{m.get('slug', '')}",
+            )
+        )
     return out
 
 
 def active_markets(pages: int = 4, per_page: int = 500, http: Http = DEFAULT) -> list[ExternalQuote]:
     out = []
     for page in range(pages):
-        rows = http.get_json(f"{BASE}/markets", {"active": "true", "closed": "false", "limit": per_page,
-                                                   "offset": page * per_page, "order": "volume24hr",
-                                                   "ascending": "false"})
+        rows = http.get_json(
+            f"{BASE}/markets",
+            {
+                "active": "true",
+                "closed": "false",
+                "limit": per_page,
+                "offset": page * per_page,
+                "order": "volume24hr",
+                "ascending": "false",
+            },
+        )
         if not rows:
             break
         for m in rows:

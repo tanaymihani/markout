@@ -66,10 +66,12 @@ def test_neutralize_makes_index_weighted_mean_zero(synth):
     df, w_true = synth
     weights = pl.DataFrame({"stock_id": np.arange(30, dtype=np.int16), "index_weight": w_true})
     p = df.select(["stock_id", "date_id", "seconds_in_bucket"]).with_columns(
-        pred=pl.Series(np.random.default_rng(0).normal(3, 5, df.height), dtype=pl.Float32))
+        pred=pl.Series(np.random.default_rng(0).normal(3, 5, df.height), dtype=pl.Float32)
+    )
     n = neutralize(p, weights).join(weights, on="stock_id")
     wm = n.group_by(["date_id", "seconds_in_bucket"]).agg(
-        ((pl.col("pred") * pl.col("index_weight")).sum() / pl.col("index_weight").sum()).alias("wm"))
+        ((pl.col("pred") * pl.col("index_weight")).sum() / pl.col("index_weight").sum()).alias("wm")
+    )
     assert wm["wm"].abs().max() < 1e-4
 
 

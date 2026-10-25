@@ -41,12 +41,24 @@ import pandas as pd
 from markout.decision import kelly
 from markout.paths import DATA, ROOT
 
-COLUMNS = ["timestamp", "market", "question", "side", "p_belief", "price_q", "kelly_fraction", "stake",
-           "bankroll_before", "reason", "outcome", "resolved_at"]
+COLUMNS = [
+    "timestamp",
+    "market",
+    "question",
+    "side",
+    "p_belief",
+    "price_q",
+    "kelly_fraction",
+    "stake",
+    "bankroll_before",
+    "reason",
+    "outcome",
+    "resolved_at",
+]
 TEMPLATE = ROOT / "configs" / "journal_template.csv"
 JOURNAL = DATA / "journal.csv"
-CLIP = 1e-6                     # log loss clip
-MIN_ROWS_TO_JUDGE = 10          # below this, "did you beat the market?" is not answered
+CLIP = 1e-6  # log loss clip
+MIN_ROWS_TO_JUDGE = 10  # below this, "did you beat the market?" is not answered
 
 
 def _now() -> str:
@@ -65,6 +77,7 @@ def as_prob(x: float | str) -> float:
 
 # --------------------------------------------------------------------------- writing
 
+
 def init(path: Path = JOURNAL, template: Path = TEMPLATE, force: bool = False) -> Path:
     """Copy the template (header only) to `path`; refuses to overwrite a journal unless forced."""
     path = Path(path)
@@ -75,8 +88,18 @@ def init(path: Path = JOURNAL, template: Path = TEMPLATE, force: bool = False) -
     return path
 
 
-def add(path: Path, market: str, side: str, p: float | str, q: float | str, stake: float, bankroll: float,
-        question: str = "", reason: str = "", timestamp: str | None = None) -> dict:
+def add(
+    path: Path,
+    market: str,
+    side: str,
+    p: float | str,
+    q: float | str,
+    stake: float,
+    bankroll: float,
+    question: str = "",
+    reason: str = "",
+    timestamp: str | None = None,
+) -> dict:
     """Append one trade, computing its Kelly fraction. Returns the row written."""
     path = Path(path)
     if not path.exists():
@@ -86,10 +109,20 @@ def add(path: Path, market: str, side: str, p: float | str, q: float | str, stak
     stake, bankroll = float(stake), float(bankroll)
     if bankroll <= 0 or stake < 0 or stake > bankroll:
         raise ValueError("need bankroll > 0 and 0 <= stake <= bankroll")
-    row = {"timestamp": timestamp or _now(), "market": market, "question": question, "side": side,
-           "p_belief": f"{p:.4f}", "price_q": f"{q:.4f}", "kelly_fraction": f"{float(kelly.kelly_fraction(p, q, side)):.4f}",
-           "stake": f"{stake:.12g}", "bankroll_before": f"{bankroll:.12g}", "reason": reason, "outcome": "",
-           "resolved_at": ""}
+    row = {
+        "timestamp": timestamp or _now(),
+        "market": market,
+        "question": question,
+        "side": side,
+        "p_belief": f"{p:.4f}",
+        "price_q": f"{q:.4f}",
+        "kelly_fraction": f"{float(kelly.kelly_fraction(p, q, side)):.4f}",
+        "stake": f"{stake:.12g}",
+        "bankroll_before": f"{bankroll:.12g}",
+        "reason": reason,
+        "outcome": "",
+        "resolved_at": "",
+    }
     with path.open("a", newline="") as fh:
         csv.DictWriter(fh, fieldnames=COLUMNS).writerow(row)
     return row
@@ -122,6 +155,7 @@ def load(path: Path = JOURNAL) -> pd.DataFrame:
 
 # --------------------------------------------------------------------------- scoring
 
+
 def pnl_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Realized PnL, the PnL your belief predicted, and its variance under your belief."""
     out = df.copy()
@@ -141,8 +175,14 @@ def calibration_table(forecast: np.ndarray, outcome: np.ndarray, n_bins: int) ->
     for b in range(n_bins):
         m = idx == b
         if m.any():
-            rows.append({"bin": f"{edges[b]:.1f}–{edges[b + 1]:.1f}", "n": int(m.sum()),
-                         "mean_forecast": float(forecast[m].mean()), "observed": float(outcome[m].mean())})
+            rows.append(
+                {
+                    "bin": f"{edges[b]:.1f}–{edges[b + 1]:.1f}",
+                    "n": int(m.sum()),
+                    "mean_forecast": float(forecast[m].mean()),
+                    "observed": float(outcome[m].mean()),
+                }
+            )
     return rows
 
 
@@ -176,15 +216,27 @@ def score(df: pd.DataFrame) -> dict | None:
     luck = float(r["pnl"].sum() - r["pnl_predicted"].sum())
     sd = math.sqrt(float(r["pnl_var"].sum()))
     return {
-        "n_resolved": n, "n_logged": int(len(df)), "n_markets": int(r["market"].nunique()),
-        "brier_you": float(brier_you.mean()), "brier_market": float(brier_mkt.mean()),
+        "n_resolved": n,
+        "n_logged": int(len(df)),
+        "n_markets": int(r["market"].nunique()),
+        "brier_you": float(brier_you.mean()),
+        "brier_market": float(brier_mkt.mean()),
         "brier_skill": 1 - float(brier_you.mean()) / float(brier_mkt.mean()) if brier_mkt.mean() > 0 else float("nan"),
-        "brier_diff": db, "brier_diff_se": db_se, "brier_diff_t": db_t,
-        "logloss_you": float(ll_you.mean()), "logloss_market": float(ll_mkt.mean()),
-        "logloss_diff": dl, "logloss_diff_se": dl_se, "logloss_diff_t": dl_t,
-        "calibration_you": calibration_table(p, y, n_bins), "calibration_market": calibration_table(q, y, n_bins),
-        "pnl_realized": float(r["pnl"].sum()), "pnl_predicted": float(r["pnl_predicted"].sum()),
-        "luck": luck, "luck_sd": sd, "luck_z": luck / sd if sd > 0 else float("nan"),
+        "brier_diff": db,
+        "brier_diff_se": db_se,
+        "brier_diff_t": db_t,
+        "logloss_you": float(ll_you.mean()),
+        "logloss_market": float(ll_mkt.mean()),
+        "logloss_diff": dl,
+        "logloss_diff_se": dl_se,
+        "logloss_diff_t": dl_t,
+        "calibration_you": calibration_table(p, y, n_bins),
+        "calibration_market": calibration_table(q, y, n_bins),
+        "pnl_realized": float(r["pnl"].sum()),
+        "pnl_predicted": float(r["pnl_predicted"].sum()),
+        "luck": luck,
+        "luck_sd": sd,
+        "luck_z": luck / sd if sd > 0 else float("nan"),
         "stake_total": stake_total,
         "return_realized": float(r["pnl"].sum()) / stake_total if stake_total > 0 else float("nan"),
         "return_predicted": float(r["pnl_predicted"].sum()) / stake_total if stake_total > 0 else float("nan"),
@@ -199,18 +251,25 @@ def score(df: pd.DataFrame) -> dict | None:
 def verdict(s: dict) -> str:
     """Result-dependent answer to 'did you beat the market?'."""
     if s["n_resolved"] < MIN_ROWS_TO_JUDGE:
-        return (f"Too few resolved trades to tell ({s['n_resolved']}, fewer than {MIN_ROWS_TO_JUDGE}); "
-                f"the difference below is noise-dominated.")
+        return (
+            f"Too few resolved trades to tell ({s['n_resolved']}, fewer than {MIN_ROWS_TO_JUDGE}); "
+            f"the difference below is noise-dominated."
+        )
     t = s["brier_diff_t"]
     if not math.isfinite(t) or abs(t) < 2:
-        return (f"Not distinguishable from the market: the Brier difference is {s['brier_diff']:+.4f} "
-                f"± {s['brier_diff_se']:.4f} (t = {t:.1f}).")
+        return (
+            f"Not distinguishable from the market: the Brier difference is {s['brier_diff']:+.4f} "
+            f"± {s['brier_diff_se']:.4f} (t = {t:.1f})."
+        )
     better = s["brier_diff"] < 0
-    return (f"{'Yes' if better else 'No'}: your Brier score is {'lower' if better else 'higher'} than the market's "
-            f"by {abs(s['brier_diff']):.4f} ± {s['brier_diff_se']:.4f} (t = {t:.1f}).")
+    return (
+        f"{'Yes' if better else 'No'}: your Brier score is {'lower' if better else 'higher'} than the market's "
+        f"by {abs(s['brier_diff']):.4f} ± {s['brier_diff_se']:.4f} (t = {t:.1f})."
+    )
 
 
 # ----------------------------------------------------------------- figures and text
+
 
 def figures(df: pd.DataFrame, s: dict) -> None:
     from markout import plotting as mp
@@ -222,8 +281,9 @@ def figures(df: pd.DataFrame, s: dict) -> None:
         ax.plot([0, 1], [0, 1], color=mp.ink("muted"), linestyle="--", linewidth=1.0, label="perfect calibration")
         for i, (key, lab) in enumerate((("calibration_market", "market price"), ("calibration_you", "your belief"))):
             rows = s[key]
-            ax.plot([r["mean_forecast"] for r in rows], [r["observed"] for r in rows], "o-", color=mp.series(i),
-                    label=lab)
+            ax.plot(
+                [r["mean_forecast"] for r in rows], [r["observed"] for r in rows], "o-", color=mp.series(i), label=lab
+            )
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.set_xlabel("forecast probability of YES (bin mean)")
@@ -270,61 +330,102 @@ def part2_markdown(s: dict | None, n_logged: int, status: str, assumed_skill: fl
 
     head = "## Part 2: Results (generated by `journal score` after Nov 4)\n\n"
     if s is None:
-        return head + (f"**Pending.** {n_logged} trade{'s' if n_logged != 1 else ''} logged in `data/journal.csv`, "
-                       "none resolved yet. Run `python -m markout.decision.journal score` once markets resolve; "
-                       "this section is regenerated from the journal and nothing in it is typed by hand.\n")
-    cal = [{"your bin": a["bin"], "n": a["n"], "your mean p": f"{a['mean_forecast']:.2f}", "observed": f"{a['observed']:.2f}"}
-           for a in s["calibration_you"]]
-    calm = [{"market bin": a["bin"], "n": a["n"], "mean price": f"{a['mean_forecast']:.2f}", "observed": f"{a['observed']:.2f}"}
-            for a in s["calibration_market"]]
+        return head + (
+            f"**Pending.** {n_logged} trade{'s' if n_logged != 1 else ''} logged in `data/journal.csv`, "
+            "none resolved yet. Run `python -m markout.decision.journal score` once markets resolve; "
+            "this section is regenerated from the journal and nothing in it is typed by hand.\n"
+        )
+    cal = [
+        {
+            "your bin": a["bin"],
+            "n": a["n"],
+            "your mean p": f"{a['mean_forecast']:.2f}",
+            "observed": f"{a['observed']:.2f}",
+        }
+        for a in s["calibration_you"]
+    ]
+    calm = [
+        {
+            "market bin": a["bin"],
+            "n": a["n"],
+            "mean price": f"{a['mean_forecast']:.2f}",
+            "observed": f"{a['observed']:.2f}",
+        }
+        for a in s["calibration_market"]
+    ]
     skill_txt = ""
     if assumed_skill is not None:
-        skill_txt = (f" Part 1 assumed a player whose Brier score beats the market's by {assumed_skill:.1%}; "
-                     f"yours is {s['brier_skill']:+.1%}.")
+        skill_txt = (
+            f" Part 1 assumed a player whose Brier score beats the market's by {assumed_skill:.1%}; "
+            f"yours is {s['brier_skill']:+.1%}."
+        )
     label = "Interim results (the contest is still running)." if status == "interim" else "Final results."
-    return head + f"""**{label}** {s['n_resolved']} resolved trades on {s['n_markets']} markets
-(of {s['n_logged']} logged).
+    return (
+        head
+        + f"""**{label}** {s["n_resolved"]} resolved trades on {s["n_markets"]} markets
+(of {s["n_logged"]} logged).
 
 **Did you beat the market?** {verdict(s)}{skill_txt}
 
-{rp.table([
-    {"score": "Brier (lower is better)", "you": f"{s['brier_you']:.4f}", "market at entry": f"{s['brier_market']:.4f}",
-     "you − market": f"{s['brier_diff']:+.4f} ± {s['brier_diff_se']:.4f}"},
-    {"score": "log loss (lower is better)", "you": f"{s['logloss_you']:.4f}", "market at entry": f"{s['logloss_market']:.4f}",
-     "you − market": f"{s['logloss_diff']:+.4f} ± {s['logloss_diff_se']:.4f}"},
-])}
+{
+            rp.table(
+                [
+                    {
+                        "score": "Brier (lower is better)",
+                        "you": f"{s['brier_you']:.4f}",
+                        "market at entry": f"{s['brier_market']:.4f}",
+                        "you − market": f"{s['brier_diff']:+.4f} ± {s['brier_diff_se']:.4f}",
+                    },
+                    {
+                        "score": "log loss (lower is better)",
+                        "you": f"{s['logloss_you']:.4f}",
+                        "market at entry": f"{s['logloss_market']:.4f}",
+                        "you − market": f"{s['logloss_diff']:+.4f} ± {s['logloss_diff_se']:.4f}",
+                    },
+                ]
+            )
+        }
 
 These are the markets you chose to trade, the ones where you disagreed most with the price. If part
 of that disagreement was your own error, these rows are where it concentrates (the optimizer's curse).
 So this comparison is harder on you than one over all markets would be, and it is the one that decides
 your PnL.
 
-{mp.picture('p_journal_calibration', 'Calibration of your beliefs and of market prices')}
+{mp.picture("p_journal_calibration", "Calibration of your beliefs and of market prices")}
 
 {rp.table(cal)}
 
 {rp.table(calm)}
 
-**PnL: belief vs luck.** Realized {s['pnl_realized']:+,.1f} SUSQies against {s['pnl_predicted']:+,.1f} predicted
-by your beliefs, a gap of {s['luck']:+,.1f} ({s['luck_z']:+.1f} standard deviations of the luck your own beliefs
-imply). Per unit staked you expected {s['return_predicted']:+.1%} and got {s['return_realized']:+.1%}.
-{"The shortfall is larger than luck alone explains: evidence that your edge was smaller than you believed." if s['luck_z'] < -2 else "The gap is within what luck explains under your own beliefs."}
+**PnL: belief vs luck.** Realized {s["pnl_realized"]:+,.1f} SUSQies against {s["pnl_predicted"]:+,.1f} predicted
+by your beliefs, a gap of {s["luck"]:+,.1f} ({s["luck_z"]:+.1f} standard deviations of the luck your own beliefs
+imply). Per unit staked you expected {s["return_predicted"]:+.1%} and got {s["return_realized"]:+.1%}.
+{
+            "The shortfall is larger than luck alone explains: evidence that your edge was smaller than you believed."
+            if s["luck_z"] < -2
+            else "The gap is within what luck explains under your own beliefs."
+        }
 
-{mp.picture('p_journal_pnl', 'Cumulative realized and belief-predicted PnL')}
+{mp.picture("p_journal_pnl", "Cumulative realized and belief-predicted PnL")}
 
-**Stakes vs Kelly.** Median stake {s['median_stake_fraction']:.1%} of bankroll, a median
-{s['median_kelly_multiple']:.2f}× the Kelly fraction; {s['share_over_kelly']:.0%} of trades were above full Kelly
-and {s['n_against_belief']} went against your own stated belief. Hit rate {s['hit_rate']:.0%}.
+**Stakes vs Kelly.** Median stake {s["median_stake_fraction"]:.1%} of bankroll, a median
+{s["median_kelly_multiple"]:.2f}× the Kelly fraction; {s["share_over_kelly"]:.0%} of trades were above full Kelly
+and {s["n_against_belief"]} went against your own stated belief. Hit rate {s["hit_rate"]:.0%}.
 
-{mp.picture('p_journal_kelly', 'Stake as a fraction of bankroll against the Kelly fraction')}
+{mp.picture("p_journal_kelly", "Stake as a fraction of bankroll against the Kelly fraction")}
 """
+    )
 
 
 # ------------------------------------------------------------------------------ CLI
 
+
 def main(argv: Sequence[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="python -m markout.decision.journal", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        prog="python -m markout.decision.journal",
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     ap.add_argument("--journal", default=str(JOURNAL), help="journal CSV (default data/journal.csv)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s_init = sub.add_parser("init", help="copy configs/journal_template.csv to the journal path")
@@ -349,14 +450,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif a.cmd == "add":
         row = add(path, a.market, a.side, a.p, a.q, a.stake, a.bankroll, a.question, a.reason)
         k = float(row["kelly_fraction"])
-        print(f"logged {row['market']} {row['side']}: p={row['p_belief']} q={row['price_q']} "
-              f"Kelly {k:.1%} of bankroll, stake {float(row['stake']) / a.bankroll:.1%}")
+        print(
+            f"logged {row['market']} {row['side']}: p={row['p_belief']} q={row['price_q']} "
+            f"Kelly {k:.1%} of bankroll, stake {float(row['stake']) / a.bankroll:.1%}"
+        )
         if k == 0:
             print("note: your belief favours the other side; Kelly says no bet", file=sys.stderr)
     elif a.cmd == "resolve":
         print(f"resolved {resolve(path, a.market, a.outcome)} row(s) of {a.market}")
     else:
         from markout.decision import contest
+
         report = contest.write_report(journal_path=path)
         print(f"wrote {report}")
     return 0

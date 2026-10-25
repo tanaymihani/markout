@@ -68,7 +68,7 @@ P2_INFOSETS = [c + h for h in ("p", "b") for c in CARDS]
 INFOSETS = P1_INFOSETS + P2_INFOSETS
 GAME_VALUE = -1.0 / 18.0
 
-Strategy = dict[str, np.ndarray]   # infoset -> [P(pass), P(bet)]
+Strategy = dict[str, np.ndarray]  # infoset -> [P(pass), P(bet)]
 
 
 def payoff_p1(c1: int, c2: int, h: str) -> float:
@@ -94,10 +94,20 @@ def analytic_equilibrium(alpha: float = 1 / 6) -> Strategy:
     """A member of Kuhn's equilibrium family, indexed by P1's Jack-bet rate α ∈ [0, 1/3]."""
     if not 0 <= alpha <= 1 / 3:
         raise ValueError("alpha must lie in [0, 1/3]")
-    bet = {"J": alpha, "Q": 0.0, "K": 3 * alpha,
-           "Jpb": 0.0, "Qpb": alpha + 1 / 3, "Kpb": 1.0,
-           "Jp": 1 / 3, "Qp": 0.0, "Kp": 1.0,
-           "Jb": 0.0, "Qb": 1 / 3, "Kb": 1.0}
+    bet = {
+        "J": alpha,
+        "Q": 0.0,
+        "K": 3 * alpha,
+        "Jpb": 0.0,
+        "Qpb": alpha + 1 / 3,
+        "Kpb": 1.0,
+        "Jp": 1 / 3,
+        "Qp": 0.0,
+        "Kp": 1.0,
+        "Jb": 0.0,
+        "Qb": 1 / 3,
+        "Kb": 1.0,
+    }
     return {k: np.array([1 - v, v]) for k, v in bet.items()}
 
 
@@ -112,6 +122,7 @@ def combine(p1_from: Strategy, p2_from: Strategy) -> Strategy:
 # Evaluation: expected value and exact best responses
 # ---------------------------------------------------------------------------
 
+
 def _ev(c1: int, c2: int, h: str, s: Strategy) -> float:
     if h in TERMINAL:
         return payoff_p1(c1, c2, h)
@@ -124,8 +135,9 @@ def expected_value(s: Strategy) -> float:
     return sum(_ev(c1, c2, "", s) for c1, c2 in DEALS) / len(DEALS)
 
 
-def _br(card: int, h: str, w: dict[int, float], s: Strategy, player: int,
-        br: Strategy, default: Strategy | None, tol: float) -> float:
+def _br(
+    card: int, h: str, w: dict[int, float], s: Strategy, player: int, br: Strategy, default: Strategy | None, tol: float
+) -> float:
     """Best-response value from history h for ``player`` holding ``card``.
 
     ``w[c']`` is P(opponent holds c' | card) times the opponent's probability of
@@ -146,7 +158,7 @@ def _br(card: int, h: str, w: dict[int, float], s: Strategy, player: int,
             mix = np.asarray(default[key], dtype=float)
             br[key] = mix.copy()
             return float(mix[0] * vals[0] + mix[1] * vals[1])
-        best = int(vals[1] > vals[0])          # exact ties go to pass
+        best = int(vals[1] > vals[0])  # exact ties go to pass
         br[key] = np.eye(2)[best]
         return vals[best]
     total = 0.0
@@ -156,8 +168,9 @@ def _br(card: int, h: str, w: dict[int, float], s: Strategy, player: int,
     return total
 
 
-def best_response(s: Strategy, player: int, default: Strategy | None = None,
-                  tol: float = 1e-12) -> tuple[float, Strategy]:
+def best_response(
+    s: Strategy, player: int, default: Strategy | None = None, tol: float = 1e-12
+) -> tuple[float, Strategy]:
     """Exact best response of ``player`` (0 = P1, 1 = P2) to the other side of ``s``.
 
     Returns (value to ``player``, a best-response strategy for its six
@@ -181,6 +194,7 @@ def exploitability(s: Strategy) -> float:
 # ---------------------------------------------------------------------------
 # CFR
 # ---------------------------------------------------------------------------
+
 
 def regret_matching(r: np.ndarray) -> np.ndarray:
     """σ(a) ∝ max(R(a), 0); uniform when no regret is positive."""
@@ -213,9 +227,17 @@ class KuhnCFR:
             out[k] = ssum / tot if tot > 0 else np.array([0.5, 0.5])
         return out
 
-    def _walk(self, cards: tuple[int, int], h: str, reach: tuple[float, float],
-              sigma: Strategy, update: tuple[int, ...], d_regret: dict, d_ssum: dict,
-              weight: float) -> float:
+    def _walk(
+        self,
+        cards: tuple[int, int],
+        h: str,
+        reach: tuple[float, float],
+        sigma: Strategy,
+        update: tuple[int, ...],
+        d_regret: dict,
+        d_ssum: dict,
+        weight: float,
+    ) -> float:
         """Return P1's expected utility below h; accumulate regret and strategy sums."""
         if h in TERMINAL:
             return payoff_p1(cards[0], cards[1], h)
@@ -228,8 +250,8 @@ class KuhnCFR:
             u[i] = self._walk(cards, h + a, r, sigma, update, d_regret, d_ssum, weight)
         node = s[0] * u[0] + s[1] * u[1]
         if p in update:
-            sign = 1.0 if p == 0 else -1.0             # P2's utility is −u
-            cf = reach[1 - p] / len(DEALS)             # opponent reach × chance
+            sign = 1.0 if p == 0 else -1.0  # P2's utility is −u
+            cf = reach[1 - p] / len(DEALS)  # opponent reach × chance
             d_regret[key] += cf * sign * np.array([u[0] - node, u[1] - node])
             d_ssum[key] += weight * reach[p] * s
         return node
@@ -263,14 +285,15 @@ class KuhnCFR:
             self.iterate()
             if self.iterations in marks:
                 avg = self.average_strategy()
-                history.append({"iteration": self.iterations,
-                                "value": expected_value(avg),
-                                "exploitability": exploitability(avg)})
+                history.append(
+                    {"iteration": self.iterations, "value": expected_value(avg), "exploitability": exploitability(avg)}
+                )
         return history
 
 
-def solve(n_iter: int = 20_000, checkpoints: list[int] | None = None,
-          plus: bool = False) -> tuple[Strategy, list[dict]]:
+def solve(
+    n_iter: int = 20_000, checkpoints: list[int] | None = None, plus: bool = False
+) -> tuple[Strategy, list[dict]]:
     """Run CFR and return (average strategy, checkpoint history)."""
     cfr = KuhnCFR(plus=plus)
     hist = cfr.run(n_iter, checkpoints)
@@ -279,14 +302,16 @@ def solve(n_iter: int = 20_000, checkpoints: list[int] | None = None,
 
 def log_checkpoints(n_iter: int, per_decade: int = 8) -> list[int]:
     """Roughly log-spaced iteration counts from 1 to n_iter."""
-    pts = np.unique(np.round(np.logspace(0, np.log10(n_iter), per_decade *
-                                         int(np.ceil(np.log10(n_iter))) + 1)).astype(int))
+    pts = np.unique(
+        np.round(np.logspace(0, np.log10(n_iter), per_decade * int(np.ceil(np.log10(n_iter))) + 1)).astype(int)
+    )
     return [int(x) for x in pts if 1 <= x <= n_iter]
 
 
 # ---------------------------------------------------------------------------
 # Equilibrium diagnostics and the exploitation study
 # ---------------------------------------------------------------------------
+
 
 def bet_probs(s: Strategy) -> dict[str, float]:
     """P(bet or call) at each information set."""
@@ -297,10 +322,16 @@ def equilibrium_family_check(s: Strategy) -> dict[str, float]:
     """How close ``s`` is to Kuhn's family: α, the K/J ratio and the other pins."""
     b = bet_probs(s)
     alpha = b["J"]
-    return {"alpha": alpha, "king_bet": b["K"], "king_minus_3alpha": b["K"] - 3 * alpha,
-            "queen_bet": b["Q"], "queen_call": b["Qpb"],
-            "queen_call_minus_alpha_third": b["Qpb"] - (alpha + 1 / 3),
-            "p2_jack_bluff": b["Jp"], "p2_queen_call": b["Qb"]}
+    return {
+        "alpha": alpha,
+        "king_bet": b["K"],
+        "king_minus_3alpha": b["K"] - 3 * alpha,
+        "queen_bet": b["Q"],
+        "queen_call": b["Qpb"],
+        "queen_call_minus_alpha_third": b["Qpb"] - (alpha + 1 / 3),
+        "p2_jack_bluff": b["Jp"],
+        "p2_queen_call": b["Qb"],
+    }
 
 
 def own_reach(s: Strategy, key: str) -> float:
@@ -341,8 +372,7 @@ def leaky_opponent(base: Strategy, leak: str) -> Strategy:
     return s
 
 
-def exploitation_study(eq: Strategy, leak: str, lams: np.ndarray | None = None,
-                       tol: float = 1e-9) -> dict:
+def exploitation_study(eq: Strategy, leak: str, lams: np.ndarray | None = None, tol: float = 1e-9) -> dict:
     """Exploit-vs-protect numbers for P1 against a leaky P2.
 
     ``eq`` should be an exact equilibrium profile (e.g. :func:`analytic_equilibrium`
@@ -367,12 +397,22 @@ def exploitation_study(eq: Strategy, leak: str, lams: np.ndarray | None = None,
     frontier = []
     for lam in lams:
         m = mix_p1(eq, br_full, float(lam))
-        frontier.append({"lam": float(lam),
-                         "ev_vs_leak": expected_value(combine(m, opp)),
-                         "worst_case": -best_response(combine(m, eq), 1)[0]})
+        frontier.append(
+            {
+                "lam": float(lam),
+                "ev_vs_leak": expected_value(combine(m, opp)),
+                "worst_case": -best_response(combine(m, eq), 1)[0],
+            }
+        )
     changed = [k for k in P1_INFOSETS if not np.allclose(br_full[k], eq[k])]
-    return {"leak": leak, "ev_eq": ev_eq, "ev_br": ev_br, "gain": ev_br - ev_eq,
-            "br_worst": br_worst, "eq_worst": eq_worst,
-            "br_exploitability_loss": eq_worst - br_worst,
-            "deviations": {k: [float(eq[k][1]), float(br_full[k][1])] for k in changed},
-            "frontier": frontier}
+    return {
+        "leak": leak,
+        "ev_eq": ev_eq,
+        "ev_br": ev_br,
+        "gain": ev_br - ev_eq,
+        "br_worst": br_worst,
+        "eq_worst": eq_worst,
+        "br_exploitability_loss": eq_worst - br_worst,
+        "deviations": {k: [float(eq[k][1]), float(br_full[k][1])] for k in changed},
+        "frontier": frontier,
+    }

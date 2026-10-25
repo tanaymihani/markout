@@ -59,6 +59,7 @@ Where = Callable[[Record], bool] | None
 # provenance helpers (also used by the holdout guard)
 # ----------------------------------------------------------------------------------------
 
+
 def to_jsonable(o: Any) -> Any:
     """Recursively convert to strict-JSON types. NaN/inf become None.
 
@@ -101,8 +102,9 @@ def config_hash(config: Mapping[str, Any]) -> str:
     Key order doesn't matter, but types do (1 and 1.0 hash differently), so write
     configs consistently.
     """
-    canonical = json.dumps(to_jsonable(config), sort_keys=True, separators=(",", ":"),
-                           ensure_ascii=False, allow_nan=False)
+    canonical = json.dumps(
+        to_jsonable(config), sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -111,8 +113,7 @@ def _git(args: list[str], cwd: Path) -> str | None:
     # concurrent git commands.
     env = {**os.environ, "GIT_OPTIONAL_LOCKS": "0"}
     try:
-        out = subprocess.run(["git", *args], cwd=cwd, env=env, capture_output=True,
-                             text=True, timeout=10, check=True)
+        out = subprocess.run(["git", *args], cwd=cwd, env=env, capture_output=True, text=True, timeout=10, check=True)
     except (OSError, subprocess.SubprocessError):
         return None
     return out.stdout
@@ -126,8 +127,10 @@ def git_state(cwd: str | Path = ROOT) -> dict[str, Any]:
     """
     sha = _git(["rev-parse", "HEAD"], Path(cwd))
     status = _git(["status", "--porcelain"], Path(cwd)) if sha else None
-    return {"git_sha": sha.strip() if sha else "unknown",
-            "git_dirty": bool(status.strip()) if status is not None else "unknown"}
+    return {
+        "git_sha": sha.strip() if sha else "unknown",
+        "git_dirty": bool(status.strip()) if status is not None else "unknown",
+    }
 
 
 def utc_now() -> str:
@@ -136,8 +139,9 @@ def utc_now() -> str:
 
 def append_line(path: Path, obj: Mapping[str, Any]) -> None:
     """Append one strict-JSON line under an exclusive lock, looping over partial writes."""
-    data = (json.dumps(to_jsonable(obj), separators=(",", ":"), ensure_ascii=False,
-                       allow_nan=False) + "\n").encode("utf-8")
+    data = (json.dumps(to_jsonable(obj), separators=(",", ":"), ensure_ascii=False, allow_nan=False) + "\n").encode(
+        "utf-8"
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
     try:
@@ -145,7 +149,7 @@ def append_line(path: Path, obj: Mapping[str, Any]) -> None:
             fcntl.flock(fd, fcntl.LOCK_EX)
         view = memoryview(data)
         while view:
-            view = view[os.write(fd, view):]
+            view = view[os.write(fd, view) :]
         os.fsync(fd)
     finally:
         os.close(fd)  # also releases the lock
@@ -174,6 +178,7 @@ def read_lines(path: Path) -> list[Record]:
 # PnL (de)serialisation
 # ----------------------------------------------------------------------------------------
 
+
 def _serialise_pnl(pnl: pd.Series | Mapping) -> tuple[list, list, str | None, str | None]:
     if isinstance(pnl, Mapping):
         pnl = pd.Series(dict(pnl))
@@ -189,10 +194,10 @@ def _serialise_pnl(pnl: pd.Series | Mapping) -> tuple[list, list, str | None, st
     if len(idx) == 0:  # a failed run with no PnL is still a trial: log it
         return [], [], None, name
     if pd.api.types.is_integer_dtype(idx.dtype) or all(
-            isinstance(k, (int, np.integer)) and not isinstance(k, (bool, np.bool_)) for k in idx):
+        isinstance(k, (int, np.integer)) and not isinstance(k, (bool, np.bool_)) for k in idx
+    ):
         key_type, keys = "int", [int(k) for k in idx]
-    elif pd.api.types.is_datetime64_any_dtype(idx.dtype) or all(
-            isinstance(k, (dt.date, np.datetime64)) for k in idx):
+    elif pd.api.types.is_datetime64_any_dtype(idx.dtype) or all(isinstance(k, (dt.date, np.datetime64)) for k in idx):
         key_type, keys = "datetime", [pd.Timestamp(k).isoformat() for k in idx]
     elif all(isinstance(k, str) for k in idx):
         key_type, keys = "str", list(idx)
@@ -227,6 +232,7 @@ def _flatten(d: Mapping[str, Any], prefix: str) -> dict[str, Any]:
 # ----------------------------------------------------------------------------------------
 # clustering of trials into independent "bets"
 # ----------------------------------------------------------------------------------------
+
 
 def cluster_trials(pnl: pd.DataFrame, max_corr: float = 0.9, min_overlap: int = 20) -> pd.Series:
     """Cluster trials whose daily PnL is nearly the same bet. Returns a label per column.
@@ -284,6 +290,7 @@ def cluster_trials(pnl: pd.DataFrame, max_corr: float = 0.9, min_overlap: int = 
 # ----------------------------------------------------------------------------------------
 # the registry
 # ----------------------------------------------------------------------------------------
+
 
 class Registry:
     """Append-only JSONL log of backtest trials. See the module docstring for the format.
@@ -393,16 +400,17 @@ class Registry:
     def trial_sharpes(self, where: Where = None, fill_value: float | None = None) -> pd.Series:
         """Per-period Sharpe of each trial's daily PnL: the `trial_srs` input of DSR."""
         pnl = self.pnl_matrix(where, fill_value)
-        return pd.Series({c: sharpe(pnl[c].to_numpy()) for c in pnl.columns},
-                         dtype=float, name="sharpe")
+        return pd.Series({c: sharpe(pnl[c].to_numpy()) for c in pnl.columns}, dtype=float, name="sharpe")
 
-    def clusters(self, where: Where = None, max_corr: float = 0.9,
-                 fill_value: float | None = None, min_overlap: int = 20) -> pd.Series:
+    def clusters(
+        self, where: Where = None, max_corr: float = 0.9, fill_value: float | None = None, min_overlap: int = 20
+    ) -> pd.Series:
         """Cluster label per trial_id (see `cluster_trials`)."""
         return cluster_trials(self.pnl_matrix(where, fill_value), max_corr, min_overlap)
 
-    def effective_n(self, where: Where = None, max_corr: float = 0.9,
-                    fill_value: float | None = None, min_overlap: int = 20) -> int:
+    def effective_n(
+        self, where: Where = None, max_corr: float = 0.9, fill_value: float | None = None, min_overlap: int = 20
+    ) -> int:
         """Estimated number of INDEPENDENT trials, i.e. the number of PnL clusters.
 
         This is the N to pass to `deflated_sharpe`. DSR's E[max SR] assumes independent

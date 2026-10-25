@@ -26,12 +26,12 @@ def log_returns(spx: pd.Series) -> pd.Series:
 
 def forward_rv(r: pd.Series, h: int = H) -> pd.Series:
     """RV_t over days t+1..t+h (NaN for the last h days)."""
-    sq = (r ** 2).shift(-1).rolling(h).sum().shift(-(h - 1))
+    sq = (r**2).shift(-1).rolling(h).sum().shift(-(h - 1))
     return 252.0 / h * sq
 
 
 def har_features(r: pd.Series) -> pd.DataFrame:
-    sq = 252.0 * r ** 2
+    sq = 252.0 * r**2
     return pd.DataFrame({"rv_d": sq, "rv_w": sq.rolling(5).mean(), "rv_m": sq.rolling(22).mean()})
 
 

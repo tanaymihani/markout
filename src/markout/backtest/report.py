@@ -17,21 +17,44 @@ from markout.paths import RESULTS
 
 
 def render(daily: pl.DataFrame) -> str:
-    cols = [c for c in ["date_id", "n_trades", "notional", "gross_usd", "cost_usd", "pnl_usd", "cum_pnl_usd",
-                        "drawdown_usd", "hit_rate"] if c in daily.columns]
+    cols = [
+        c
+        for c in [
+            "date_id",
+            "n_trades",
+            "notional",
+            "gross_usd",
+            "cost_usd",
+            "pnl_usd",
+            "cum_pnl_usd",
+            "drawdown_usd",
+            "hit_rate",
+        ]
+        if c in daily.columns
+    ]
     if "cum_pnl_usd" not in daily.columns:
         daily = daily.with_columns(pl.col("pnl_usd").cum_sum().alias("cum_pnl_usd"))
         cols.append("cum_pnl_usd")
-    fmt = {"notional": "{:>12,.0f}", "gross_usd": "{:>10,.0f}", "cost_usd": "{:>10,.0f}", "pnl_usd": "{:>10,.0f}",
-           "cum_pnl_usd": "{:>11,.0f}", "drawdown_usd": "{:>11,.0f}", "hit_rate": "{:>6.0%}"}
+    fmt = {
+        "notional": "{:>12,.0f}",
+        "gross_usd": "{:>10,.0f}",
+        "cost_usd": "{:>10,.0f}",
+        "pnl_usd": "{:>10,.0f}",
+        "cum_pnl_usd": "{:>11,.0f}",
+        "drawdown_usd": "{:>11,.0f}",
+        "hit_rate": "{:>6.0%}",
+    }
     head = " ".join(f"{c:>12}" for c in cols)
     lines = [head, "-" * len(head)]
     for r in daily.select(cols).iter_rows(named=True):
-        lines.append(" ".join(f"{(fmt.get(c, '{:>12}').format(v) if v is not None else 'n/a'):>12}"
-                              for c, v in r.items()))
+        lines.append(
+            " ".join(f"{(fmt.get(c, '{:>12}').format(v) if v is not None else 'n/a'):>12}" for c, v in r.items())
+        )
     tot = daily["pnl_usd"].sum()
-    lines += ["-" * len(head), f"days {daily.height}   total net PnL ${tot:,.0f}   "
-              f"days with trades {int((daily['n_trades'] > 0).sum())}"]
+    lines += [
+        "-" * len(head),
+        f"days {daily.height}   total net PnL ${tot:,.0f}   days with trades {int((daily['n_trades'] > 0).sum())}",
+    ]
     return "\n".join(lines)
 
 

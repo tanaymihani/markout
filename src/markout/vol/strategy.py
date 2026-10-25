@@ -47,13 +47,18 @@ class Rule:
         return True
 
 
-RULES = [Rule("always"), Rule("contango", use_contango=True), Rule("har (premium > 0)", har_tau=0.0),
-         Rule("har (premium > 25%)", har_tau=0.25), Rule("har + contango", use_contango=True, har_tau=0.0)]
+RULES = [
+    Rule("always"),
+    Rule("contango", use_contango=True),
+    Rule("har (premium > 0)", har_tau=0.0),
+    Rule("har (premium > 25%)", har_tau=0.25),
+    Rule("har + contango", use_contango=True, har_tau=0.0),
+]
 
 
 def short_var_pnl(k_vol: np.ndarray, r_vol: np.ndarray, cost_vol: float = 0.0) -> np.ndarray:
     k_vol, r_vol = np.asarray(k_vol, float), np.asarray(r_vol, float)
-    return (k_vol ** 2 - r_vol ** 2) / (2 * k_vol) - cost_vol
+    return (k_vol**2 - r_vol**2) / (2 * k_vol) - cost_vol
 
 
 def rolls(fr: pd.DataFrame, start: str, end: str | None = None) -> pd.DataFrame:
@@ -78,13 +83,19 @@ def stats(res: pd.DataFrame) -> dict:
     worst = res["pnl"].idxmin()
     tail = np.sort(p)[: max(1, int(0.05 * len(p)))]
     return {
-        "rolls": int(len(p)), "traded": int(t.sum()), "share_traded": float(t.mean()),
-        "mean_pnl": float(p.mean()), "sd_pnl": float(sd),
+        "rolls": int(len(p)),
+        "traded": int(t.sum()),
+        "share_traded": float(t.mean()),
+        "mean_pnl": float(p.mean()),
+        "sd_pnl": float(sd),
         "sharpe_ann": float(p.mean() / sd * np.sqrt(ROLLS_PER_YEAR)) if sd > 0 else 0.0,
-        "skew": float(((p - p.mean()) ** 3).mean() / sd ** 3) if sd > 0 else 0.0,
+        "skew": float(((p - p.mean()) ** 3).mean() / sd**3) if sd > 0 else 0.0,
         "hit_rate": float((p[t] > 0).mean()) if t.any() else 0.0,
-        "worst_pnl": float(p.min()), "worst_date": str(worst.date()),
-        "cvar5": float(tail.mean()), "max_drawdown": float(dd.min()), "total": float(cum[-1]),
+        "worst_pnl": float(p.min()),
+        "worst_date": str(worst.date()),
+        "cvar5": float(tail.mean()),
+        "max_drawdown": float(dd.min()),
+        "total": float(cum[-1]),
     }
 
 
@@ -97,8 +108,12 @@ def kelly_exact(pnl: np.ndarray, grid: np.ndarray | None = None) -> dict:
     g = np.array([np.mean(np.log1p(v * pnl)) for v in grid])
     i = int(np.argmax(g))
     mu, var = pnl.mean(), pnl.var(ddof=1)
-    return {"v_star": float(grid[i]), "growth_star": float(g[i]), "v_max": float(vmax),
-            "v_continuous": float(mu / var) if var > 0 else None}
+    return {
+        "v_star": float(grid[i]),
+        "growth_star": float(g[i]),
+        "v_max": float(vmax),
+        "v_continuous": float(mu / var) if var > 0 else None,
+    }
 
 
 def wealth_path(pnl: np.ndarray, v: float) -> np.ndarray:

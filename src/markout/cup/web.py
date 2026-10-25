@@ -185,8 +185,9 @@ class Desk:
                     "/api/refresh": lambda: {"ok": True, "message": f"refreshed: {b.refresh()}"},
                     "/api/kill": lambda: desk.kill(bool(body.get("on"))),
                     "/api/search": lambda: b.search(body["contract_id"], body.get("query", "")),
-                    "/api/mapping/add": lambda: b.add_manual_mapping(body["contract_id"], body["source"], body["qid"],
-                                                                    body["outcome"], bool(body.get("invert"))),
+                    "/api/mapping/add": lambda: b.add_manual_mapping(
+                        body["contract_id"], body["source"], body["qid"], body["outcome"], bool(body.get("invert"))
+                    ),
                 }
                 if self.path not in routes:
                     return self._json({"ok": False, "message": "not found"}, HTTPStatus.NOT_FOUND)

@@ -52,14 +52,14 @@ SESSION_MINUTES = 390  # 6.5-hour US equity session
 class HedgeConfig:
     S0: float = 100.0
     K: float = 100.0
-    days: int = 30                 # trading days to expiry
-    bars_per_day: int = 78         # simulation grid: 78 five-minute bars per session
+    days: int = 30  # trading days to expiry
+    bars_per_day: int = 78  # simulation grid: 78 five-minute bars per session
     days_per_year: int = 252
     sigma_imp: float = 0.20
     sigma_real: float = 0.20
     r: float = 0.0
     q: float = 0.0
-    mu: float | None = None        # real-world drift; None means r - q
+    mu: float | None = None  # real-world drift; None means r - q
     n_paths: int = 20_000
     seed: int = 0
 
@@ -86,12 +86,13 @@ class HedgeConfig:
 @dataclass
 class HedgeResult:
     """Per-path outcomes for one rebalancing interval (in bars)."""
+
     interval: int
-    n_rebalances: int                 # hedge intervals over the option's life
-    pnl: np.ndarray                   # PV PnL before costs
-    turnover: np.ndarray              # PV of dollars traded; cost = kappa * turnover
-    attribution: np.ndarray           # PV gamma-theta attribution
-    rebalance_turnover: np.ndarray    # turnover excluding the initial hedge and the final unwind
+    n_rebalances: int  # hedge intervals over the option's life
+    pnl: np.ndarray  # PV PnL before costs
+    turnover: np.ndarray  # PV of dollars traded; cost = kappa * turnover
+    attribution: np.ndarray  # PV gamma-theta attribution
+    rebalance_turnover: np.ndarray  # turnover excluding the initial hedge and the final unwind
     config: HedgeConfig = field(repr=False, default=None)
 
     def net(self, kappa: float) -> np.ndarray:
@@ -132,9 +133,17 @@ def simulate(cfg: HedgeConfig, intervals: Sequence[int]) -> dict[int, HedgeResul
     premium = float(bs.call_price(cfg.S0, cfg.K, T, cfg.r, cfg.q, cfg.sigma_imp))
     d0, g0 = (float(x) for x in _delta_gamma(np.array(cfg.S0), cfg, T))
 
-    st = {h: {"shares": np.full(n, d0), "cash": np.full(n, premium - d0 * cfg.S0),
-              "turnover": np.full(n, d0 * cfg.S0), "attr": np.zeros(n),
-              "S_last": np.full(n, cfg.S0), "G_last": np.full(n, g0)} for h in intervals}
+    st = {
+        h: {
+            "shares": np.full(n, d0),
+            "cash": np.full(n, premium - d0 * cfg.S0),
+            "turnover": np.full(n, d0 * cfg.S0),
+            "attr": np.zeros(n),
+            "S_last": np.full(n, cfg.S0),
+            "G_last": np.full(n, g0),
+        }
+        for h in intervals
+    }
     drift = (cfg.drift - 0.5 * cfg.sigma_real**2) * dt
     vol = cfg.sigma_real * math.sqrt(dt)
     grow, div = math.exp(cfg.r * dt), math.expm1(cfg.q * dt)
@@ -176,14 +185,19 @@ def simulate(cfg: HedgeConfig, intervals: Sequence[int]) -> dict[int, HedgeResul
 
 # ------------------------------------------------------------------ theory & summaries
 
+
 def expected_pnl(cfg: HedgeConfig) -> dict:
     """Continuous-limit expectations of the short-call PnL hedged at sigma_imp."""
     args = (cfg.S0, cfg.K, cfg.T, cfg.r, cfg.q)
     c_imp = float(bs.call_price(*args, cfg.sigma_imp))
     c_real = float(bs.call_price(*args, cfg.sigma_real))
     vega = float(bs.vega(*args, cfg.sigma_imp))
-    return {"premium": c_imp, "exact": c_imp - c_real, "first_order": vega * (cfg.sigma_imp - cfg.sigma_real),
-            "vega": vega}
+    return {
+        "premium": c_imp,
+        "exact": c_imp - c_real,
+        "first_order": vega * (cfg.sigma_imp - cfg.sigma_real),
+        "vega": vega,
+    }
 
 
 def summarize(res: HedgeResult) -> dict:
@@ -192,15 +206,23 @@ def summarize(res: HedgeResult) -> dict:
     resid = res.pnl - res.attribution
     corr = float(np.corrcoef(res.pnl, res.attribution)[0, 1])
     sd = float(res.pnl.std(ddof=1))
-    return {"interval": res.interval, "n_rebalances": res.n_rebalances,
-            "label": interval_label(res.interval, res.config.bars_per_day),
-            "mean": float(res.pnl.mean()), "se": sd / math.sqrt(n), "std": sd,
-            "p05": float(np.quantile(res.pnl, 0.05)), "p95": float(np.quantile(res.pnl, 0.95)),
-            "turnover_mean": float(res.turnover.mean()),
-            "rebalance_turnover_mean": float(res.rebalance_turnover.mean()),
-            "attr_corr": corr, "attr_r2": 1.0 - float(resid.var()) / float(res.pnl.var()),
-            "resid_mean": float(resid.mean()), "resid_std": float(resid.std(ddof=1)),
-            "resid_std_ratio": float(resid.std(ddof=1)) / sd}
+    return {
+        "interval": res.interval,
+        "n_rebalances": res.n_rebalances,
+        "label": interval_label(res.interval, res.config.bars_per_day),
+        "mean": float(res.pnl.mean()),
+        "se": sd / math.sqrt(n),
+        "std": sd,
+        "p05": float(np.quantile(res.pnl, 0.05)),
+        "p95": float(np.quantile(res.pnl, 0.95)),
+        "turnover_mean": float(res.turnover.mean()),
+        "rebalance_turnover_mean": float(res.rebalance_turnover.mean()),
+        "attr_corr": corr,
+        "attr_r2": 1.0 - float(resid.var()) / float(res.pnl.var()),
+        "resid_mean": float(resid.mean()),
+        "resid_std": float(resid.std(ddof=1)),
+        "resid_std_ratio": float(resid.std(ddof=1)) / sd,
+    }
 
 
 def loglog_slope(x: Sequence[float], y: Sequence[float]) -> float:
@@ -208,8 +230,9 @@ def loglog_slope(x: Sequence[float], y: Sequence[float]) -> float:
     return float(np.polyfit(np.log(x), np.log(y), 1)[0])
 
 
-def frontier(results: dict[int, HedgeResult], kappas: Sequence[float],
-             risk_weights: Sequence[float]) -> tuple[list[dict], list[dict]]:
+def frontier(
+    results: dict[int, HedgeResult], kappas: Sequence[float], risk_weights: Sequence[float]
+) -> tuple[list[dict], list[dict]]:
     """Cost-vs-risk frontier and the frequency minimising E[cost] + k * std(net PnL).
 
     Returns (points, choices): one point per (kappa, interval) and, for each
@@ -219,17 +242,33 @@ def frontier(results: dict[int, HedgeResult], kappas: Sequence[float],
     for kappa in kappas:
         for h, res in sorted(results.items(), reverse=True):
             net = res.net(kappa)
-            points.append({"kappa": kappa, "interval": h, "n_rebalances": res.n_rebalances,
-                           "label": interval_label(h, res.config.bars_per_day),
-                           "cost_mean": kappa * float(res.turnover.mean()), "std_net": float(net.std(ddof=1)),
-                           "mean_net": float(net.mean())})
+            points.append(
+                {
+                    "kappa": kappa,
+                    "interval": h,
+                    "n_rebalances": res.n_rebalances,
+                    "label": interval_label(h, res.config.bars_per_day),
+                    "cost_mean": kappa * float(res.turnover.mean()),
+                    "std_net": float(net.std(ddof=1)),
+                    "mean_net": float(net.mean()),
+                }
+            )
     choices = []
     for kappa in kappas:
         pts = [p for p in points if p["kappa"] == kappa]
         for k in risk_weights:
             obj = [p["cost_mean"] + k * p["std_net"] for p in pts]
             best = pts[int(np.argmin(obj))]
-            choices.append({"kappa": kappa, "k": k, "interval": best["interval"], "label": best["label"],
-                            "n_rebalances": best["n_rebalances"], "objective": float(min(obj)),
-                            "cost_mean": best["cost_mean"], "std_net": best["std_net"]})
+            choices.append(
+                {
+                    "kappa": kappa,
+                    "k": k,
+                    "interval": best["interval"],
+                    "label": best["label"],
+                    "n_rebalances": best["n_rebalances"],
+                    "objective": float(min(obj)),
+                    "cost_mean": best["cost_mean"],
+                    "std_net": best["std_net"],
+                }
+            )
     return points, choices

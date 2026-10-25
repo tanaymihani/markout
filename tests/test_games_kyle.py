@@ -37,9 +37,8 @@ def test_best_response_iteration_converges(start):
 def test_monte_carlo_profit_peaks_at_beta_star():
     k = kyle.KyleParams(100.0, 4.0, 1.0)
     eq = kyle.equilibrium(k)
-    rel = np.linspace(0.2, 2.0, 91)            # grid step 0.02·β*
-    mean, se = kyle.mc_insider_profit(rel * eq.beta, eq.lam, k, n=400_000,
-                                      rng=np.random.default_rng(7))
+    rel = np.linspace(0.2, 2.0, 91)  # grid step 0.02·β*
+    mean, se = kyle.mc_insider_profit(rel * eq.beta, eq.lam, k, n=400_000, rng=np.random.default_rng(7))
     best = rel[np.argmax(mean)]
     assert abs(best - 1.0) <= 0.021
     i_star = int(np.argmin(np.abs(rel - 1.0)))
@@ -62,12 +61,15 @@ def test_bridge_without_module_d():
     assert kyle.kyle_bridge({})["available"] is False
 
 
-@pytest.mark.parametrize("block", [
-    {"AAPL": 0.02, "INTC": 0.9},
-    {"AAPL": {"beta": 0.02, "r2": 0.4}, "INTC": {"beta": 0.9, "r2": 0.7}},
-    [{"ticker": "AAPL", "beta_ticks_per_1000": 0.02}, {"ticker": "INTC", "beta_ticks_per_1000": 0.9}],
-    {"rows": [{"stock": "AAPL", "cks_beta": 0.02}, {"stock": "INTC", "cks_beta": 0.9}]},
-])
+@pytest.mark.parametrize(
+    "block",
+    [
+        {"AAPL": 0.02, "INTC": 0.9},
+        {"AAPL": {"beta": 0.02, "r2": 0.4}, "INTC": {"beta": 0.9, "r2": 0.7}},
+        [{"ticker": "AAPL", "beta_ticks_per_1000": 0.02}, {"ticker": "INTC", "beta_ticks_per_1000": 0.9}],
+        {"rows": [{"stock": "AAPL", "cks_beta": 0.02}, {"stock": "INTC", "cks_beta": 0.9}]},
+    ],
+)
 def test_bridge_reads_several_shapes(block):
     out = kyle.kyle_bridge({"kyle_bridge": block})
     assert out["available"] is True
@@ -79,18 +81,25 @@ def test_bridge_reads_several_shapes(block):
 def test_bridge_computes_kyle_lambda_when_dispersions_are_given():
     block = {"MSFT": {"beta": 0.5, "sd_dmid_ticks": 2.0, "sd_trade_imbalance_k": 4.0}}
     row = kyle.kyle_bridge({"kyle_bridge": block})["rows"][0]
-    assert row["kyle_lambda_trades"] == pytest.approx(0.5)     # sd(Δp)/sd(y)
+    assert row["kyle_lambda_trades"] == pytest.approx(0.5)  # sd(Δp)/sd(y)
     assert row["ratio_cks_to_kyle"] == pytest.approx(1.0)
 
 
 def test_bridge_reads_module_d_schema():
     """The layout module D's report writes (one dict of fields per ticker)."""
-    block = {"INTC": {"beta_ticks_per_1000_shares": 0.25, "r2": 0.64, "mean_depth_best": 2000.0,
-                      "mean_price_usd": 27.3, "beta_usd_per_share": 2.5e-6,
-                      "beta_bps_per_1000_shares": 0.9}}
+    block = {
+        "INTC": {
+            "beta_ticks_per_1000_shares": 0.25,
+            "r2": 0.64,
+            "mean_depth_best": 2000.0,
+            "mean_price_usd": 27.3,
+            "beta_usd_per_share": 2.5e-6,
+            "beta_bps_per_1000_shares": 0.9,
+        }
+    }
     out = kyle.kyle_bridge({"kyle_bridge": block})
     row = out["rows"][0]
     assert out["available"] and row["cks_beta"] == 0.25
-    assert row["kyle_ratio"] == pytest.approx(0.25 / 0.8)       # β/√R²
-    assert row["beta_times_depth"] == pytest.approx(0.5)        # β × depth in ticks
+    assert row["kyle_ratio"] == pytest.approx(0.25 / 0.8)  # β/√R²
+    assert row["beta_times_depth"] == pytest.approx(0.5)  # β × depth in ticks
     assert row["price"] == 27.3 and out["has_kyle_lambda"] is False

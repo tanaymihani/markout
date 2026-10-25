@@ -21,16 +21,25 @@ def test_round_gain_caps_stakes_and_all_in_takes_the_best_edge():
     f = np.array([[0.4, 0.4, 0.1]])
     ret = np.array([[1.0, -1.0, 3.0]])
     capped = ct._round_gain(f, ret, np.array([2.0]), np.array([False]))
-    stakes = np.array([0.8, 0.8, 0.2]) / 1.8                  # 2x Kelly sums to 1.8, scaled back to the bankroll
+    stakes = np.array([0.8, 0.8, 0.2]) / 1.8  # 2x Kelly sums to 1.8, scaled back to the bankroll
     assert capped[0] == pytest.approx((stakes * ret[0]).sum())
     assert ct._round_gain(f, ret, np.array([0.5]), np.array([False]))[0] == pytest.approx(0.2 - 0.2 + 0.15)
-    assert ct._round_gain(f, ret, np.array([1.0]), np.array([True]))[0] == pytest.approx(1.0)   # argmax f = market 0
-    assert ct._round_gain(np.zeros((1, 3)), ret, np.array([1.0]), np.array([True]))[0] == 0.0   # no edge, no bet
+    assert ct._round_gain(f, ret, np.array([1.0]), np.array([True]))[0] == pytest.approx(1.0)  # argmax f = market 0
+    assert ct._round_gain(np.zeros((1, 3)), ret, np.array([1.0]), np.array([True]))[0] == 0.0  # no edge, no bet
 
 
-SMALL = ct.ContestConfig(n_players=20, n_rounds=6, markets_per_round=3, n_sims=3000, sharp_share=0.0,
-                         noisy_ratio_range=(0.7, 0.7), user_noise_ratio=0.7, field_allin_share=0.0,
-                         field_multipliers=((1.0, 1.0),), seed=5)
+SMALL = ct.ContestConfig(
+    n_players=20,
+    n_rounds=6,
+    markets_per_round=3,
+    n_sims=3000,
+    sharp_share=0.0,
+    noisy_ratio_range=(0.7, 0.7),
+    user_noise_ratio=0.7,
+    field_allin_share=0.0,
+    field_multipliers=((1.0, 1.0),),
+    seed=5,
+)
 
 
 def test_a_player_identical_to_the_field_has_fair_odds():
@@ -47,7 +56,7 @@ def test_kelly_maximises_the_median_when_beliefs_are_accurate():
     assert rows["1x"]["median_bankroll"] > rows["0.5x"]["median_bankroll"]
     assert rows["1x"]["median_bankroll"] > rows["2x"]["median_bankroll"]
     wealth_ok = ct.simulate(cfg.with_(n_sims=300), [ct.Policy("all-in", "allin")])["policies"]["all-in"]["wealth"]
-    assert np.all((wealth_ok == 0) | (wealth_ok > 1))            # all-in either busts or grows
+    assert np.all((wealth_ok == 0) | (wealth_ok > 1))  # all-in either busts or grows
 
 
 def test_adaptive_rule_never_escalates_in_a_three_player_field():
@@ -84,7 +93,7 @@ def test_study_and_report_pipeline(tmp_path, monkeypatch):
     path = ct.write_report(journal_path=tmp_path / "missing.csv", C=C)
     text = path.read_text()
     assert "The pre-registered policy" in text and "Pending" in text
-    assert len(ct.scenarios(C)) == 1 + 2 + 1              # base once, two non-base sweep values, one extra
+    assert len(ct.scenarios(C)) == 1 + 2 + 1  # base once, two non-base sweep values, one extra
     rob = ct.robustness(C, [p.name for p in ct.spec_policies()])
     assert all(0 <= r["worst_ratio"] <= 1 for r in rob if np.isfinite(r["worst_ratio"]))
     assert (plotting.FIGURES / "p_sizing.png").exists() and (plotting.FIGURES / "p_sensitivity_dark.png").exists()

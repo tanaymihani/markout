@@ -79,9 +79,15 @@ def _rows_mean(Y: np.ndarray) -> np.ndarray:
     return Y.mean(axis=1)
 
 
-def _bootstrap(r: ArrayLike1D, point_fn: Callable[[np.ndarray], float],
-               rows_fn: Callable[[np.ndarray], np.ndarray], level: float, n_boot: int,
-               block: float | None, seed: int) -> dict[str, Any]:
+def _bootstrap(
+    r: ArrayLike1D,
+    point_fn: Callable[[np.ndarray], float],
+    rows_fn: Callable[[np.ndarray], np.ndarray],
+    level: float,
+    n_boot: int,
+    block: float | None,
+    seed: int,
+) -> dict[str, Any]:
     if not 0 < level < 1:
         raise ValueError(f"level must be in (0, 1), got {level}")
     if n_boot < 1:
@@ -100,12 +106,11 @@ def _bootstrap(r: ArrayLike1D, point_fn: Callable[[np.ndarray], float],
     for start in range(0, n_boot, chunk):
         m = min(chunk, n_boot - start)
         idx = np.stack([bs.update_indices() for _ in range(m)])
-        draws[start:start + m] = rows_fn(x[idx])
+        draws[start : start + m] = rows_fn(x[idx])
 
     ok = draws[~np.isnan(draws)]
     alpha = 1.0 - level
-    lo, hi = (np.quantile(ok, [alpha / 2, 1 - alpha / 2]) if ok.size
-              else (np.nan, np.nan))
+    lo, hi = np.quantile(ok, [alpha / 2, 1 - alpha / 2]) if ok.size else (np.nan, np.nan)
     return {
         "point": float(point_fn(x)),
         "lo": float(lo),
@@ -119,8 +124,9 @@ def _bootstrap(r: ArrayLike1D, point_fn: Callable[[np.ndarray], float],
     }
 
 
-def sharpe_ci(r: ArrayLike1D, level: float = 0.95, n_boot: int = 5000,
-              block: float | None = None, seed: int = 0) -> dict[str, Any]:
+def sharpe_ci(
+    r: ArrayLike1D, level: float = 0.95, n_boot: int = 5000, block: float | None = None, seed: int = 0
+) -> dict[str, Any]:
     """Stationary-bootstrap percentile CI for the per-period Sharpe ratio (`dsr.sharpe`).
 
     Parameters
@@ -142,8 +148,9 @@ def sharpe_ci(r: ArrayLike1D, level: float = 0.95, n_boot: int = 5000,
     return _bootstrap(r, sharpe, _rows_sharpe, level, n_boot, block, seed)
 
 
-def mean_ci(r: ArrayLike1D, level: float = 0.95, n_boot: int = 5000,
-            block: float | None = None, seed: int = 0) -> dict[str, Any]:
+def mean_ci(
+    r: ArrayLike1D, level: float = 0.95, n_boot: int = 5000, block: float | None = None, seed: int = 0
+) -> dict[str, Any]:
     """Stationary-bootstrap percentile CI for the mean per-period PnL.
 
     Same parameters and return keys as `sharpe_ci`.

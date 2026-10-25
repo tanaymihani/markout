@@ -30,8 +30,16 @@ def synthetic_journal(path, n=400, seed=3, stake_mult=0.5):
     bankroll = 1000.0
     for i in range(n):
         side, f = kelly.best_side(p[i], q[i])
-        journal.add(path, f"m{i}", side, p[i], q[i], stake=round(stake_mult * f * bankroll, 6), bankroll=bankroll,
-                    timestamp=f"2026-10-{1 + i % 28:02d}T12:00:{i % 60:02d}+00:00")
+        journal.add(
+            path,
+            f"m{i}",
+            side,
+            p[i],
+            q[i],
+            stake=round(stake_mult * f * bankroll, 6),
+            bankroll=bankroll,
+            timestamp=f"2026-10-{1 + i % 28:02d}T12:00:{i % 60:02d}+00:00",
+        )
         journal.resolve(path, f"m{i}", int(y[i]))
     return path
 
@@ -48,10 +56,10 @@ def test_add_computes_kelly_and_resolve_sets_outcome(tmp_path):
     path = journal.init(tmp_path / "j.csv")
     row = journal.add(path, "fed-cut", "YES", 60, 50, stake=40, bankroll=1000, question="Fed cuts?", reason="dots")
     assert float(row["p_belief"]) == 0.6 and float(row["price_q"]) == 0.5
-    assert float(row["kelly_fraction"]) == pytest.approx(0.2)          # (0.6 - 0.5) / (1 - 0.5)
+    assert float(row["kelly_fraction"]) == pytest.approx(0.2)  # (0.6 - 0.5) / (1 - 0.5)
     journal.add(path, "fed-cut", "NO", 0.6, 0.5, stake=0, bankroll=960)  # against the belief: Kelly 0
     assert journal.resolve(path, "fed-cut", 1) == 2
-    assert journal.resolve(path, "fed-cut", 0) == 0                      # already resolved
+    assert journal.resolve(path, "fed-cut", 0) == 0  # already resolved
     df = journal.load(path)
     assert list(df["kelly_fraction"]) == [0.2, 0.0]
     assert list(df["outcome"]) == [1, 1] and (df["resolved_at"] != "").all()
@@ -70,11 +78,19 @@ def test_as_prob_reads_percent_and_rejects_certainty():
 
 
 def test_pnl_arithmetic_by_hand():
-    df = pd.DataFrame({"side": ["YES", "YES", "NO", "NO"], "p_belief": [0.5] * 4, "price_q": [0.4] * 4,
-                       "outcome": [1, 0, 1, 0], "stake": [10.0, 10.0, 12.0, 12.0], "bankroll_before": [100.0] * 4})
+    df = pd.DataFrame(
+        {
+            "side": ["YES", "YES", "NO", "NO"],
+            "p_belief": [0.5] * 4,
+            "price_q": [0.4] * 4,
+            "outcome": [1, 0, 1, 0],
+            "stake": [10.0, 10.0, 12.0, 12.0],
+            "bankroll_before": [100.0] * 4,
+        }
+    )
     r = journal.pnl_columns(df)
     assert list(r["pnl"]) == pytest.approx([15.0, -10.0, -12.0, 8.0])
-    assert list(r["pnl_predicted"]) == pytest.approx([2.5, 2.5, -2.0, -2.0])   # 10(0.5/0.4-1), 12(0.5/0.6-1)
+    assert list(r["pnl_predicted"]) == pytest.approx([2.5, 2.5, -2.0, -2.0])  # 10(0.5/0.4-1), 12(0.5/0.6-1)
 
 
 def test_scores_on_a_synthetic_journal(tmp_path):
@@ -115,8 +131,30 @@ def test_part2_text_pending_and_scored(tmp_path):
 def test_cli_end_to_end(sandbox):
     path = sandbox / "journal.csv"
     assert journal.main(["--journal", str(path), "init"]) == 0
-    assert journal.main(["--journal", str(path), "add", "--market", "nfl-1", "--side", "NO", "--p", "0.3",
-                         "--q", "45", "--stake", "25", "--bankroll", "1000", "--reason", "injury news"]) == 0
+    assert (
+        journal.main(
+            [
+                "--journal",
+                str(path),
+                "add",
+                "--market",
+                "nfl-1",
+                "--side",
+                "NO",
+                "--p",
+                "0.3",
+                "--q",
+                "45",
+                "--stake",
+                "25",
+                "--bankroll",
+                "1000",
+                "--reason",
+                "injury news",
+            ]
+        )
+        == 0
+    )
     assert journal.main(["--journal", str(path), "score"]) == 0
     report = (reporting.REPORTS / "05_predictions_cup.md").read_text()
     assert "Pending" in report and "1 trade logged" in report

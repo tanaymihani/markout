@@ -73,42 +73,62 @@ def walkthrough(page, url: str, started: float) -> dict:
     def slide(selector, values, pause=90):
         move_to(selector)
         for v in values:
-            page.evaluate(f"(() => {{ const e = document.querySelector('{selector}'); e.value = '{v}'; e.dispatchEvent(new Event('input')); }})()")
+            page.evaluate(
+                f"(() => {{ const e = document.querySelector('{selector}'); e.value = '{v}'; e.dispatchEvent(new Event('input')); }})()"
+            )
             wait(pause)
 
     page.goto(url, wait_until="networkidle")
-    wait(2600)                                                          # hero
+    wait(2600)  # hero
     scroll_to("#lab-queue")
     marks["gif_start"] = now()
     click("#q-watch")
-    wait(8600)                                                          # one order, animated
+    wait(8600)  # one order, animated
     marks["gif_end"] = now()
-    slide("#q-informed", list(range(40, -1, -5)), 140); wait(900)       # no informed sellers: fills look fine
-    slide("#q-informed", list(range(0, 61, 5)), 120); wait(900)
+    slide("#q-informed", list(range(40, -1, -5)), 140)
+    wait(900)  # no informed sellers: fills look fine
+    slide("#q-informed", list(range(0, 61, 5)), 120)
+    wait(900)
     slide("#q-informed", [55, 50, 45, 40], 120)
-    slide("#q-ahead", list(range(13600, 999, -900)) + [1000], 70); wait(1100)   # short queue
-    slide("#q-ahead", list(range(1000, 13601, 900)) + [13600], 60); wait(600)
+    slide("#q-ahead", list(range(13600, 999, -900)) + [1000], 70)
+    wait(1100)  # short queue
+    slide("#q-ahead", list(range(1000, 13601, 900)) + [13600], 60)
+    wait(600)
     scroll_to("#lab-fills")
     wait(1200)
     for t in ("MSFT", "AAPL", "INTC"):
-        click(f"#f-stock button[data-key={t}]"); wait(1300)
+        click(f"#f-stock button[data-key={t}]")
+        wait(1300)
     scroll_to("#f-rules", 260)
-    click("#f-costs button[data-key=r03]"); wait(1600)
-    move_to("#f-rules svg circle"); wait(1600)
-    click("#f-costs button[data-key=gross]"); wait(800)
+    click("#f-costs button[data-key=r03]")
+    wait(1600)
+    move_to("#f-rules svg circle")
+    wait(1600)
+    click("#f-costs button[data-key=gross]")
+    wait(800)
     scroll_to("#lab-auction")
-    slide("#a-mult", [round(1 + i * 0.05, 2) for i in range(0, 31)], 70); wait(1400)
-    slide("#a-mult", [round(2.5 - i * 0.05, 2) for i in range(0, 31)], 50); wait(800)
+    slide("#a-mult", [round(1 + i * 0.05, 2) for i in range(0, 31)], 70)
+    wait(1400)
+    slide("#a-mult", [round(2.5 - i * 0.05, 2) for i in range(0, 31)], 50)
+    wait(800)
     scroll_to("#lab-kelly")
-    click("#k-presets button >> nth=0"); wait(2200)                    # Kelly fitted before 2008: wiped out
-    click("#k-presets button >> nth=2"); wait(1800)
-    click("#k-presets button >> nth=3"); wait(2200)                    # hindsight Kelly survives
+    click("#k-presets button >> nth=0")
+    wait(2200)  # Kelly fitted before 2008: wiped out
+    click("#k-presets button >> nth=2")
+    wait(1800)
+    click("#k-presets button >> nth=3")
+    wait(2200)  # hindsight Kelly survives
     scroll_to("#lab-game")
-    click("#quote"); wait(1800)
-    click("#quote"); wait(1600)
-    scroll_to("#desk"); wait(2200)
-    scroll_to("#about"); wait(2600)
-    page.evaluate("scrollTo({top: 0, behavior: 'smooth'})"); wait(2200)
+    click("#quote")
+    wait(1800)
+    click("#quote")
+    wait(1600)
+    scroll_to("#desk")
+    wait(2200)
+    scroll_to("#about")
+    wait(2600)
+    page.evaluate("scrollTo({top: 0, behavior: 'smooth'})")
+    wait(2200)
     return marks
 
 
@@ -146,13 +166,35 @@ def main() -> None:
         shutil.copy(video, webm)
         mp4, poster, gif = MEDIA / "markout-demo.mp4", MEDIA / "markout-demo.jpg", MEDIA / "markout-demo.gif"
         run = lambda *args: subprocess.run([ffmpeg, "-y", "-loglevel", "error", *args], check=True)  # noqa: E731
-        run("-i", str(webm), "-c:v", "libx264", "-preset", "slow", "-crf", "26", "-pix_fmt", "yuv420p",
-            "-movflags", "+faststart", "-an", str(mp4))
+        run(
+            "-i",
+            str(webm),
+            "-c:v",
+            "libx264",
+            "-preset",
+            "slow",
+            "-crf",
+            "26",
+            "-pix_fmt",
+            "yuv420p",
+            "-movflags",
+            "+faststart",
+            "-an",
+            str(mp4),
+        )
         run("-ss", "1.5", "-i", str(mp4), "-frames:v", "1", "-q:v", "3", str(poster))
         start, length = marks["gif_start"] + 0.4, min(marks["gif_end"] - marks["gif_start"], 9.5)
-        run("-ss", f"{start:.2f}", "-t", f"{length:.2f}", "-i", str(mp4), "-vf",
+        run(
+            "-ss",
+            f"{start:.2f}",
+            "-t",
+            f"{length:.2f}",
+            "-i",
+            str(mp4),
+            "-vf",
             "fps=10,scale=880:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4",
-            str(gif))
+            str(gif),
+        )
     httpd.shutdown()
     for f in (mp4, poster, gif):
         print(f"wrote {f.relative_to(ROOT)} ({f.stat().st_size / 1e6:.1f} MB)")

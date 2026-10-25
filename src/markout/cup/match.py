@@ -28,25 +28,69 @@ from datetime import datetime, timezone
 from markout.cup.sources.base import ExternalQuote
 from markout.cup.types import Contract, Market
 
-STOP = set("a an the of in on at to for by will be is are was were who what which when does do did "
-           "than more less there any this that with as or and vs v versus from before after during end".split())
-ALIASES = {"gop": "republican", "republicans": "republican", "rep": "republican", "dems": "democrat",
-           "democrats": "democrat", "democratic": "democrat", "dem": "democrat", "u.s.": "us", "usa": "us",
-           "senate": "senate", "house": "house", "pres": "president", "presidential": "president"}
+STOP = set(
+    "a an the of in on at to for by will be is are was were who what which when does do did "
+    "than more less there any this that with as or and vs v versus from before after during end".split()
+)
+ALIASES = {
+    "gop": "republican",
+    "republicans": "republican",
+    "rep": "republican",
+    "dems": "democrat",
+    "democrats": "democrat",
+    "democratic": "democrat",
+    "dem": "democrat",
+    "u.s.": "us",
+    "usa": "us",
+    "senate": "senate",
+    "house": "house",
+    "pres": "president",
+    "presidential": "president",
+}
 YES_NO = {"yes", "no"}
 
-TICKERS = {"apple": "AAPL", "microsoft": "MSFT", "nvidia": "NVDA", "amazon": "AMZN", "alphabet": "GOOGL",
-           "google": "GOOGL", "meta": "META", "facebook": "META", "tesla": "TSLA", "netflix": "NFLX",
-           "broadcom": "AVGO", "intel": "INTC", "amd": "AMD", "jpmorgan": "JPM", "goldman": "GS", "nike": "NKE",
-           "walmart": "WMT", "costco": "COST", "disney": "DIS", "boeing": "BA", "coca-cola": "KO", "pepsico": "PEP",
-           "mcdonald's": "MCD", "starbucks": "SBUX", "oracle": "ORCL", "salesforce": "CRM", "adobe": "ADBE",
-           "s&p 500": "SPY", "s&p": "SPY", "nasdaq": "QQQ", "bitcoin": "BTC-USD", "ethereum": "ETH-USD",
-           "gold": "GLD"}
+TICKERS = {
+    "apple": "AAPL",
+    "microsoft": "MSFT",
+    "nvidia": "NVDA",
+    "amazon": "AMZN",
+    "alphabet": "GOOGL",
+    "google": "GOOGL",
+    "meta": "META",
+    "facebook": "META",
+    "tesla": "TSLA",
+    "netflix": "NFLX",
+    "broadcom": "AVGO",
+    "intel": "INTC",
+    "amd": "AMD",
+    "jpmorgan": "JPM",
+    "goldman": "GS",
+    "nike": "NKE",
+    "walmart": "WMT",
+    "costco": "COST",
+    "disney": "DIS",
+    "boeing": "BA",
+    "coca-cola": "KO",
+    "pepsico": "PEP",
+    "mcdonald's": "MCD",
+    "starbucks": "SBUX",
+    "oracle": "ORCL",
+    "salesforce": "CRM",
+    "adobe": "ADBE",
+    "s&p 500": "SPY",
+    "s&p": "SPY",
+    "nasdaq": "QQQ",
+    "bitcoin": "BTC-USD",
+    "ethereum": "ETH-USD",
+    "gold": "GLD",
+}
 
 
-GENERIC_CAPS = set("midterm midterms general presidential parliamentary legislative election elections federal "
-                   "national party us world cup award awards championship league series prize game games final "
-                   "finals season day winner".split())
+GENERIC_CAPS = set(
+    "midterm midterms general presidential parliamentary legislative election elections federal "
+    "national party us world cup award awards championship league series prize game games final "
+    "finals season day winner".split()
+)
 
 
 def fold(s: str) -> str:
@@ -95,19 +139,39 @@ def numbers(s: str) -> set[str]:
 
 # Words that change *what* is being measured: a mismatch on any of them means a different
 # market even when everything else agrees ("1+ touchdowns" vs "1+ passing touchdowns").
-QUALIFIERS = set("""passing rushing receiving hit run rbi rbis home homer stolen base strikeout assist rebound point
+QUALIFIERS = set(
+    """passing rushing receiving hit run rbi rbis home homer stolen base strikeout assist rebound point
 three pointer 1st 2nd first second third half quarter inning period set map game goal corner card yard touchdown
 reception sack save shot ace spread total moneyline margin exact popular electoral turnout primary runoff
 increase decrease hike cut raise lower change pause hold up down above below higher highest lowest over under
 more fewer less reach dip drop rise fall before after low high
-cease stop leave resign remain stay still former removed impeach fail lose miss not""".split())
+cease stop leave resign remain stay still former removed impeach fail lose miss not""".split()
+)
 
-MONTHS = {m: i for i, names in enumerate([("jan", "january"), ("feb", "february"), ("mar", "march"), ("apr", "april"),
-                                         ("may",), ("jun", "june"), ("jul", "july"), ("aug", "august"),
-                                         ("sep", "sept", "september"), ("oct", "october"), ("nov", "november"),
-                                         ("dec", "december")], start=1) for m in names}
-DATE = re.compile(r"\b(" + "|".join(sorted(MONTHS, key=len, reverse=True)) + r")\b\.?(?:\s+(\d{1,2})(?:st|nd|rd|th)?\b)?",
-                  re.I)
+MONTHS = {
+    m: i
+    for i, names in enumerate(
+        [
+            ("jan", "january"),
+            ("feb", "february"),
+            ("mar", "march"),
+            ("apr", "april"),
+            ("may",),
+            ("jun", "june"),
+            ("jul", "july"),
+            ("aug", "august"),
+            ("sep", "sept", "september"),
+            ("oct", "october"),
+            ("nov", "november"),
+            ("dec", "december"),
+        ],
+        start=1,
+    )
+    for m in names
+}
+DATE = re.compile(
+    r"\b(" + "|".join(sorted(MONTHS, key=len, reverse=True)) + r")\b\.?(?:\s+(\d{1,2})(?:st|nd|rd|th)?\b)?", re.I
+)
 
 
 def years(s: str) -> set[int]:
@@ -125,6 +189,7 @@ def dates(s: str) -> set[tuple[int, int | None]]:
         out.add((MONTHS[word.lower()], int(day) if day else None))
     return out
 
+
 NUMBER = re.compile(r"(?<![\w.])\$?\d[\d,]*(?:\.\d+)?")
 
 
@@ -141,9 +206,11 @@ def thresholds(s: str) -> set[str]:
     return out
 
 
-CALENDAR = set("monday tuesday wednesday thursday friday saturday sunday january february march april may june "
-               "july august september october november december jan feb mar apr jun jul aug sep sept oct nov dec "
-               "today tomorrow tonight week weekend".split())
+CALENDAR = set(
+    "monday tuesday wednesday thursday friday saturday sunday january february march april may june "
+    "july august september october november december jan feb mar apr jun jul aug sep sept oct nov dec "
+    "today tomorrow tonight week weekend".split()
+)
 
 
 def entities(s: str) -> set[str]:
@@ -155,8 +222,10 @@ def entities(s: str) -> set[str]:
     return ents
 
 
-OPENERS = STOP | set("over under above below more less new total exact first any how who what why where "
-                     "if can could should would has have had".split())
+OPENERS = STOP | set(
+    "over under above below more less new total exact first any how who what why where "
+    "if can could should would has have had".split()
+)
 
 
 def _sentence_entities(s: str) -> set[str]:
@@ -208,7 +277,8 @@ def hard_reject(a: str, b: str) -> str | None:
 def trigram_cosine(a: str, b: str) -> float:
     def grams(x):
         x = f"  {x.lower()} "
-        return Counter(x[i:i + 3] for i in range(len(x) - 2))
+        return Counter(x[i : i + 3] for i in range(len(x) - 2))
+
     ga, gb = grams(a), grams(b)
     dot = sum(ga[g] * gb[g] for g in ga.keys() & gb.keys())
     na, nb = math.sqrt(sum(v * v for v in ga.values())), math.sqrt(sum(v * v for v in gb.values()))
@@ -266,15 +336,19 @@ def score(market: Market, contract: Contract, q: ExternalQuote) -> Candidate:
     return Candidate(q, s, invert, ", ".join(why))
 
 
-def candidates(market: Market, contract: Contract, quotes: list[ExternalQuote], k: int = 5,
-               min_score: float = 0.35) -> list[Candidate]:
+def candidates(
+    market: Market, contract: Contract, quotes: list[ExternalQuote], k: int = 5, min_score: float = 0.35
+) -> list[Candidate]:
     scored = [score(market, contract, q) for q in quotes]
     return sorted((c for c in scored if c.score >= min_score), key=lambda c: -c.score)[:k]
 
 
-PRICE_Q = re.compile(r"(?P<name>\$?[A-Za-z&.\- ]{2,40}?)\s*(?:\((?P<tk>[A-Z.\-]{1,6})\))?\s+"
-                     r"(?:stock\s+|shares\s+)?(?:close|end|finish|trade|be)?\s*(?P<dir>above|over|higher than|below|under)"
-                     r"\s+\$?(?P<k>[\d,]+(?:\.\d+)?)", re.I)
+PRICE_Q = re.compile(
+    r"(?P<name>\$?[A-Za-z&.\- ]{2,40}?)\s*(?:\((?P<tk>[A-Z.\-]{1,6})\))?\s+"
+    r"(?:stock\s+|shares\s+)?(?:close|end|finish|trade|be)?\s*(?P<dir>above|over|higher than|below|under)"
+    r"\s+\$?(?P<k>[\d,]+(?:\.\d+)?)",
+    re.I,
+)
 
 
 @dataclass(frozen=True)
@@ -296,9 +370,12 @@ def parse_price_question(market: Market) -> PriceQuestion | None:
     if not tk:
         name = m.group("name").strip().lstrip("$").lower()
         name = re.sub(r"^(will|does|is)\s+", "", name)
-        tk = TICKERS.get(name) or (name.upper() if re.fullmatch(r"[a-z]{1,5}", name) and m.group("name").strip().startswith("$") else None)
+        tk = TICKERS.get(name) or (
+            name.upper() if re.fullmatch(r"[a-z]{1,5}", name) and m.group("name").strip().startswith("$") else None
+        )
     if not tk:
         return None
     above = m.group("dir").lower() in ("above", "over", "higher than")
-    return PriceQuestion(tk.upper(), float(m.group("k").replace(",", "")), above,
-                         market.resolves_at.astimezone(timezone.utc))
+    return PriceQuestion(
+        tk.upper(), float(m.group("k").replace(",", "")), above, market.resolves_at.astimezone(timezone.utc)
+    )

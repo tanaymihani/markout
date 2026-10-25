@@ -32,7 +32,7 @@ def test_clearly_better_forecast_is_detected():
     truth = rng.standard_normal(240)
     good = truth + 0.5 * rng.standard_normal(240)
     bad = truth + 1.0 * rng.standard_normal(240)
-    la, lb = np.abs(truth - good), np.abs(truth - bad)       # absolute errors, daily
+    la, lb = np.abs(truth - good), np.abs(truth - bad)  # absolute errors, daily
     r = diebold_mariano(la, lb)
     assert r["mean_diff"] < 0 and r["stat"] < 0 and r["p_value"] < 1e-4
     assert diebold_mariano(la, lb, alternative="less")["p_value"] < 1e-4
@@ -43,8 +43,7 @@ def test_clearly_better_forecast_is_detected():
 def test_size_is_nominal_for_equally_good_forecasts():
     """1000 pairs of equally accurate forecasts: ~5% false rejections (SE 0.7%).
     Measured offline over 3000 reps: 5.4%."""
-    rej = [diebold_mariano(*_equal_accuracy_losses(np.random.default_rng(i)))["p_value"] < 0.05
-           for i in range(1000)]
+    rej = [diebold_mariano(*_equal_accuracy_losses(np.random.default_rng(i)))["p_value"] < 0.05 for i in range(1000)]
     assert 0.03 <= np.mean(rej) <= 0.075
 
 
@@ -81,7 +80,7 @@ def test_hln_correction_and_default_lag_for_multi_step():
     assert r["lag"] == max(h - 1, math.floor(4 * (T / 100) ** (2 / 9)))
     assert r["stat"] == pytest.approx(r["dm"] * math.sqrt((T + 1 - 2 * h + h * (h - 1) / T) / T))
     assert r["p_value"] == pytest.approx(2 * stats.t(df=T - 1).sf(abs(r["stat"])))
-    assert diebold_mariano(a, b)["lag"] == 4                           # NW rule at T = 100
+    assert diebold_mariano(a, b)["lag"] == 4  # NW rule at T = 100
 
 
 @pytest.mark.parametrize("lag", [0, 1, 4, 10])
@@ -97,15 +96,15 @@ def test_alignment_nans_and_degenerate_inputs():
     idx = pd.RangeIndex(181, 421, name="date_id")
     a = pd.Series(rng.standard_normal(240) ** 2, index=idx)
     b = pd.Series(rng.standard_normal(240) ** 2, index=idx)
-    shuffled = b.sample(frac=1.0, random_state=0)                     # same days, other order
+    shuffled = b.sample(frac=1.0, random_state=0)  # same days, other order
     assert diebold_mariano(a, shuffled)["stat"] == pytest.approx(diebold_mariano(a, b)["stat"])
     a_gap = a.copy()
     a_gap.iloc[:10] = np.nan
     assert diebold_mariano(a_gap, b)["T"] == 230
     with pytest.raises(ValueError):
         diebold_mariano(a.to_numpy(), b.to_numpy()[:-1])
-    quarters = rng.integers(0, 40, 240) / 4.0                          # exact in binary, so
-    const = diebold_mariano(quarters + 1.0, quarters)                  # d == 1.0 exactly
+    quarters = rng.integers(0, 40, 240) / 4.0  # exact in binary, so
+    const = diebold_mariano(quarters + 1.0, quarters)  # d == 1.0 exactly
     assert const["stat"] == math.inf and const["p_value"] == 0.0
     with pytest.raises(ValueError):
         diebold_mariano(a, b, h=0)

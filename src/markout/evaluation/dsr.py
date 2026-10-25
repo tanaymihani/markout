@@ -84,8 +84,7 @@ def _skew_kurt(x: np.ndarray) -> tuple[float, float]:
     """
     if x.size < 2 or not np.std(x) > 0:
         return float("nan"), float("nan")
-    return (float(stats.skew(x, bias=True)),
-            float(stats.kurtosis(x, fisher=False, bias=True)))
+    return (float(stats.skew(x, bias=True)), float(stats.kurtosis(x, fisher=False, bias=True)))
 
 
 def psr(sr: float, sr_star: float, T: int, skew: float, kurt: float) -> float:
@@ -126,7 +125,8 @@ def psr(sr: float, sr_star: float, T: int, skew: float, kurt: float) -> float:
     if not radicand > 0:
         raise ValueError(
             f"non-positive variance term 1 - skew*sr + (kurt-1)/4*sr^2 = {radicand:.3g}; "
-            "check that kurt is NON-excess (normal = 3) and that kurt >= 1 + skew^2")
+            "check that kurt is NON-excess (normal = 3) and that kurt >= 1 + skew^2"
+        )
     z = (sr - sr_star) * math.sqrt(T - 1) / math.sqrt(radicand)
     return float(stats.norm.cdf(z))
 
@@ -166,15 +166,18 @@ def expected_max_sr(var_sr: float, n_trials: float) -> float:
         raise ValueError(f"n_trials must be >= 1, got {n_trials}")
     if n_trials == 1:
         return 0.0
-    z = ((1.0 - EULER_GAMMA) * stats.norm.ppf(1.0 - 1.0 / n_trials)
-         + EULER_GAMMA * stats.norm.ppf(1.0 - 1.0 / (n_trials * math.e)))
+    z = (1.0 - EULER_GAMMA) * stats.norm.ppf(1.0 - 1.0 / n_trials) + EULER_GAMMA * stats.norm.ppf(
+        1.0 - 1.0 / (n_trials * math.e)
+    )
     return max(0.0, math.sqrt(var_sr) * float(z))
 
 
-def deflated_sharpe(returns: ArrayLike1D,
-                    trial_srs: ArrayLike1D | None = None,
-                    var_sr: float | None = None,
-                    n_trials: float | None = None) -> dict[str, float]:
+def deflated_sharpe(
+    returns: ArrayLike1D,
+    trial_srs: ArrayLike1D | None = None,
+    var_sr: float | None = None,
+    n_trials: float | None = None,
+) -> dict[str, float]:
     """Deflated Sharpe Ratio of a selected strategy: DSR = PSR(SR_0), SR_0 = E[max SR].
 
     Parameters
@@ -221,7 +224,8 @@ def deflated_sharpe(returns: ArrayLike1D,
     if n_trials is None:
         raise ValueError(
             "pass trial_srs or n_trials: the number of trials drives the deflation. "
-            "If this really was the only strategy tried, pass n_trials=1.")
+            "If this really was the only strategy tried, pass n_trials=1."
+        )
     if n_trials == 1:
         sr_star = 0.0
     else:

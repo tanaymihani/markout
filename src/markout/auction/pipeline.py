@@ -76,9 +76,16 @@ def predict_fold(feat: pl.DataFrame, spec: ModelSpec, fold: Fold) -> tuple[pl.Da
     return out, info
 
 
-def walk_forward(feat: pl.DataFrame, spec: ModelSpec, design: Design, weights: pl.DataFrame,
-                 cache_dir: Path | None = None, data_fp: str | None = None,
-                 folds: list[Fold] | None = None, tag: str = "wf") -> tuple[pl.DataFrame, list[dict]]:
+def walk_forward(
+    feat: pl.DataFrame,
+    spec: ModelSpec,
+    design: Design,
+    weights: pl.DataFrame,
+    cache_dir: Path | None = None,
+    data_fp: str | None = None,
+    folds: list[Fold] | None = None,
+    tag: str = "wf",
+) -> tuple[pl.DataFrame, list[dict]]:
     """Out-of-sample predictions for every test row of every fold (neutralized)."""
     folds = folds if folds is not None else design.folds()
     path = meta_path = None
@@ -105,9 +112,12 @@ def forecast_metrics(preds: pl.DataFrame, truth: pl.DataFrame) -> dict:
     j = preds.join(truth.select(ID + ["target"]), on=ID, how="inner").drop_nulls(["target"])
     err = (pl.col("pred") - pl.col("target")).abs()
     by_day = j.group_by("date_id").agg(err.mean().alias("mae")).sort("date_id")
-    ic = (j.group_by(XS)
-           .agg(pl.corr("pred", "target", method="spearman").alias("ic"))
-           .drop_nulls("ic").filter(pl.col("ic").is_not_nan()))
+    ic = (
+        j.group_by(XS)
+        .agg(pl.corr("pred", "target", method="spearman").alias("ic"))
+        .drop_nulls("ic")
+        .filter(pl.col("ic").is_not_nan())
+    )
     ic_day = ic.group_by("date_id").agg(pl.col("ic").mean()).sort("date_id")["ic"].to_numpy()
     pearson = float(np.corrcoef(j["pred"].to_numpy(), j["target"].to_numpy())[0, 1]) if j["pred"].std() > 0 else 0.0
     return {
@@ -115,7 +125,8 @@ def forecast_metrics(preds: pl.DataFrame, truth: pl.DataFrame) -> dict:
         "n_rows": j.height,
         "ic_spearman_mean": float(ic["ic"].mean()) if ic.height else 0.0,
         "ic_day_tstat": float(ic_day.mean() / (ic_day.std(ddof=1) / np.sqrt(len(ic_day))))
-        if len(ic_day) > 2 and ic_day.std() > 0 else 0.0,
+        if len(ic_day) > 2 and ic_day.std() > 0
+        else 0.0,
         "ic_pearson_pooled": pearson,
         "mae_by_day": by_day,
         "mae_by_second": j.group_by("seconds_in_bucket").agg(err.mean().alias("mae")).sort("seconds_in_bucket"),

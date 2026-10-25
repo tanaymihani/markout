@@ -43,26 +43,37 @@ def hedge_month(returns: np.ndarray, sigma: float, hedge_bps: float = 0.0) -> di
     tau = (h - np.arange(h)) * DT  # time left at each hedge
     delta = 2 * bs.delta(s[:-1], 1.0, tau, 0.0, 0.0, sigma, "call") - 1  # straddle delta
     dollar_gamma = 2 * bs.gamma(s[:-1], 1.0, tau, 0.0, 0.0, sigma) * s[:-1] ** 2
-    premium = float(bs.price(1.0, 1.0, tau[0], 0.0, 0.0, sigma, "call")
-                    + bs.price(1.0, 1.0, tau[0], 0.0, 0.0, sigma, "put"))
+    premium = float(
+        bs.price(1.0, 1.0, tau[0], 0.0, 0.0, sigma, "call") + bs.price(1.0, 1.0, tau[0], 0.0, 0.0, sigma, "put")
+    )
     vega = 2 * float(bs.vega(1.0, 1.0, tau[0], 0.0, 0.0, sigma))  # per 1.00 of vol
     vega_pt = vega / 100
     ds = np.diff(s)
     gross = premium - abs(s[-1] - 1.0) + float(np.sum(delta * ds))
     x = ds / s[:-1]
-    attribution = float(np.sum(0.5 * dollar_gamma * (sigma ** 2 * DT - x ** 2)))
+    attribution = float(np.sum(0.5 * dollar_gamma * (sigma**2 * DT - x**2)))
     trades = np.abs(np.diff(np.concatenate([[0.0], delta, [0.0]])))  # open, rebalance, close
     hedge_cost = hedge_bps * 1e-4 * float(np.sum(trades * s))
     weight = 0.5 * float(np.sum(dollar_gamma)) * DT  # multiplies (sigma^2 - R_eff^2)
-    return {"pnl": (gross - hedge_cost) / vega_pt, "gross": gross / vega_pt,
-            "attribution": attribution / vega_pt, "hedge_cost": hedge_cost / vega_pt,
-            "exposure": weight / (vega / (2 * sigma)),
-            "eff_vol": 100 * float(np.sqrt(np.sum(dollar_gamma * x ** 2) / (np.sum(dollar_gamma) * DT))),
-            "premium_per_vega": premium / vega_pt}
+    return {
+        "pnl": (gross - hedge_cost) / vega_pt,
+        "gross": gross / vega_pt,
+        "attribution": attribution / vega_pt,
+        "hedge_cost": hedge_cost / vega_pt,
+        "exposure": weight / (vega / (2 * sigma)),
+        "eff_vol": 100 * float(np.sqrt(np.sum(dollar_gamma * x**2) / (np.sum(dollar_gamma) * DT))),
+        "premium_per_vega": premium / vega_pt,
+    }
 
 
-def run(fr: pd.DataFrame, start: str, end: str | None = None, cost_vol: float = 0.5,
-        hedge_bps: float = 1.0, vol_shift: float = 0.0) -> pd.DataFrame:
+def run(
+    fr: pd.DataFrame,
+    start: str,
+    end: str | None = None,
+    cost_vol: float = 0.5,
+    hedge_bps: float = 1.0,
+    vol_shift: float = 0.0,
+) -> pd.DataFrame:
     """Every roll from strategy.rolls: the hedged straddle and the variance swap on the same
     month, both per $1 of vega and net of `cost_vol`. `vol_shift` prices (and hedges) the
     straddle that many vol points away from VIX; real ATM options trade below VIX, so the
@@ -72,11 +83,20 @@ def run(fr: pd.DataFrame, start: str, end: str | None = None, cost_vol: float = 
     rets = fr["r"].to_numpy()
     rows = []
     for p, row in zip(pos, r.itertuples()):
-        m = hedge_month(rets[p + 1:p + 1 + H], (row.vix + vol_shift) / 100, hedge_bps)
-        rows.append({"vix": row.vix, "rv_vol": row.rv_vol, "straddle": m["pnl"] - cost_vol,
-                     "var_swap": float(S.short_var_pnl(row.vix, row.rv_vol, cost_vol)),
-                     "gross": m["gross"], "attribution": m["attribution"], "hedge_cost": m["hedge_cost"],
-                     "exposure": m["exposure"], "eff_vol": m["eff_vol"]})
+        m = hedge_month(rets[p + 1 : p + 1 + H], (row.vix + vol_shift) / 100, hedge_bps)
+        rows.append(
+            {
+                "vix": row.vix,
+                "rv_vol": row.rv_vol,
+                "straddle": m["pnl"] - cost_vol,
+                "var_swap": float(S.short_var_pnl(row.vix, row.rv_vol, cost_vol)),
+                "gross": m["gross"],
+                "attribution": m["attribution"],
+                "hedge_cost": m["hedge_cost"],
+                "exposure": m["exposure"],
+                "eff_vol": m["eff_vol"],
+            }
+        )
     return pd.DataFrame(rows, index=r.index)
 
 

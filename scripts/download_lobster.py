@@ -64,8 +64,8 @@ class Remote:
 
     path: str
     size: int
-    sha256: str | None = None      # Git-LFS files publish the sha256 of the content
-    git_sha1: str | None = None    # small files publish the git blob id instead
+    sha256: str | None = None  # Git-LFS files publish the sha256 of the content
+    git_sha1: str | None = None  # small files publish the git blob id instead
 
 
 def _stem(t: str) -> str:
@@ -74,38 +74,67 @@ def _stem(t: str) -> str:
 
 MIRROR_FILES: dict[str, tuple[Remote, Remote]] = {
     "AAPL": (
-        Remote(f"{_stem('AAPL')}_message_10.csv", 16641275,
-               sha256="6562394b996138d5c4527b1282e77a1a385e844110550c34628fbd73bc5411e5"),
-        Remote(f"{_stem('AAPL')}_orderbook_10.csv", 93481244,
-               sha256="ed75450031996e81bdc5fc985f6afe6851c81d7b2b39bccf13c56d845fe6ff5d"),
+        Remote(
+            f"{_stem('AAPL')}_message_10.csv",
+            16641275,
+            sha256="6562394b996138d5c4527b1282e77a1a385e844110550c34628fbd73bc5411e5",
+        ),
+        Remote(
+            f"{_stem('AAPL')}_orderbook_10.csv",
+            93481244,
+            sha256="ed75450031996e81bdc5fc985f6afe6851c81d7b2b39bccf13c56d845fe6ff5d",
+        ),
     ),
     "AMZN": (
-        Remote(f"{_stem('AMZN')}_message_10.csv", 11248750,
-               sha256="c85a75b51f3616a683f825c2e03f984535e9329a8be5ab12325130d32223a2c5"),
-        Remote(f"{_stem('AMZN')}_orderbook_10.csv", 63216242,
-               sha256="decfe952b3fa06c9922dc8fba763a37a0fb032d4231767997e4abf2aa0d29b50"),
+        Remote(
+            f"{_stem('AMZN')}_message_10.csv",
+            11248750,
+            sha256="c85a75b51f3616a683f825c2e03f984535e9329a8be5ab12325130d32223a2c5",
+        ),
+        Remote(
+            f"{_stem('AMZN')}_orderbook_10.csv",
+            63216242,
+            sha256="decfe952b3fa06c9922dc8fba763a37a0fb032d4231767997e4abf2aa0d29b50",
+        ),
     ),
     "GOOG": (
-        Remote(f"{_stem('GOOG')}_message_10.csv", 6094817,
-               git_sha1="dd7f19715f5fd76cb4d52240c38c1a274d8e74a9"),
-        Remote(f"{_stem('GOOG')}_orderbook_10.csv", 34073243,
-               sha256="9ebe00b4f1aee57aa73dcb979e1074d16554296ca32b87440ce756c60974bb53"),
+        Remote(f"{_stem('GOOG')}_message_10.csv", 6094817, git_sha1="dd7f19715f5fd76cb4d52240c38c1a274d8e74a9"),
+        Remote(
+            f"{_stem('GOOG')}_orderbook_10.csv",
+            34073243,
+            sha256="9ebe00b4f1aee57aa73dcb979e1074d16554296ca32b87440ce756c60974bb53",
+        ),
     ),
     "INTC": (
-        Remote(f"{_stem('INTC')}_message_10.csv", 25663091,
-               sha256="199c55b35f6c62f07b058922038c0b8d168bc3be9d2de94da19c901cd3f29927"),
-        Remote(f"{_stem('INTC')}_orderbook_10.csv", 158466105,
-               sha256="6bc4c4dc1e92d78e46d04f9e7914df2d8c2a9231928493e7395a9085e1fc91ab"),
+        Remote(
+            f"{_stem('INTC')}_message_10.csv",
+            25663091,
+            sha256="199c55b35f6c62f07b058922038c0b8d168bc3be9d2de94da19c901cd3f29927",
+        ),
+        Remote(
+            f"{_stem('INTC')}_orderbook_10.csv",
+            158466105,
+            sha256="6bc4c4dc1e92d78e46d04f9e7914df2d8c2a9231928493e7395a9085e1fc91ab",
+        ),
     ),
     "MSFT": (
-        Remote(f"{_stem('MSFT')}_message_10.csv", 27582358,
-               sha256="669e5c35b1eab0f7336fa9ed919002e65b08d2aabd96bb4ae88d647184e7a18d"),
-        Remote(f"{_stem('MSFT')}_orderbook_10.csv", 170192771,
-               sha256="ec2f53467cf7bfb00b5702381bea7b4a061bb4c1730454df3679b272b3561c0e"),
+        Remote(
+            f"{_stem('MSFT')}_message_10.csv",
+            27582358,
+            sha256="669e5c35b1eab0f7336fa9ed919002e65b08d2aabd96bb4ae88d647184e7a18d",
+        ),
+        Remote(
+            f"{_stem('MSFT')}_orderbook_10.csv",
+            170192771,
+            sha256="ec2f53467cf7bfb00b5702381bea7b4a061bb4c1730454df3679b272b3561c0e",
+        ),
     ),
 }
-README = Remote(f"LOBSTER_SampleFile_GOOG_{DATE}_{LEVELS}/LOBSTER_SampleFiles_ReadMe.txt", 4790,
-                git_sha1="23c806b08ae7646a96c12b98c2dd5950bb36d69b")
+README = Remote(
+    f"LOBSTER_SampleFile_GOOG_{DATE}_{LEVELS}/LOBSTER_SampleFiles_ReadMe.txt",
+    4790,
+    git_sha1="23c806b08ae7646a96c12b98c2dd5950bb36d69b",
+)
 
 
 def free_gb(path: Path) -> float:
@@ -152,7 +181,7 @@ def try_official(ticker: str, workdir: Path) -> tuple[Path, Path] | None:
         if not zpath.exists():
             fetch(url, zpath)
         with open(zpath, "rb") as f:
-            if f.read(2) != b"PK":      # the rebuilt site answers every path with HTML
+            if f.read(2) != b"PK":  # the rebuilt site answers every path with HTML
                 zpath.unlink()
                 return None
         with zipfile.ZipFile(zpath) as z:
@@ -183,18 +212,24 @@ def from_mirror(ticker: str, workdir: Path) -> tuple[Path, Path]:
 
 def convert(msg_csv: Path, book_csv: Path, ticker: str) -> tuple[int, int]:
     """CSV -> zstd Parquet with a fixed schema. Prices stay int64 (dollars x 10^4)."""
-    msg_schema = {"time": pl.Float64, "type": pl.Int8, "order_id": pl.Int64,
-                  "size": pl.Int64, "price": pl.Int64, "direction": pl.Int8}
-    messages = pl.read_csv(msg_csv, has_header=False, new_columns=list(MESSAGE_COLUMNS),
-                           schema_overrides=msg_schema)
+    msg_schema = {
+        "time": pl.Float64,
+        "type": pl.Int8,
+        "order_id": pl.Int64,
+        "size": pl.Int64,
+        "price": pl.Int64,
+        "direction": pl.Int8,
+    }
+    messages = pl.read_csv(msg_csv, has_header=False, new_columns=list(MESSAGE_COLUMNS), schema_overrides=msg_schema)
     if messages.columns != list(MESSAGE_COLUMNS):
         raise ValueError(f"{ticker}: unexpected message columns {messages.columns}")
     messages.write_parquet(message_path(ticker), compression="zstd", compression_level=9)
     n_msg = messages.height
     del messages
 
-    book = pl.read_csv(book_csv, has_header=False, new_columns=list(BOOK_COLUMNS),
-                       schema_overrides={c: pl.Int64 for c in BOOK_COLUMNS})
+    book = pl.read_csv(
+        book_csv, has_header=False, new_columns=list(BOOK_COLUMNS), schema_overrides={c: pl.Int64 for c in BOOK_COLUMNS}
+    )
     if book.width != 4 * LEVELS:
         raise ValueError(f"{ticker}: expected {4 * LEVELS} book columns, got {book.width}")
     book.write_parquet(book_path(ticker), compression="zstd", compression_level=9)
@@ -231,10 +266,9 @@ def main(argv: list[str] | None = None) -> int:
                 files = from_mirror(t, work)
             n_msg, _ = convert(*files, ticker=t)
         finally:
-            shutil.rmtree(work, ignore_errors=True)   # never keep extracted CSVs
+            shutil.rmtree(work, ignore_errors=True)  # never keep extracted CSVs
         mb = (message_path(t).stat().st_size + book_path(t).stat().st_size) / 1e6
-        print(f"{t}: {n_msg:,} messages from {source} -> {mb:.1f} MB Parquet; "
-              f"{free_gb(OUT_DIR):.1f} GB free")
+        print(f"{t}: {n_msg:,} messages from {source} -> {mb:.1f} MB Parquet; {free_gb(OUT_DIR):.1f} GB free")
     return 0
 
 

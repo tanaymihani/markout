@@ -23,8 +23,13 @@ BEAT = re.compile(r"\b(beat|top|exceed)s?\b.*\b(eps|earnings|estimate|consensus|
 
 
 class References:
-    def __init__(self, live: bool = True, static: dict[str, list[ExternalQuote]] | None = None,
-                 refresh_seconds: float = 600.0, exclude: set[tuple[str, str]] | None = None):
+    def __init__(
+        self,
+        live: bool = True,
+        static: dict[str, list[ExternalQuote]] | None = None,
+        refresh_seconds: float = 600.0,
+        exclude: set[tuple[str, str]] | None = None,
+    ):
         self.live, self.static, self.refresh_seconds = live, static or {}, refresh_seconds
         self.exclude = exclude or set()  # (source, id) never used as a reference (a stand-in's own quote)
         self._quotes: list[ExternalQuote] = []
@@ -37,8 +42,11 @@ class References:
         if not self.live or time.monotonic() - self._t < self.refresh_seconds and self._quotes:
             return
         quotes = []
-        for name, fetch in (("polymarket", polymarket.active_markets), ("kalshi", kalshi.open_events),
-                            ("manifold", manifold.open_binary)):
+        for name, fetch in (
+            ("polymarket", polymarket.active_markets),
+            ("kalshi", kalshi.open_events),
+            ("manifold", manifold.open_binary),
+        ):
             try:
                 quotes += fetch()
             except Exception as e:  # noqa: BLE001 - a source being down must not stop the bot
@@ -101,8 +109,14 @@ class References:
                 if q is not None:
                     yes = contract.name.strip().lower() != "no"
                     invert = (not pq.above) == yes  # "below" questions and "No" contracts flip it
-                    out.append(Candidate(q, 0.9, invert, f"parsed {pq.ticker} {'>' if pq.above else '<'} "
-                                                          f"{pq.strike:g} by {pq.when.date()}"))
+                    out.append(
+                        Candidate(
+                            q,
+                            0.9,
+                            invert,
+                            f"parsed {pq.ticker} {'>' if pq.above else '<'} {pq.strike:g} by {pq.when.date()}",
+                        )
+                    )
             if BEAT.search(market.title):
                 tk = next((t for n, t in match.TICKERS.items() if n in market.title.lower()), None)
                 q = models.beat_probability(tk) if tk else None

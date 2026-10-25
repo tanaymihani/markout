@@ -19,10 +19,20 @@ from markout.evaluation.pbo import pbo
 from markout.evaluation.registry import Registry, cluster_trials, config_hash, git_state
 
 __all__ = [
-    "Registry", "cluster_trials", "config_hash", "git_state",
-    "sharpe", "psr", "expected_max_sr", "deflated_sharpe",
+    "Registry",
+    "cluster_trials",
+    "config_hash",
+    "git_state",
+    "sharpe",
+    "psr",
+    "expected_max_sr",
+    "deflated_sharpe",
     "pbo",
-    "sharpe_ci", "mean_ci", "auto_block_length",
-    "HoldoutGuard", "HoldoutAlreadyUsed",
-    "diebold_mariano", "newey_west_lrv",
+    "sharpe_ci",
+    "mean_ci",
+    "auto_block_length",
+    "HoldoutGuard",
+    "HoldoutAlreadyUsed",
+    "diebold_mariano",
+    "newey_west_lrv",
 ]

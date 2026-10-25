@@ -114,11 +114,14 @@ def test_no_contract_inverts_a_yes_reference():
     assert c.invert and c.p == pytest.approx(0.7)
 
 
-@pytest.mark.parametrize("title,tk,k,above", [
-    ("Will Apple (AAPL) close above $250 on Oct 31?", "AAPL", 250.0, True),
-    ("Will Tesla close below $300 this week?", "TSLA", 300.0, False),
-    ("Will NVIDIA stock finish over $1,000?", "NVDA", 1000.0, True),
-])
+@pytest.mark.parametrize(
+    "title,tk,k,above",
+    [
+        ("Will Apple (AAPL) close above $250 on Oct 31?", "AAPL", 250.0, True),
+        ("Will Tesla close below $300 this week?", "TSLA", 300.0, False),
+        ("Will NVIDIA stock finish over $1,000?", "NVDA", 1000.0, True),
+    ],
+)
 def test_price_questions_parse(title, tk, k, above):
     pq = match.parse_price_question(mk_market(title=title))
     assert pq is not None and (pq.ticker, pq.strike, pq.above) == (tk, k, above)
@@ -131,9 +134,17 @@ def test_non_price_questions_do_not_parse():
 # ---------------------------------------------------------------- paper exchange
 def paper(truth=0.6, crowd=0.5, exclusive=False, names=("Yes", "No"), outcome=None):
     m = mk_market("m1", names=names, hours=24)
-    specs = [PaperMarketSpec(m, {c.id: truth if i == 0 else 1 - truth for i, c in enumerate(m.contracts)},
-                             {c.id: crowd if i == 0 else 1 - crowd for i, c in enumerate(m.contracts)},
-                             spread=0.04, depth=50.0, exclusive=exclusive, outcome=outcome)]
+    specs = [
+        PaperMarketSpec(
+            m,
+            {c.id: truth if i == 0 else 1 - truth for i, c in enumerate(m.contracts)},
+            {c.id: crowd if i == 0 else 1 - crowd for i, c in enumerate(m.contracts)},
+            spread=0.04,
+            depth=50.0,
+            exclusive=exclusive,
+            outcome=outcome,
+        )
+    ]
     clock = [T0]
     api = PaperContest(specs, start_cash=100.0, seed=1, clock=lambda: clock[0], n_field=10)
     return api, m, clock
@@ -199,8 +210,17 @@ def test_orders_are_sized_to_the_book_and_never_rest():
 def test_manifold_quotes_parse_and_weigh_less_than_real_money():
     from markout.cup.sources import manifold
 
-    q = manifold.parse_market({"id": "a1", "question": "Will X happen?", "outcomeType": "BINARY", "probability": 0.3,
-                               "closeTime": 1_800_000_000_000, "uniqueBettorCount": 500, "url": "u"})
+    q = manifold.parse_market(
+        {
+            "id": "a1",
+            "question": "Will X happen?",
+            "outcomeType": "BINARY",
+            "probability": 0.3,
+            "closeTime": 1_800_000_000_000,
+            "uniqueBettorCount": 500,
+            "url": "u",
+        }
+    )
     assert q is not None and q.source == "manifold" and q.p == 0.3
     assert manifold.parse_market({"outcomeType": "MULTIPLE_CHOICE", "probability": None}) is None
     play = engine.source_weight(Candidate(q, 1.0, False, "t"))

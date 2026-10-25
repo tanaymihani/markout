@@ -89,5 +89,7 @@ class LiveAPI:
     name = "live"
 
     def __init__(self, *_, **__):
-        raise NotImplementedError("the Predictions Cup API docs are only available after registering (Oct 1); "
-                                  "use --paper until the live adapter is written")
+        raise NotImplementedError(
+            "the Predictions Cup API docs are only available after registering (Oct 1); "
+            "use --paper until the live adapter is written"
+        )

@@ -60,6 +60,7 @@ class GMParams:
 # Closed forms
 # ---------------------------------------------------------------------------
 
+
 def posterior_after_buy(pi, mu):
     """P(V = V_H | buy) = π(1 + μ) / (1 + μ(2π − 1))."""
     return pi * (1 + mu) / (1 + mu * (2 * pi - 1))
@@ -73,8 +74,7 @@ def posterior_after_sell(pi, mu):
 def quotes(pi, mu, v_low=0.0, v_high=1.0):
     """Zero-profit (bid, ask) = (E[V | sell], E[V | buy]) at belief π."""
     dv = v_high - v_low
-    return (v_low + dv * posterior_after_sell(pi, mu),
-            v_low + dv * posterior_after_buy(pi, mu))
+    return (v_low + dv * posterior_after_sell(pi, mu), v_low + dv * posterior_after_buy(pi, mu))
 
 
 def spread(pi, mu, v_low=0.0, v_high=1.0):
@@ -87,6 +87,7 @@ def spread(pi, mu, v_low=0.0, v_high=1.0):
 # Simulation
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class GMPaths:
     """Simulated paths, one row per run.
@@ -98,15 +99,15 @@ class GMPaths:
     """
 
     params: GMParams
-    value_high: np.ndarray   # (n_runs,) bool, True when V = V_H
-    belief: np.ndarray       # (n_runs, n_steps + 1)
-    bid: np.ndarray          # (n_runs, n_steps)
-    ask: np.ndarray          # (n_runs, n_steps)
-    side: np.ndarray         # (n_runs, n_steps) int8, +1 buy / −1 sell
-    informed: np.ndarray     # (n_runs, n_steps) bool
-    maker_pnl: np.ndarray    # (n_runs,)
+    value_high: np.ndarray  # (n_runs,) bool, True when V = V_H
+    belief: np.ndarray  # (n_runs, n_steps + 1)
+    bid: np.ndarray  # (n_runs, n_steps)
+    ask: np.ndarray  # (n_runs, n_steps)
+    side: np.ndarray  # (n_runs, n_steps) int8, +1 buy / −1 sell
+    informed: np.ndarray  # (n_runs, n_steps) bool
+    maker_pnl: np.ndarray  # (n_runs,)
     insider_pnl: np.ndarray  # (n_runs,)
-    noise_pnl: np.ndarray    # (n_runs,)
+    noise_pnl: np.ndarray  # (n_runs,)
 
     @property
     def value(self) -> np.ndarray:
@@ -123,8 +124,7 @@ class GMPaths:
         return np.where(self.value_high[:, None], self.belief, 1.0 - self.belief)
 
 
-def simulate(params: GMParams, n_steps: int, n_runs: int,
-             rng: np.random.Generator) -> GMPaths:
+def simulate(params: GMParams, n_steps: int, n_runs: int, rng: np.random.Generator) -> GMPaths:
     """Simulate ``n_runs`` independent GM markets of ``n_steps`` trades each.
 
     Each run draws V from the prior, then each period a trader arrives
@@ -145,8 +145,7 @@ def simulate(params: GMParams, n_steps: int, n_runs: int,
     for t in range(n_steps):
         pi = belief[:, t]
         bid[:, t], ask[:, t] = quotes(pi, p.mu, p.v_low, p.v_high)
-        belief[:, t + 1] = np.where(buy[:, t], posterior_after_buy(pi, p.mu),
-                                    posterior_after_sell(pi, p.mu))
+        belief[:, t + 1] = np.where(buy[:, t], posterior_after_buy(pi, p.mu), posterior_after_sell(pi, p.mu))
 
     v = np.where(value_high, p.v_high, p.v_low)[:, None]
     price = np.where(buy, ask, bid)

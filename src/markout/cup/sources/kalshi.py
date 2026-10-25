@@ -30,10 +30,20 @@ def parse_market(m: dict) -> ExternalQuote | None:
     end = m.get("close_time") or m.get("expected_expiration_time")
     end_dt = datetime.fromisoformat(end.replace("Z", "+00:00")) if end else None
     q = " ".join(x for x in [m.get("title") or "", m.get("yes_sub_title") or ""] if x)
-    return ExternalQuote("kalshi", m.get("ticker", ""), q, "Yes", p, "market", bid, ask,
-                         _f(m.get("liquidity_dollars")), _f(m.get("volume_24h_fp")),
-                         end_dt.astimezone(timezone.utc) if end_dt else None,
-                         f"https://kalshi.com/markets/{(m.get('event_ticker') or '').lower()}")
+    return ExternalQuote(
+        "kalshi",
+        m.get("ticker", ""),
+        q,
+        "Yes",
+        p,
+        "market",
+        bid,
+        ask,
+        _f(m.get("liquidity_dollars")),
+        _f(m.get("volume_24h_fp")),
+        end_dt.astimezone(timezone.utc) if end_dt else None,
+        f"https://kalshi.com/markets/{(m.get('event_ticker') or '').lower()}",
+    )
 
 
 def open_markets(max_pages: int = 5, http: Http = DEFAULT) -> list[ExternalQuote]:
@@ -69,8 +79,16 @@ def open_events(max_pages: int = 60, http: Http = DEFAULT, ttl: float = 600.0) -
     cache = http.cache_dir / EVENTS_CACHE
     if cache.exists() and time.time() - cache.stat().st_mtime < ttl:
         rows = json.loads(cache.read_text())
-        return [ExternalQuote(**{**r, "end": datetime.fromisoformat(r["end"]) if r["end"] else None,
-                                 "ts": datetime.fromisoformat(r["ts"])}) for r in rows]
+        return [
+            ExternalQuote(
+                **{
+                    **r,
+                    "end": datetime.fromisoformat(r["end"]) if r["end"] else None,
+                    "ts": datetime.fromisoformat(r["ts"]),
+                }
+            )
+            for r in rows
+        ]
     out, cursor = [], None
     for _ in range(max_pages):
         params = {"status": "open", "limit": 200, "with_nested_markets": "true"}
@@ -86,14 +104,28 @@ def open_events(max_pages: int = 60, http: Http = DEFAULT, ttl: float = 600.0) -
                     continue
                 label = (m.get("yes_sub_title") or "").strip()
                 binary = len(markets) == 1 and (not label or label.lower() in ("yes", title.lower()))
-                out.append(ExternalQuote("kalshi", q.id, title, "Yes" if binary else label or "Yes", q.p, "market",
-                                         q.bid, q.ask, q.liquidity, q.volume_24h, q.end,
-                                         f"https://kalshi.com/markets/{(ev.get('event_ticker') or '').lower()}",
-                                         note=ev.get("category") or ""))
+                out.append(
+                    ExternalQuote(
+                        "kalshi",
+                        q.id,
+                        title,
+                        "Yes" if binary else label or "Yes",
+                        q.p,
+                        "market",
+                        q.bid,
+                        q.ask,
+                        q.liquidity,
+                        q.volume_24h,
+                        q.end,
+                        f"https://kalshi.com/markets/{(ev.get('event_ticker') or '').lower()}",
+                        note=ev.get("category") or "",
+                    )
+                )
         cursor = body.get("cursor")
         if not cursor:
             break
     http.cache_dir.mkdir(parents=True, exist_ok=True)
-    cache.write_text(json.dumps([{**asdict(q), "end": q.end.isoformat() if q.end else None, "ts": q.ts.isoformat()}
-                                 for q in out]))
+    cache.write_text(
+        json.dumps([{**asdict(q), "end": q.end.isoformat() if q.end else None, "ts": q.ts.isoformat()} for q in out])
+    )
     return out

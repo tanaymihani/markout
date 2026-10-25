@@ -21,7 +21,6 @@ OUT = Path(__file__).resolve().parents[1] / "generated" / "rebates.json"
 REBATES = (0.0, 0.2, 0.3)
 
 
-
 def always_post_ci(d, model, seed):
     """95% block-bootstrap CI of always posting, on the test decisions (after 12:45)."""
     test = d[(d["model"] == model) & (d["t"] >= SPLIT)]
@@ -38,13 +37,27 @@ for ticker in TICKERS:
         d["diff"] = d["ev_post"] - d["ev_cross"]
         for k, model in enumerate(MODELS):
             res = asdict(evaluate_rule(d, model, seed=k, fee_ticks=0.0))
-            rows.append({"ticker": ticker, "rebate_ticks": r, "fee_ticks": TAKER_FEE_TICKS, **res,
-                         "always_post_ci": always_post_ci(d, model, k)})
+            rows.append(
+                {
+                    "ticker": ticker,
+                    "rebate_ticks": r,
+                    "fee_ticks": TAKER_FEE_TICKS,
+                    **res,
+                    "always_post_ci": always_post_ci(d, model, k),
+                }
+            )
     # gross reproduction check: no fees, no rebates, must equal report 02's table
     for k, model in enumerate(MODELS):
         res = asdict(evaluate_rule(pc, model, seed=k))
-        rows.append({"ticker": ticker, "rebate_ticks": None, "fee_ticks": 0.0, **res,
-                     "always_post_ci": always_post_ci(pc, model, k)})
+        rows.append(
+            {
+                "ticker": ticker,
+                "rebate_ticks": None,
+                "fee_ticks": 0.0,
+                **res,
+                "always_post_ci": always_post_ci(pc, model, k),
+            }
+        )
     print(ticker, "done")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(json.dumps(rows, indent=1))

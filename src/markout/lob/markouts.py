@@ -28,10 +28,10 @@ from markout.lob.fills import MODELS, Orders, simulate
 from markout.lob.lobster import SESSION, TICK, Day, state_index
 
 HORIZONS: tuple[float, ...] = (0.1, 1.0, 10.0, 60.0)
-EVERY = 5.0          # seconds between sampled decision times
-MAX_WAIT = 60.0      # seconds an order may rest
-SIZE = 100           # shares
-QUEUE_MULTS = (0.5, 1.0, 2.0)   # queue-ahead bucket edges, in multiples of the median queue
+EVERY = 5.0  # seconds between sampled decision times
+MAX_WAIT = 60.0  # seconds an order may rest
+SIZE = 100  # shares
+QUEUE_MULTS = (0.5, 1.0, 2.0)  # queue-ahead bucket edges, in multiples of the median queue
 QUEUE_LABELS = ("<0.5x", "0.5-1x", "1-2x", ">=2x")
 SPREAD_HORIZONS = (5.0, 60.0)
 
@@ -44,12 +44,17 @@ def mid_at(day: Day, t: np.ndarray) -> np.ndarray:
 @dataclass(frozen=True)
 class Sample:
     orders: Orders
-    decision_time: np.ndarray      # clock time of each decision (>= time[place_idx])
+    decision_time: np.ndarray  # clock time of each decision (>= time[place_idx])
 
 
-def sample_orders(day: Day, every: float = EVERY, max_wait: float = MAX_WAIT,
-                  size: int = SIZE, horizon: float = max(HORIZONS),
-                  session: tuple[float, float] = SESSION) -> Sample:
+def sample_orders(
+    day: Day,
+    every: float = EVERY,
+    max_wait: float = MAX_WAIT,
+    size: int = SIZE,
+    horizon: float = max(HORIZONS),
+    session: tuple[float, float] = SESSION,
+) -> Sample:
     """Both sides at the best quotes on a regular grid. The last decision leaves room
     for the longest wait plus the longest markout inside the session. `max_wait` is
     counted from the decision time: the order rests until t + max_wait."""
@@ -68,20 +73,21 @@ def queue_buckets(queue: np.ndarray, median: float) -> np.ndarray:
     return np.searchsorted(np.array(QUEUE_MULTS) * median, queue, side="right")
 
 
-def order_markouts(day: Day, sample: Sample, models: tuple[str, ...] = MODELS,
-                   engine: str = "auto") -> pd.DataFrame:
+def order_markouts(day: Day, sample: Sample, models: tuple[str, ...] = MODELS, engine: str = "auto") -> pd.DataFrame:
     """One row per order and model with fill outcome and markouts (ticks and bps)."""
     o = sample.orders
     mid0 = mid_at(day, sample.decision_time)
-    base = pd.DataFrame({
-        "order": np.arange(len(o)),
-        "decision_time": sample.decision_time,
-        "side": o.side,
-        "price": o.price,
-        "mid0": mid0,
-    })
+    base = pd.DataFrame(
+        {
+            "order": np.arange(len(o)),
+            "decision_time": sample.decision_time,
+            "side": o.side,
+            "price": o.price,
+            "mid0": mid0,
+        }
+    )
     to_bps = TICK / mid0 * 1e4
-    for h in HORIZONS:   # unconditional: an instant fill at the decision time
+    for h in HORIZONS:  # unconditional: an instant fill at the decision time
         base[f"uncond_{h:g}"] = o.side * (mid_at(day, sample.decision_time + h) - o.price) / TICK
         base[f"uncond_{h:g}_bps"] = base[f"uncond_{h:g}"] * to_bps
     frames = []
@@ -97,14 +103,12 @@ def order_markouts(day: Day, sample: Sample, models: tuple[str, ...] = MODELS,
         filled = f.filled_qty > 0
         for h in HORIZONS:
             mk = np.full(len(o), np.nan)
-            mk[filled] = o.side[filled] * (mid_at(day, f.fill_time[filled] + h)
-                                           - o.price[filled]) / TICK
+            mk[filled] = o.side[filled] * (mid_at(day, f.fill_time[filled] + h) - o.price[filled]) / TICK
             df[f"mk_{h:g}"] = mk
             df[f"mk_{h:g}_bps"] = mk * to_bps
         frames.append(df)
     out = pd.concat(frames, ignore_index=True)
-    out["queue_bucket"] = queue_buckets(out["queue_ahead"].to_numpy(),
-                                        float(np.median(base_queue(out))))
+    out["queue_bucket"] = queue_buckets(out["queue_ahead"].to_numpy(), float(np.median(base_queue(out))))
     return out
 
 
@@ -123,8 +127,12 @@ def summarize_markouts(df: pd.DataFrame) -> list[dict]:
     unconditional markouts, in ticks and bps (each order converted at its own mid)."""
     rows = []
     for model, g in df.groupby("model", sort=False):
-        r = {"model": model, "n_orders": int(len(g)), "p_fill": float((g["filled_qty"] > 0).mean()),
-             "fill_frac": float(g["fill_frac"].mean())}
+        r = {
+            "model": model,
+            "n_orders": int(len(g)),
+            "p_fill": float((g["filled_qty"] > 0).mean()),
+            "fill_frac": float(g["fill_frac"].mean()),
+        }
         for h in HORIZONS:
             r[f"mk_{h:g}"] = _wmean(g[f"mk_{h:g}"], g["filled_qty"])
             r[f"uncond_{h:g}"] = float(g[f"uncond_{h:g}"].mean())
@@ -137,15 +145,23 @@ def summarize_markouts(df: pd.DataFrame) -> list[dict]:
 def by_queue_bucket(df: pd.DataFrame, horizon: float = 10.0) -> list[dict]:
     rows = []
     for (model, qb), g in df.groupby(["model", "queue_bucket"], sort=False):
-        rows.append({"model": model, "queue_bucket": int(qb), "label": QUEUE_LABELS[int(qb)],
-                     "n": int(len(g)), "p_fill": float((g["filled_qty"] > 0).mean()),
-                     "mk": _wmean(g[f"mk_{horizon:g}"], g["filled_qty"]),
-                     "median_queue": float(g["queue_ahead"].median())})
+        rows.append(
+            {
+                "model": model,
+                "queue_bucket": int(qb),
+                "label": QUEUE_LABELS[int(qb)],
+                "n": int(len(g)),
+                "p_fill": float((g["filled_qty"] > 0).mean()),
+                "mk": _wmean(g[f"mk_{horizon:g}"], g["filled_qty"]),
+                "median_queue": float(g["queue_ahead"].median()),
+            }
+        )
     return sorted(rows, key=lambda r: (MODELS.index(r["model"]), r["queue_bucket"]))
 
 
-def spread_decomposition(day: Day, horizons: tuple[float, ...] = SPREAD_HORIZONS,
-                         session: tuple[float, float] = SESSION) -> list[dict]:
+def spread_decomposition(
+    day: Day, horizons: tuple[float, ...] = SPREAD_HORIZONS, session: tuple[float, float] = SESSION
+) -> list[dict]:
     """Effective = realized + impact on the file's visible trades (share-weighted).
 
     With trade sign e, price P, mid m0 just before the trade and m_h at t + h:

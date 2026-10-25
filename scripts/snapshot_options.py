@@ -36,10 +36,21 @@ from markout.options import smile
 
 TICKER = "SPY"
 CBOE_URL = "https://cdn.cboe.com/api/global/delayed_quotes/options/{ticker}.json"
-OPTION_CLOSE = time(16, 15)   # SPY (ETF) options trade until 16:15 ET
-USABLE_MIN_SHARE = 0.5        # below this share of two-sided near-money quotes, use Cboe
-CHAIN_COLUMNS = ["contract", "expiry", "kind", "strike", "bid", "ask", "last", "volume",
-                 "open_interest", "last_trade_utc", "vendor_iv"]
+OPTION_CLOSE = time(16, 15)  # SPY (ETF) options trade until 16:15 ET
+USABLE_MIN_SHARE = 0.5  # below this share of two-sided near-money quotes, use Cboe
+CHAIN_COLUMNS = [
+    "contract",
+    "expiry",
+    "kind",
+    "strike",
+    "bid",
+    "ask",
+    "last",
+    "volume",
+    "open_interest",
+    "last_trade_utc",
+    "vendor_iv",
+]
 
 
 def fetch_yfinance_chain(tk) -> tuple[pd.DataFrame, dict]:
@@ -49,13 +60,25 @@ def fetch_yfinance_chain(tk) -> tuple[pd.DataFrame, dict]:
         ch = tk.option_chain(e)
         underlying = getattr(ch, "underlying", {}) or underlying
         for kind, d in (("C", ch.calls), ("P", ch.puts)):
-            frames.append(pd.DataFrame({
-                "contract": d["contractSymbol"], "expiry": pd.to_datetime(e).date(), "kind": kind,
-                "strike": d["strike"].astype(float), "bid": d["bid"].astype(float), "ask": d["ask"].astype(float),
-                "last": d["lastPrice"].astype(float), "volume": d["volume"].astype(float),
-                "open_interest": d["openInterest"].astype(float),
-                "last_trade_utc": pd.to_datetime(d["lastTradeDate"], utc=True).dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "vendor_iv": d["impliedVolatility"].astype(float)}))
+            frames.append(
+                pd.DataFrame(
+                    {
+                        "contract": d["contractSymbol"],
+                        "expiry": pd.to_datetime(e).date(),
+                        "kind": kind,
+                        "strike": d["strike"].astype(float),
+                        "bid": d["bid"].astype(float),
+                        "ask": d["ask"].astype(float),
+                        "last": d["lastPrice"].astype(float),
+                        "volume": d["volume"].astype(float),
+                        "open_interest": d["openInterest"].astype(float),
+                        "last_trade_utc": pd.to_datetime(d["lastTradeDate"], utc=True).dt.strftime(
+                            "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                        "vendor_iv": d["impliedVolatility"].astype(float),
+                    }
+                )
+            )
     return pd.concat(frames, ignore_index=True), underlying
 
 
@@ -69,12 +92,22 @@ def fetch_cboe_chain(ticker: str) -> tuple[pd.DataFrame, dict]:
     for o in rows:
         m = pat.match(o["option"])
         if not m:
-            continue   # adjusted or non-standard roots
-        recs.append({"contract": o["option"], "expiry": datetime.strptime(m.group(1), "%y%m%d").date(),
-                     "kind": m.group(2), "strike": int(m.group(3)) / 1000.0,
-                     "bid": float(o["bid"]), "ask": float(o["ask"]), "last": float(o["last_trade_price"]),
-                     "volume": float(o["volume"]), "open_interest": float(o["open_interest"]),
-                     "last_trade_utc": o["last_trade_time"] or "", "vendor_iv": float(o["iv"])})
+            continue  # adjusted or non-standard roots
+        recs.append(
+            {
+                "contract": o["option"],
+                "expiry": datetime.strptime(m.group(1), "%y%m%d").date(),
+                "kind": m.group(2),
+                "strike": int(m.group(3)) / 1000.0,
+                "bid": float(o["bid"]),
+                "ask": float(o["ask"]),
+                "last": float(o["last_trade_price"]),
+                "volume": float(o["volume"]),
+                "open_interest": float(o["open_interest"]),
+                "last_trade_utc": o["last_trade_time"] or "",
+                "vendor_iv": float(o["iv"]),
+            }
+        )
     und = {k: v for k, v in payload["data"].items() if k != "options"}
     und["timestamp_utc"] = payload.get("timestamp")
     return pd.DataFrame(recs), und
@@ -85,8 +118,12 @@ def usability(df: pd.DataFrame, spot: float, asof: date) -> dict:
     days = np.array([(e - asof).days for e in df["expiry"]])
     lo, hi = smile.NEAR_DAYS
     near = (np.abs(df["strike"] / spot - 1) <= smile.NEAR_MONEY) & (days >= lo) & (days <= hi)
-    return {"rows": int(len(df)), "two_sided_share": float(ok.mean()),
-            "near_money_rows": int(near.sum()), "near_money_two_sided_share": float(ok[near].mean())}
+    return {
+        "rows": int(len(df)),
+        "two_sided_share": float(ok.mean()),
+        "near_money_rows": int(near.sum()),
+        "near_money_two_sided_share": float(ok[near].mean()),
+    }
 
 
 def underlying_prices(tk, now_et: datetime) -> dict:
@@ -99,31 +136,41 @@ def underlying_prices(tk, now_et: datetime) -> dict:
     if after_close:
         cut = datetime.combine(session, OPTION_CLOSE, tzinfo=smile.ET) - timedelta(minutes=1)
         bar = bars[bars.index <= cut].iloc[-1]
-        return {"session_date": session.isoformat(), "market_state": "after_option_close",
-                "quote_time_et": datetime.combine(session, OPTION_CLOSE, tzinfo=smile.ET).isoformat(),
-                "underlying_price": float(bar["Close"]),
-                "underlying_price_source": f"close of the {bar.name.strftime('%H:%M')} ET one-minute bar "
-                                           "(yfinance pre/post-market bars), the last minute of option trading",
-                "underlying_close_1600": close_1600,
-                "underlying_last": float(bars["Close"].iloc[-1]),
-                "underlying_last_time_et": bars.index[-1].isoformat()}
+        return {
+            "session_date": session.isoformat(),
+            "market_state": "after_option_close",
+            "quote_time_et": datetime.combine(session, OPTION_CLOSE, tzinfo=smile.ET).isoformat(),
+            "underlying_price": float(bar["Close"]),
+            "underlying_price_source": f"close of the {bar.name.strftime('%H:%M')} ET one-minute bar "
+            "(yfinance pre/post-market bars), the last minute of option trading",
+            "underlying_close_1600": close_1600,
+            "underlying_last": float(bars["Close"].iloc[-1]),
+            "underlying_last_time_et": bars.index[-1].isoformat(),
+        }
     last = bars.iloc[-1]
-    return {"session_date": session.isoformat(), "market_state": "intraday",
-            "quote_time_et": now_et.replace(microsecond=0).isoformat(),
-            "underlying_price": float(last["Close"]),
-            "underlying_price_source": f"close of the latest one-minute bar ({last.name.strftime('%H:%M')} ET); "
-                                       "option quotes may be delayed relative to it",
-            "underlying_close_1600": close_1600, "underlying_last": float(last["Close"]),
-            "underlying_last_time_et": last.name.isoformat()}
+    return {
+        "session_date": session.isoformat(),
+        "market_state": "intraday",
+        "quote_time_et": now_et.replace(microsecond=0).isoformat(),
+        "underlying_price": float(last["Close"]),
+        "underlying_price_source": f"close of the latest one-minute bar ({last.name.strftime('%H:%M')} ET); "
+        "option quotes may be delayed relative to it",
+        "underlying_close_1600": close_1600,
+        "underlying_last": float(last["Close"]),
+        "underlying_last_time_et": last.name.isoformat(),
+    }
 
 
 def rate_info(yf) -> dict:
     try:
         irx = yf.Ticker("^IRX").history(period="10d")["Close"].dropna()
         pct = float(irx.iloc[-1])
-        return {"r_cc": smile.tbill_cc_rate(pct), "irx_discount_pct": pct, "irx_date": irx.index[-1].date().isoformat(),
-                "source": "^IRX 13-week T-bill discount yield (yfinance), converted: "
-                          "P = 1 - d*91/360, r = -ln(P)*365/91"}
+        return {
+            "r_cc": smile.tbill_cc_rate(pct),
+            "irx_discount_pct": pct,
+            "irx_date": irx.index[-1].date().isoformat(),
+            "source": "^IRX 13-week T-bill discount yield (yfinance), converted: P = 1 - d*91/360, r = -ln(P)*365/91",
+        }
     except Exception as exc:  # noqa: BLE001 - recorded, and the analysis backs r out of parity instead
         return {"r_cc": None, "source": f"^IRX unavailable ({exc!r}); back r out of put-call parity"}
 
@@ -132,10 +179,17 @@ def dividend_info(tk, asof: date) -> dict:
     div = tk.dividends
     last_date, last_amt = div.index[-1].date(), float(div.iloc[-1])
     recent = [{"ex_date": d.date().isoformat(), "amount": float(a)} for d, a in div.iloc[-8:].items()]
-    projected = [{"ex_date": d.isoformat(), "amount": last_amt}
-                 for d in smile.projected_ex_dates(max(asof, last_date), asof + timedelta(days=3 * 366))]
-    return {"last_ex_date": last_date.isoformat(), "last_amount": last_amt, "recent": recent, "projected": projected,
-            "rule": "ex-dates on the third Friday of Mar/Jun/Sep/Dec; each future amount = last paid amount"}
+    projected = [
+        {"ex_date": d.isoformat(), "amount": last_amt}
+        for d in smile.projected_ex_dates(max(asof, last_date), asof + timedelta(days=3 * 366))
+    ]
+    return {
+        "last_ex_date": last_date.isoformat(),
+        "last_amount": last_amt,
+        "recent": recent,
+        "projected": projected,
+        "rule": "ex-dates on the third Friday of Mar/Jun/Sep/Dec; each future amount = last paid amount",
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -152,8 +206,13 @@ def main(argv: list[str] | None = None) -> int:
     und = underlying_prices(tk, now_et)
     session = date.fromisoformat(und["session_date"])
     spot = und["underlying_price"]
-    meta = {"ticker": TICKER, "snapshot_utc": now_utc.isoformat(), **und,
-            "rate": rate_info(yf), "dividends": dividend_info(tk, session)}
+    meta = {
+        "ticker": TICKER,
+        "snapshot_utc": now_utc.isoformat(),
+        **und,
+        "rate": rate_info(yf),
+        "dividends": dividend_info(tk, session),
+    }
 
     notes, cboe, cboe_und = [], None, None
     yf_chain, yf_und = (None, {})
@@ -191,29 +250,45 @@ def main(argv: list[str] | None = None) -> int:
         cb = cboe[["contract", "bid", "ask"]].rename(columns={"bid": "cboe_bid", "ask": "cboe_ask"})
         chain = chain.merge(cb, on="contract", how="left")
         both = chain["cboe_bid"].notna()
-        chain["matches_cboe"] = both & np.isclose(chain["bid"], chain["cboe_bid"]) & np.isclose(chain["ask"], chain["cboe_ask"])
+        chain["matches_cboe"] = (
+            both & np.isclose(chain["bid"], chain["cboe_bid"]) & np.isclose(chain["ask"], chain["cboe_ask"])
+        )
         meta["cboe_crosscheck"] = {
-            "available": True, "timestamp_utc": cboe_und.get("timestamp_utc"),
-            "contracts_in_cboe": int(len(cboe[cboe["expiry"] > session])), "matched": int(both.sum()),
+            "available": True,
+            "timestamp_utc": cboe_und.get("timestamp_utc"),
+            "contracts_in_cboe": int(len(cboe[cboe["expiry"] > session])),
+            "matched": int(both.sum()),
             "identical_bid_ask_share": float(chain.loc[both, "matches_cboe"].mean()),
             "underlying_current_price": cboe_und.get("current_price"),
-            "underlying_bid": cboe_und.get("bid"), "underlying_ask": cboe_und.get("ask"),
-            "underlying_close": cboe_und.get("close")}
+            "underlying_bid": cboe_und.get("bid"),
+            "underlying_ask": cboe_und.get("ask"),
+            "underlying_close": cboe_und.get("close"),
+        }
     else:
         chain["cboe_bid"], chain["cboe_ask"], chain["matches_cboe"] = np.nan, np.nan, False
         meta["cboe_crosscheck"] = {"available": False}
-    und_bid, und_ask = (yf_und.get("bid"), yf_und.get("ask")) if use == "yfinance" else \
-        (cboe_und.get("bid"), cboe_und.get("ask"))
-    meta.update({"source": {"yfinance": "yfinance (Yahoo Finance option chains)",
-                            "cboe": "Cboe delayed quotes JSON (" + CBOE_URL.format(ticker=TICKER) + ")"}[use],
-                 "source_key": use, "notes": notes,
-                 "underlying_quote_at_snapshot": {"bid": und_bid, "ask": und_ask}})
+    und_bid, und_ask = (
+        (yf_und.get("bid"), yf_und.get("ask")) if use == "yfinance" else (cboe_und.get("bid"), cboe_und.get("ask"))
+    )
+    meta.update(
+        {
+            "source": {
+                "yfinance": "yfinance (Yahoo Finance option chains)",
+                "cboe": "Cboe delayed quotes JSON (" + CBOE_URL.format(ticker=TICKER) + ")",
+            }[use],
+            "source_key": use,
+            "notes": notes,
+            "underlying_quote_at_snapshot": {"bid": und_bid, "ask": und_ask},
+        }
+    )
 
     path = Path(args.out_dir) / f"{TICKER}_{session.strftime('%Y%m%d')}.parquet"
     chain["usable"] = smile.two_sided(chain["bid"], chain["ask"])
     smile.save_snapshot(chain[CHAIN_COLUMNS + ["cboe_bid", "cboe_ask", "matches_cboe", "usable"]], meta, path)
-    print(f"saved {path} ({path.stat().st_size / 1e6:.2f} MB): {len(chain)} contracts, "
-          f"{chain['expiry'].nunique()} expiries, source={use}")
+    print(
+        f"saved {path} ({path.stat().st_size / 1e6:.2f} MB): {len(chain)} contracts, "
+        f"{chain['expiry'].nunique()} expiries, source={use}"
+    )
     print(f"quote time {meta['quote_time_et']}, underlying {spot:.2f} ({und['underlying_price_source']})")
     print(f"r = {meta['rate']['r_cc']} ({meta['rate']['source']})")
     if meta["cboe_crosscheck"]["available"]:

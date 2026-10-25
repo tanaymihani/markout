@@ -8,12 +8,13 @@ from markout.games import glosten_milgrom as gm
 from markout.games.stats import ci_contains
 
 MKT = ar.Market()
-N = 400   # seeds per configuration in these tests (the report uses more)
+N = 400  # seeds per configuration in these tests (the report uses more)
 
 
 # ---------------------------------------------------------------------------
 # Quote tables against closed forms
 # ---------------------------------------------------------------------------
+
 
 def test_zero_profit_quote_matches_closed_form_at_half():
     a, b = ar.zero_profit_edges(np.array([0.5]), MKT)
@@ -66,10 +67,10 @@ def test_market_breakdown_is_detected():
 # Engine mechanics
 # ---------------------------------------------------------------------------
 
+
 def test_min_excluding_self_and_tie_picks():
     x = np.array([[3, 1, 5], [1, 1, 5], [2, 4, 5]])
-    np.testing.assert_array_equal(ar._min_excluding_self(x),
-                                  [[1, 1, 5], [2, 1, 5], [1, 1, 5]])
+    np.testing.assert_array_equal(ar._min_excluding_self(x), [[1, 1, 5], [2, 1, 5], [1, 1, 5]])
     at = np.array([[True, False], [True, True], [False, True]])
     np.testing.assert_array_equal(ar._pick(at, np.array([0.0, 0.99])), [0, 2])
     np.testing.assert_array_equal(ar._pick(at, np.array([0.6, 0.2])), [1, 1])
@@ -82,7 +83,7 @@ def ffa():
 
 def test_accounting_identities(ffa):
     ms = ffa.market_summary()
-    assert ms["zero_sum_max_error"] < 1e-8                    # makers + traders = 0
+    assert ms["zero_sum_max_error"] < 1e-8  # makers + traders = 0
     np.testing.assert_allclose(ffa.pnl, ffa.edge - ffa.adverse, atol=1e-8)
     np.testing.assert_array_equal(ffa.fills.sum(axis=0), ffa.trades)
     assert np.all(ffa.informed_fills <= ffa.fills)
@@ -114,10 +115,13 @@ def test_public_belief_learns_the_value_and_is_calibrated():
 # The three headline results
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="module")
 def k_sweep():
-    return {k: ar.simulate(MKT, [ar.clone(ar.Undercutter(), f"u{i}") for i in range(k)],
-                           n_seeds=N, seed=0) for k in (1, 2, 4)}
+    return {
+        k: ar.simulate(MKT, [ar.clone(ar.Undercutter(), f"u{i}") for i in range(k)], n_seeds=N, seed=0)
+        for k in (1, 2, 4)
+    }
 
 
 def test_monopolist_earns_rents_with_a_wide_spread(k_sweep):
@@ -136,8 +140,7 @@ def test_competition_compresses_spreads_to_zero_profit(k_sweep):
         assert ms["maker_pnl_per_trade"]["hi"] < MKT.tick
         assert ms["maker_pnl_per_trade"]["lo"] > -MKT.tick
         # noise traders are better off than under the monopolist
-        assert (ms["noise_welfare_per_period"]["lo"]
-                > k_sweep[1].market_summary()["noise_welfare_per_period"]["hi"])
+        assert ms["noise_welfare_per_period"]["lo"] > k_sweep[1].market_summary()["noise_welfare_per_period"]["hi"]
 
 
 def test_identical_makers_split_the_flow(k_sweep):
@@ -169,8 +172,9 @@ def test_undercutter_takes_the_wide_quoters_flow():
 # Replicator dynamics
 # ---------------------------------------------------------------------------
 
+
 def test_replicator_eliminates_a_dominated_strategy():
-    payoff = np.array([[1.0, 1.0], [0.0, 0.0]])   # row 0 strictly dominates row 1
+    payoff = np.array([[1.0, 1.0], [0.0, 0.0]])  # row 0 strictly dominates row 1
     path = ar.replicator(payoff, dt=0.1, n_steps=500)
     np.testing.assert_allclose(path.sum(axis=1), 1.0)
     assert path[-1, 0] > 0.999

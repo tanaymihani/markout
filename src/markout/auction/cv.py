@@ -47,8 +47,15 @@ class Design:
         block = (research_end - first_eval + 1) // n_eval
         research_end = first_eval + n_eval * block - 1
         calib_start = first_eval - block
-        return cls(n_days=n_days, research_end=research_end, first_eval=first_eval, n_eval=n_eval,
-                   calib_len=block, embargo=embargo, weight_days=(0, calib_start - 1))
+        return cls(
+            n_days=n_days,
+            research_end=research_end,
+            first_eval=first_eval,
+            n_eval=n_eval,
+            calib_len=block,
+            embargo=embargo,
+            weight_days=(0, calib_start - 1),
+        )
 
     @property
     def block(self) -> int:
@@ -67,8 +74,14 @@ class Design:
         lengths = [self.calib_len] + [self.block] * self.n_eval
         out = []
         for k, (s, n) in enumerate(zip(starts, lengths)):
-            out.append(Fold(k=k, train=(0, s - 1 - self.embargo), test=(s, s + n - 1),
-                            role="calibration" if k == 0 else "evaluation"))
+            out.append(
+                Fold(
+                    k=k,
+                    train=(0, s - 1 - self.embargo),
+                    test=(s, s + n - 1),
+                    role="calibration" if k == 0 else "evaluation",
+                )
+            )
         return out
 
     def final_fold(self) -> Fold:

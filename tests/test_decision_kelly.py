@@ -17,11 +17,12 @@ prob = st.floats(0.02, 0.98)
 @given(p=prob, q=prob)
 def test_kelly_fraction_maximises_growth(p, q):
     side, f_star = kelly.best_side(p, q)
-    res = minimize_scalar(lambda f: -kelly.growth_rate(f, p, q, side), bounds=(0.0, 1 - 1e-9), method="bounded",
-                          options={"xatol": 1e-10})
+    res = minimize_scalar(
+        lambda f: -kelly.growth_rate(f, p, q, side), bounds=(0.0, 1 - 1e-9), method="bounded", options={"xatol": 1e-10}
+    )
     assert f_star == pytest.approx(res.x, abs=1e-5)
     assert kelly.growth_rate(f_star, p, q, side) >= kelly.growth_rate(res.x, p, q, side) - 1e-12
-    assert kelly.growth_rate(f_star, p, q, side) >= 0.0          # never worse than not betting
+    assert kelly.growth_rate(f_star, p, q, side) >= 0.0  # never worse than not betting
 
 
 @pytest.mark.parametrize("p", [0.1, 0.37, 0.5, 0.9])
@@ -41,7 +42,7 @@ def test_no_side_is_the_yes_side_of_the_complement(p, q, f):
 def test_worked_example_and_wrong_side():
     # belief 60% on a contract at 50c: f* = (0.6 - 0.5)/(1 - 0.5) = 0.2 of wealth on YES
     assert kelly.kelly_fraction(0.6, 0.5, "YES") == pytest.approx(0.2)
-    assert kelly.kelly_fraction(0.6, 0.5, "no") == 0.0            # your belief says the other side
+    assert kelly.kelly_fraction(0.6, 0.5, "no") == 0.0  # your belief says the other side
     assert kelly.best_side(0.3, 0.4) == ("NO", pytest.approx(0.25))
     with pytest.raises(ValueError):
         kelly.kelly_fraction(0.6, 0.5, "maybe")
@@ -54,7 +55,7 @@ def test_fractional_kelly_growth_is_two_c_minus_c_squared():
     for c in (0.25, 0.5, 1.0, 1.5):
         assert kelly.growth_rate(kelly.fractional(f, c), p, q) == pytest.approx((2 * c - c * c) * g_full, rel=0.02)
     assert kelly.growth_rate(kelly.fractional(f, 2.0), p, q) == pytest.approx(0.0, abs=0.02 * g_full)
-    assert kelly.fractional(0.8, 3.0) == 1.0                       # capped: no leverage
+    assert kelly.fractional(0.8, 3.0) == 1.0  # capped: no leverage
 
 
 def test_all_in_is_ruin_when_a_loss_is_possible():
@@ -69,7 +70,7 @@ def test_continuous_kelly_is_mu_over_sigma_squared():
     growth = lambda f: np.mean(np.log1p(f * (mu + sigma * z)))  # noqa: E731
     res = minimize_scalar(lambda f: -growth(f), bounds=(0.0, 3.0), method="bounded")
     assert f_star == pytest.approx(1.0)
-    assert res.x == pytest.approx(f_star, rel=0.1)                # exact only as returns -> 0
+    assert res.x == pytest.approx(f_star, rel=0.1)  # exact only as returns -> 0
 
 
 def test_vectorised_helpers_match_scalars():

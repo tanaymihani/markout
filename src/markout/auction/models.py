@@ -87,15 +87,34 @@ class LGBM(Model):
 
     name = "lgbm"
 
-    def __init__(self, num_leaves: int = 63, min_data_in_leaf: int = 500, learning_rate: float = 0.05,
-                 feature_fraction: float = 0.8, bagging_fraction: float = 0.7, lambda_l2: float = 1.0,
-                 max_rounds: int = 1500, valid_days: int = 30, threads: int = 4, seed: int = 0):
+    def __init__(
+        self,
+        num_leaves: int = 63,
+        min_data_in_leaf: int = 500,
+        learning_rate: float = 0.05,
+        feature_fraction: float = 0.8,
+        bagging_fraction: float = 0.7,
+        lambda_l2: float = 1.0,
+        max_rounds: int = 1500,
+        valid_days: int = 30,
+        threads: int = 4,
+        seed: int = 0,
+    ):
         self.params = {
-            "objective": "l1", "learning_rate": learning_rate, "num_leaves": num_leaves,
-            "min_data_in_leaf": min_data_in_leaf, "feature_fraction": feature_fraction,
-            "bagging_fraction": bagging_fraction, "bagging_freq": 1, "lambda_l2": lambda_l2,
-            "max_bin": 63, "num_threads": threads, "seed": seed, "deterministic": True,
-            "force_row_wise": True, "verbose": -1,
+            "objective": "l1",
+            "learning_rate": learning_rate,
+            "num_leaves": num_leaves,
+            "min_data_in_leaf": min_data_in_leaf,
+            "feature_fraction": feature_fraction,
+            "bagging_fraction": bagging_fraction,
+            "bagging_freq": 1,
+            "lambda_l2": lambda_l2,
+            "max_bin": 63,
+            "num_threads": threads,
+            "seed": seed,
+            "deterministic": True,
+            "force_row_wise": True,
+            "verbose": -1,
         }
         self.max_rounds, self.valid_days = max_rounds, valid_days
 
@@ -106,11 +125,17 @@ class LGBM(Model):
         last = int(train["date_id"].max())
         is_valid = pl.col("date_id") > last - self.valid_days
         tr, va = train.filter(~is_valid), train.filter(is_valid)
-        dtr = lgb.Dataset(tr.select(self.features).to_numpy(), tr["target"].to_numpy(),
-                          feature_name=self.features, free_raw_data=True)
+        dtr = lgb.Dataset(
+            tr.select(self.features).to_numpy(), tr["target"].to_numpy(), feature_name=self.features, free_raw_data=True
+        )
         dva = lgb.Dataset(va.select(self.features).to_numpy(), va["target"].to_numpy(), reference=dtr)
-        self.booster = lgb.train(self.params, dtr, num_boost_round=self.max_rounds, valid_sets=[dva],
-                                 callbacks=[lgb.early_stopping(100, verbose=False)])
+        self.booster = lgb.train(
+            self.params,
+            dtr,
+            num_boost_round=self.max_rounds,
+            valid_sets=[dva],
+            callbacks=[lgb.early_stopping(100, verbose=False)],
+        )
         self.best_iteration = int(self.booster.best_iteration or self.max_rounds)
         return self
 

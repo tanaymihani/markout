@@ -19,7 +19,7 @@ import numpy as np
 
 from markout.lob.lobster import SESSION, TICK, Day, MsgType, state_durations
 
-LARGE_TICK_THRESHOLD = 0.5   # share of time at a one-tick spread above which a stock is large-tick
+LARGE_TICK_THRESHOLD = 0.5  # share of time at a one-tick spread above which a stock is large-tick
 ACF_LAGS = 10
 
 
@@ -27,19 +27,19 @@ ACF_LAGS = 10
 class Facts:
     ticker: str
     mean_price_usd: float
-    tick_bps: float                 # one tick in bps of the mid
-    spread_ticks: float             # time-weighted mean quoted spread
+    tick_bps: float  # one tick in bps of the mid
+    spread_ticks: float  # time-weighted mean quoted spread
     spread_bps: float
-    share_one_tick: float           # share of time the spread is exactly one tick
-    depth_best: float               # time-weighted mean of (bid size + ask size) / 2 at the best
+    share_one_tick: float  # share of time the spread is exactly one tick
+    depth_best: float  # time-weighted mean of (bid size + ask size) / 2 at the best
     n_messages: int
     n_by_type: dict[int, int]
-    n_visible_exec: int             # type-4 messages
-    n_hidden_exec: int              # type-5 messages
-    n_trades: int                   # visible executions grouped by (timestamp, side)
-    volume_visible: int             # shares executed against displayed orders
-    sign_acf: list[float]           # trade-sign autocorrelation, lags 1..ACF_LAGS
-    tick_class: str                 # "large-tick" or "small-tick"
+    n_visible_exec: int  # type-4 messages
+    n_hidden_exec: int  # type-5 messages
+    n_trades: int  # visible executions grouped by (timestamp, side)
+    volume_visible: int  # shares executed against displayed orders
+    sign_acf: list[float]  # trade-sign autocorrelation, lags 1..ACF_LAGS
+    tick_class: str  # "large-tick" or "small-tick"
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -68,11 +68,11 @@ def trades(day: Day, session: tuple[float, float] = SESSION) -> dict[str, np.nda
     ex = np.flatnonzero((m.type == MsgType.EXECUTE) & session_mask(m.time, session))
     if len(ex) == 0:
         empty = np.array([], dtype=np.int64)
-        return {"first": empty, "last": empty, "sign": empty, "size": empty,
-                "vwap": np.array([]), "time": np.array([])}
+        return {"first": empty, "last": empty, "sign": empty, "size": empty, "vwap": np.array([]), "time": np.array([])}
     new = np.ones(len(ex), dtype=bool)
-    new[1:] = (m.time[ex[1:]] != m.time[ex[:-1]]) | (m.direction[ex[1:]] != m.direction[ex[:-1]]) \
-        | (ex[1:] != ex[:-1] + 1)
+    new[1:] = (
+        (m.time[ex[1:]] != m.time[ex[:-1]]) | (m.direction[ex[1:]] != m.direction[ex[:-1]]) | (ex[1:] != ex[:-1] + 1)
+    )
     gid = np.cumsum(new) - 1
     first = ex[new]
     last = ex[np.append(np.flatnonzero(new)[1:] - 1, len(ex) - 1)]

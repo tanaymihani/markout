@@ -22,7 +22,7 @@ TRUE_SR = 0.1  # per period (~1.6 annualized for daily data)
 def _ar1(rng: np.random.Generator, T: int, phi: float, mu: float = TRUE_SR) -> np.ndarray:
     """mu + stationary AR(1) noise with unit variance, so the true Sharpe is exactly mu."""
     u = rng.standard_normal(T) * math.sqrt(1.0 - phi**2)
-    u[0] = rng.standard_normal()                   # start in the stationary distribution
+    u[0] = rng.standard_normal()  # start in the stationary distribution
     return mu + lfilter([1.0], [1.0, -phi], u)
 
 
@@ -77,10 +77,10 @@ def test_interval_properties_and_reproducibility():
     assert a["lo"] < a["point"] < a["hi"]
     assert a["n_valid"] == a["n_boot"] == 2000 and a["T"] == 240
     assert a["block"] == pytest.approx(auto_block_length(x))
-    assert sharpe_ci(x, n_boot=2000, seed=3) == a                    # same seed, same answer
+    assert sharpe_ci(x, n_boot=2000, seed=3) == a  # same seed, same answer
     assert sharpe_ci(x, n_boot=2000, seed=4)["lo"] != a["lo"]
     narrow = sharpe_ci(x, n_boot=2000, seed=3, level=0.80)
-    assert a["lo"] <= narrow["lo"] < narrow["hi"] <= a["hi"]          # same draws, nested
+    assert a["lo"] <= narrow["lo"] < narrow["hi"] <= a["hi"]  # same draws, nested
     fixed = sharpe_ci(x, n_boot=500, block=7.0)
     assert fixed["block"] == 7.0
     m = mean_ci(x, n_boot=2000)

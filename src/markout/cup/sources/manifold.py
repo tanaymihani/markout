@@ -22,14 +22,25 @@ def parse_market(m: dict) -> ExternalQuote | None:
         end = datetime.fromtimestamp(m["closeTime"] / 1000, tz=timezone.utc) if m.get("closeTime") else None
     except (ValueError, OverflowError, OSError):
         end = None
-    return ExternalQuote("manifold", str(m.get("id")), m.get("question") or "", "Yes", float(p), "market",
-                         end=end, url=m.get("url") or "", n=int(m.get("uniqueBettorCount") or 0),
-                         note="play money")
+    return ExternalQuote(
+        "manifold",
+        str(m.get("id")),
+        m.get("question") or "",
+        "Yes",
+        float(p),
+        "market",
+        end=end,
+        url=m.get("url") or "",
+        n=int(m.get("uniqueBettorCount") or 0),
+        note="play money",
+    )
 
 
 def open_binary(limit: int = 1000, http: Http = DEFAULT) -> list[ExternalQuote]:
-    rows = http.get_json(f"{BASE}/search-markets", {"term": "", "sort": "liquidity", "filter": "open",
-                                                     "contractType": "BINARY", "limit": limit})
+    rows = http.get_json(
+        f"{BASE}/search-markets",
+        {"term": "", "sort": "liquidity", "filter": "open", "contractType": "BINARY", "limit": limit},
+    )
     out = []
     for m in rows or []:
         q = parse_market(m)
