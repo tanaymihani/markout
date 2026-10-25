@@ -9,7 +9,7 @@ on:
     branches: [main]
     paths:
       - "src/markout/**"
-      - "configs/cup_demo_scenario.json"
+      - "configs/**"
       - "Dockerfile"
       - "deploy/**"
       - ".github/workflows/desk-space.yml"
@@ -35,11 +35,11 @@ jobs:
           docker stop -t 10 desk
       - name: Assemble the Space
         run: |
-          mkdir -p space/src space/configs space/deploy
+          mkdir -p space/src space/deploy
           cp Dockerfile LICENSE space/
           cp deploy/huggingface/README.md space/README.md
           cp deploy/requirements-desk.txt space/deploy/
-          cp configs/cup_demo_scenario.json space/configs/
+          cp -r configs space/
           cp -r src/markout space/src/
           find space -name "__pycache__" -prune -exec rm -rf {} +
           find space -name "*.so" -delete

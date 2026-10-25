@@ -22,7 +22,7 @@ RUN pip install --require-hashes -r /tmp/requirements-desk.txt && rm /tmp/requir
 RUN useradd --create-home --uid 1000 desk
 WORKDIR /app
 COPY --chown=desk src/markout ./src/markout
-COPY --chown=desk configs/cup_demo_scenario.json ./configs/cup_demo_scenario.json
+COPY --chown=desk configs ./configs
 USER desk
 
 EXPOSE 7860
