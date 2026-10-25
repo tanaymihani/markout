@@ -672,6 +672,12 @@ def write(a: dict) -> str:
     return "\n".join(lines)
 
 
+def monthly_pnl(res: pd.DataFrame) -> dict:
+    """The variance-swap PnL of every monthly roll: the site's sizing lab replays it in the
+    browser, so the page can be rebuilt from the results without the raw index data."""
+    return {"dates": [str(d.date()) for d in res.index], "var_swap": res["var_swap"].to_numpy()}
+
+
 def main() -> None:
     if not data.available():
         raise SystemExit("index data missing: run `python -m markout.vol.data` first")
@@ -680,6 +686,7 @@ def main() -> None:
     a["straddle"], sres = straddle_analysis(fr)
     figures(fr, a, runs, long_res, sres)
     results.save("vol_premium", a)
+    results.save("vol_monthly", monthly_pnl(sres))
     R.write("06_vol_premium", write(a))
     print("wrote reports/06_vol_premium.md")
 

@@ -153,20 +153,13 @@ def auction_data() -> dict | None:
 
 
 def vol_data() -> dict | None:
-    from markout.vol import data as vdata
-
-    v = results.load("vol_premium")
-    if not v or not vdata.available():
+    v, d = results.load("vol_premium"), results.load("vol_monthly")  # both written by markout.vol.report
+    if not v or not d:
         return None
-    from markout.vol import straddle as ST
-    from markout.vol import vrp
-    from markout.vol.report import LONG
-
-    res = ST.run(vrp.frame(vdata.load()), LONG)
     kf, kp = v["kelly_full"], v["kelly_pre2008"]
     return {
-        "dates": [str(d.date()) for d in res.index],
-        "pnl": [round(x, 4) for x in res["var_swap"]],
+        "dates": d["dates"],
+        "pnl": [round(x, 4) for x in d["var_swap"]],
         "kelly": {
             "full": _r(100 * kf["v_star"], 2),
             "ruin": _r(100 * kf["v_max"], 2),
