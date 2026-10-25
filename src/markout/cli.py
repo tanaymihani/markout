@@ -95,7 +95,7 @@ def cmd_status(a) -> int:
     from markout.lob.fills import cpp_available
     from markout.paths import PROCESSED, RAW, RESULTS
 
-    out = {
+    out: dict[str, Any] = {
         "version": __version__,
         "lobster_sample": lobster.available(),
         "optiver_auction": (PROCESSED / "optiver" / "train.parquet").exists(),
