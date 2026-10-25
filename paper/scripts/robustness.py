@@ -2,21 +2,21 @@
 
 (a) horizon H = 10, 30, 60 s (the posted order lives H seconds; both actions are marked
     to the mid at t + H); (b) queue buckets scaled by the morning-only median queue
-    instead of the full-day median. Writes paper/generated/robustness.json.
+    instead of the full-day median. Writes reports/results/fill_robustness.json.
 Needs the LOBSTER sample files (`make lobster`); run from the repository root.
 """
 
 import json
 from dataclasses import asdict
-from pathlib import Path
 
 import numpy as np
 
 from markout.lob.lobster import SPLIT, TICKERS, load_day
 from markout.lob.markouts import queue_buckets
 from markout.lob.postcross import block_bootstrap_ci, decisions, evaluate_rule
+from markout.paths import RESULTS
 
-OUT = Path(__file__).resolve().parents[1] / "generated" / "robustness.json"
+OUT = RESULTS / "fill_robustness.json"
 SEEDS = {"touch": 0, "fifo": 1}
 
 

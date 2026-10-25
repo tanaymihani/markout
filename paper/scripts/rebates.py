@@ -4,19 +4,19 @@ Re-runs report 02's decision frames, then charges every cross the Reg NMS access
 (0.3 ticks per share) and credits every posted fill a maker rebate of r ticks per filled
 share, *before* the rule is chosen, so the selection can react to the rebate. The rule is
 chosen before 12:45 and scored after, with the same block bootstrap and seeds as report 02.
-Writes paper/generated/rebates.json.
+Writes reports/results/fill_rebates.json (the site's fee and rebate toggles read it).
 Needs the LOBSTER sample files (`make lobster`); run from the repository root.
 """
 
 import json
 from dataclasses import asdict
-from pathlib import Path
 
 from markout.lob.fills import MODELS
 from markout.lob.lobster import SPLIT, TICKERS, load_day
 from markout.lob.postcross import TAKER_FEE_TICKS, block_bootstrap_ci, decisions, evaluate_rule
+from markout.paths import RESULTS
 
-OUT = Path(__file__).resolve().parents[1] / "generated" / "rebates.json"
+OUT = RESULTS / "fill_rebates.json"
 REBATES = (0.0, 0.2, 0.3)
 
 

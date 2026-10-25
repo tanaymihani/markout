@@ -19,11 +19,10 @@ from pathlib import Path
 from typing import Any
 
 from markout import results
-from markout.paths import FIGURES, ROOT
+from markout.paths import FIGURES, RESULTS, ROOT
 
 DOCS = ROOT / "docs"
 TEMPLATE = Path(__file__).with_name("site_template.html")
-PAPER_DIR = ROOT / "paper" / "generated"  # fee/rebate and robustness results (paper/scripts/)
 REPO = "https://github.com/tanaymihani/markout"
 SITE = "https://tanaymihani.github.io/markout/"
 PAPER_URL: str | None = None  # SSRN link, once the paper is public
@@ -71,8 +70,8 @@ def micro_data() -> dict | None:
     if not m:
         return None
     out: dict[str, Any] = {"tickers": list(TICKERS), "horizons": [0.1, 1, 10, 60], "stocks": {}}
-    rb = _json(PAPER_DIR / "rebates.json")
-    rob = _json(PAPER_DIR / "robustness.json")
+    rb = _json(RESULTS / "fill_rebates.json")  # paper/scripts/rebates.py
+    rob = _json(RESULTS / "fill_robustness.json")  # paper/scripts/robustness.py
     for t in TICKERS:
         fa, summ = m["facts"][t], {r["model"]: r for r in m["fills"][t]["summary"]}
         s = {

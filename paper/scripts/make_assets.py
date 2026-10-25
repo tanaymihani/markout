@@ -1,7 +1,8 @@
 """Build the paper's tables (LaTeX) and figures (PDF) from saved results.
 
 Inputs:  reports/results/microstructure.json  (written by `python -m markout.lob.report`)
-         paper/generated/rebates.json          (written by paper/scripts/rebates.py)
+         reports/results/fill_rebates.json     (written by paper/scripts/rebates.py)
+         reports/results/fill_robustness.json  (written by paper/scripts/robustness.py)
 Outputs: paper/generated/tab_*.tex, paper/figures/fig_*.pdf (+ PNG previews in paper/generated/)
 
 Run from the repository root:  .venv/bin/python paper/scripts/make_assets.py
@@ -19,6 +20,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from markout import results  # noqa: E402
+from markout.paths import RESULTS  # noqa: E402
 
 PAPER = Path(__file__).resolve().parents[1]
 GEN, FIG = PAPER / "generated", PAPER / "figures"
@@ -35,7 +37,7 @@ MARK = {"touch": "o", "fifo": "s", "through": "^"}
 INK, INK2, GRID, BASE = "#0b0b0b", "#52514e", "#e1e0d9", "#9a998f"
 
 m = results.load("microstructure")
-rb = json.loads((GEN / "rebates.json").read_text())
+rb = json.loads((RESULTS / "fill_rebates.json").read_text())
 
 
 def rule(ticker: str, model: str, rebate):
@@ -183,7 +185,7 @@ Stock & Fill model & Test & 95\% CI & Test & 95\% CI & Test & 95\% CI \\
 )
 
 # ---------------------------------------------------------------- Table 5: horizon robustness (always post)
-rob = json.loads((GEN / "robustness.json").read_text())
+rob = json.loads((RESULTS / "fill_robustness.json").read_text())
 
 
 def robust(ticker, model, check, horizon):
