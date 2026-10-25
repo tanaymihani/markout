@@ -33,8 +33,10 @@ class Bot:
         cfg: P.Config | None = None,
         journal_path: Path = journal.JOURNAL,
         clock=utcnow,
+        stop_file: Path | None = None,
     ):
         self.api, self.store, self.refs, self.clock = api, store, refs, clock
+        self.stop_file = stop_file  # None: the shared kill switch, risk.STOP_FILE
         self.cfg = cfg or P.Config()
         saved = store.get("mode")
         if saved in ("prize", "steady"):
@@ -50,6 +52,19 @@ class Bot:
     # ------------------------------------------------------------------ helpers
     def now(self) -> datetime:
         return self.clock()
+
+    @property
+    def kill_file(self) -> Path:
+        return self.stop_file or risk.STOP_FILE
+
+    def set_kill(self, on: bool) -> dict:
+        f = self.kill_file
+        f.parent.mkdir(parents=True, exist_ok=True)
+        if on:
+            f.write_text(self.now().isoformat(timespec="seconds") + " kill switch from the desk\n")
+        else:
+            f.unlink(missing_ok=True)
+        return {"ok": True, "message": "kill switch on: no orders will be placed" if on else "kill switch off"}
 
     def _market_map(self):
         ms = self.api.markets()
@@ -169,7 +184,7 @@ class Bot:
             book = books.get(p["contract_id"])
             account = self.api.account()
             stake = p["stake"] if stake is None else float(stake)
-            ok, why = risk.check(p, stake, account, book, m, self.cfg, now)
+            ok, why = risk.check(p, stake, account, book, m, self.cfg, now, stop_file=self.stop_file)
             if not ok:
                 return {"ok": False, "message": why}
             deviation = abs(stake - p["stake"]) > 1e-6
@@ -385,7 +400,7 @@ class Bot:
                 "config": self.cfg.to_dict(),
                 "account": acct.__dict__,
                 "in_top3": acct.in_top3,
-                "kill_switch": risk.STOP_FILE.exists(),
+                "kill_switch": self.kill_file.exists(),
                 "last_refresh": self.last_refresh.isoformat(timespec="seconds") if self.last_refresh else None,
                 "last_error": self.last_error,
                 "pending": pend,

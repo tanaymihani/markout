@@ -10,7 +10,8 @@ import pytest
 
 from markout.cup import proposals as P
 from markout.cup import risk
-from markout.cup.demo import SCENARIO, ManualClock, reviewer
+from markout.cup.clock import ManualClock
+from markout.cup.demo import SCENARIO, reviewer
 from markout.cup.paper import PaperContest, load_scenario
 from markout.cup.refs import References
 from markout.cup.service import Bot

@@ -43,17 +43,26 @@ class RateLimiter:
         self.lock = threading.Lock()
         self.calls = 0
 
+    def _take(self) -> bool:
+        now = time.monotonic()
+        self.tokens = min(self.burst, self.tokens + (now - self.t) * self.rate)
+        self.t = now
+        if self.tokens >= 1:
+            self.tokens -= 1
+            self.calls += 1
+            return True
+        return False
+
     def acquire(self) -> None:
+        """Wait for a token."""
         with self.lock:
-            while True:
-                now = time.monotonic()
-                self.tokens = min(self.burst, self.tokens + (now - self.t) * self.rate)
-                self.t = now
-                if self.tokens >= 1:
-                    self.tokens -= 1
-                    self.calls += 1
-                    return
+            while not self._take():
                 time.sleep((1 - self.tokens) / self.rate)
+
+    def try_acquire(self) -> bool:
+        """Take a token if one is available; never waits (a server answers 429 instead)."""
+        with self.lock:
+            return self._take()
 
 
 class Limited:

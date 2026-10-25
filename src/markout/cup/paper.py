@@ -29,6 +29,9 @@ from pathlib import Path
 import numpy as np
 
 from markout.cup.types import Account, Book, Contract, Fill, Market, Order, Position, utcnow
+from markout.paths import ROOT
+
+SCENARIO = ROOT / "configs" / "cup_demo_scenario.json"  # the bundled, fictional scenario
 
 
 def logit(p: float) -> float:

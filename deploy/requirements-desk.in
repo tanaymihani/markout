@@ -1,0 +1,4 @@
+# What the hosted desk (python -m markout.cup public) needs at run time; compiled into
+# requirements-desk.txt with: uv pip compile deploy/requirements-desk.in --python-version 3.11 --generate-hashes -o deploy/requirements-desk.txt
+numpy>=1.26
+pandas>=2.1

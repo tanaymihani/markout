@@ -1,11 +1,13 @@
 """Pre-trade checks run on every approval, with a fresh book (a "last look").
 
 The kill switch is a file: `touch data/cup/STOP` stops all trading at once, from any
-terminal, even if the web page is unreachable; delete it to resume."""
+terminal, even if the web page is unreachable; delete it to resume. A bot can be given
+its own file instead (the hosted desk gives every visitor's sandbox one)."""
 
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from markout.cup.proposals import Config
 from markout.cup.types import Account, Book, Market
@@ -15,10 +17,17 @@ STOP_FILE = DATA / "cup" / "STOP"
 
 
 def check(
-    p: dict, stake: float, account: Account, book: Book | None, market: Market | None, cfg: Config, now: datetime
+    p: dict,
+    stake: float,
+    account: Account,
+    book: Book | None,
+    market: Market | None,
+    cfg: Config,
+    now: datetime,
+    stop_file: Path | None = None,
 ) -> tuple[bool, str]:
-    if STOP_FILE.exists():
-        return False, "kill switch is on (data/cup/STOP)"
+    if (stop_file or STOP_FILE).exists():
+        return False, "kill switch is on" + ("" if stop_file else " (data/cup/STOP)")
     if market is None:
         return False, "market no longer listed"
     if market.closes_at and market.closes_at < now + timedelta(minutes=cfg.min_minutes_to_close):

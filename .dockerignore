@@ -1,0 +1,8 @@
+# The image needs the package, the demo scenario and the pinned requirements; nothing else.
+*
+!src/markout/
+!configs/cup_demo_scenario.json
+!deploy/requirements-desk.txt
+**/__pycache__
+**/*.so
+**/*.pyc

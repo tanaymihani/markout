@@ -10,12 +10,10 @@ from __future__ import annotations
 import json
 import secrets
 import threading
-import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
-from markout.cup import risk
 from markout.cup.service import Bot
 
 PAGE = r"""<!doctype html>
@@ -51,7 +49,7 @@ a{color:var(--accent)}details summary{cursor:pointer;color:var(--ink2);font-size
 <div class="row"><span class="chip" id="mode"></span>
 <button id="modeBtn" title="Switch sizing mode">Switch mode</button>
 <button id="refreshBtn">Refresh now</button>
-<button id="killBtn" class="danger"></button></div></header>
+<button id="killBtn" class="danger"></button><!--controls--></div></header><!--notice-->
 <main><section><h2>Proposals awaiting your decision</h2><div id="pending"></div>
 <h2 style="margin-top:22px">All contest markets</h2><div class="card" id="markets"><span class="muted">loading…</span></div>
 <div id="searchbox"></div></section>
@@ -62,7 +60,7 @@ a{color:var(--accent)}details summary{cursor:pointer;color:var(--ink2);font-size
 (weights shown); the band must clear the ask. Kelly is the growth-optimal fraction of equity. Mode <b>prize</b> is the policy
 pre-registered in report 05 (all-in on the best edge while outside the top 3; it busts in most simulated contests);
 <b>steady</b> is 0.5× Kelly with a 25% cap. Approving a stake of 0 logs the forecast without trading.
-Nothing trades without your click. Kill switch: <code>touch data/cup/STOP</code>.</div></div></aside></main>
+Nothing trades without your click. <!--kill-help--></div></div></aside></main>
 <div class="toast" id="toast"></div>
 <script>
 const TOKEN=document.querySelector('meta[name=markout-token]').content;
@@ -117,6 +115,19 @@ load();markets();setInterval(load,5000);setInterval(markets,30000);
 </script></body></html>"""
 
 
+KILL_HELP = "Kill switch: <code>touch data/cup/STOP</code>."
+
+
+def page(token: str, controls: str = "", notice: str = "", kill_help: str = KILL_HELP) -> str:
+    """The desk page with its per-run token; the hosted desk adds time controls and a notice."""
+    return (
+        PAGE.replace("__TOKEN__", token)
+        .replace("<!--controls-->", controls)
+        .replace("<!--notice-->", notice)
+        .replace("<!--kill-help-->", kill_help)
+    )
+
+
 class Desk:
     def __init__(self, bot: Bot, port: int = 8765, interval: float = 60.0):
         self.bot, self.port, self.interval = bot, port, interval
@@ -161,7 +172,7 @@ class Desk:
                 if not self._ok_host():
                     return self._json({"ok": False, "message": "forbidden host"}, HTTPStatus.FORBIDDEN)
                 if self.path in ("/", "/index.html"):
-                    return self._send(200, PAGE.replace("__TOKEN__", desk.token).encode(), "text/html; charset=utf-8")
+                    return self._send(200, page(desk.token).encode(), "text/html; charset=utf-8")
                 if self.path == "/api/state":
                     return self._json(desk.bot.state())
                 if self.path == "/api/markets":
@@ -183,7 +194,7 @@ class Desk:
                     "/api/mapping": lambda: b.set_mapping(body["contract_id"], body["key"], body["status"]),
                     "/api/mode": lambda: b.set_mode(body["mode"]),
                     "/api/refresh": lambda: {"ok": True, "message": f"refreshed: {b.refresh()}"},
-                    "/api/kill": lambda: desk.kill(bool(body.get("on"))),
+                    "/api/kill": lambda: b.set_kill(bool(body.get("on"))),
                     "/api/search": lambda: b.search(body["contract_id"], body.get("query", "")),
                     "/api/mapping/add": lambda: b.add_manual_mapping(
                         body["contract_id"], body["source"], body["qid"], body["outcome"], bool(body.get("invert"))
@@ -197,14 +208,6 @@ class Desk:
                     return self._json({"ok": False, "message": f"bad request: {e}"}, HTTPStatus.BAD_REQUEST)
 
         return H
-
-    def kill(self, on: bool) -> dict:
-        risk.STOP_FILE.parent.mkdir(parents=True, exist_ok=True)
-        if on:
-            risk.STOP_FILE.write_text(time.strftime("%Y-%m-%d %H:%M:%S") + " kill switch from the desk\n")
-        elif risk.STOP_FILE.exists():
-            risk.STOP_FILE.unlink()
-        return {"ok": True, "message": "kill switch on: no orders will be placed" if on else "kill switch off"}
 
     def serve(self, background_loop: bool = True) -> ThreadingHTTPServer:
         srv = ThreadingHTTPServer(("127.0.0.1", self.port), self.handler())

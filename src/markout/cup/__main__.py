@@ -3,6 +3,7 @@
     python -m markout.cup serve --paper                  # paper contest from the demo scenario
     python -m markout.cup serve --paper --live-refs      # paper contest + live Polymarket/Kalshi references
     python -m markout.cup serve --live                   # the real contest (needs the Oct 1 adapter)
+    python -m markout.cup public                         # the hosted desk: one paper sandbox per visitor
     python -m markout.cup refs "senate 2026"             # search the free reference sources
     python -m markout.cup demo                           # offline scripted demo -> docs/demo/
     python -m markout.cup dryrun                         # matcher on live markets -> docs/demo/DRYRUN.md
@@ -13,23 +14,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
 
-from markout.paths import DATA, ROOT
-
-SCENARIO = ROOT / "configs" / "cup_demo_scenario.json"
-
-
-class SimClock:
-    """Paper-mode clock: simulated time runs `speed` times faster than real time."""
-
-    def __init__(self, speed: float = 1.0, start: datetime | None = None):
-        self.speed = speed
-        self.t0 = datetime.now(UTC)
-        self.start = start or self.t0
-
-    def __call__(self) -> datetime:
-        return self.start + (datetime.now(UTC) - self.t0) * self.speed
+from markout.cup.clock import SimClock
+from markout.cup.paper import SCENARIO
+from markout.paths import DATA
 
 
 def cmd_serve(a) -> int:
@@ -40,8 +28,9 @@ def cmd_serve(a) -> int:
     from markout.cup.paper import PaperContest, load_scenario
     from markout.cup.refs import References
     from markout.cup.service import Bot
-    from markout.cup.sources.static import from_scenario
+    from markout.cup.sources.static import bundled
     from markout.cup.store import Store
+    from markout.cup.types import utcnow
     from markout.cup.web import Desk
 
     cfg = P.Config(mode=a.mode, min_edge=a.min_edge, max_stake=a.max_stake)
@@ -55,21 +44,10 @@ def cmd_serve(a) -> int:
         clock = SimClock(speed=a.speed)
         specs = load_scenario(a.scenario, clock())
         api = PaperContest(specs, start_cash=a.cash, seed=a.seed, clock=clock)
-        static = (
-            {}
-            if a.live_refs
-            else {
-                cid: from_scenario([r for r in s.references if r["contract_id"] == cid])
-                for s in specs
-                for cid in {r["contract_id"] for r in s.references}
-            }
-        )
-        refs = References(live=a.live_refs, static=static)
+        refs = References(live=a.live_refs, static={} if a.live_refs else bundled(specs))
         store = Store(DATA / "cup" / "paper.db")
         journal_path = DATA / "cup" / "paper_journal.csv"
-    from markout.cup.service import Bot  # noqa: F811
-
-    bot = Bot(api, store, refs, cfg, journal_path=journal_path, **({"clock": clock} if clock else {}))
+    bot = Bot(api, store, refs, cfg, journal_path=journal_path, clock=clock or utcnow)
     desk = Desk(bot, port=a.port, interval=a.interval)
     srv = desk.serve()
     print(f"Markout Desk ({api.name}) on http://127.0.0.1:{a.port}  (Ctrl-C to stop; kill switch: touch data/cup/STOP)")
@@ -78,6 +56,12 @@ def cmd_serve(a) -> int:
     except KeyboardInterrupt:
         desk.stop()
     return 0
+
+
+def cmd_public(a) -> int:
+    from markout.cup.public import main as public
+
+    return public(host=a.host, port=a.port, max_sessions=a.max_sessions, ttl=a.ttl)
 
 
 def cmd_refs(a) -> int:
@@ -128,6 +112,12 @@ def main(argv=None) -> int:
     s.add_argument("--port", type=int, default=8765)
     s.add_argument("--seed", type=int, default=0)
     s.set_defaults(fn=cmd_serve)
+    pub = sub.add_parser("public", help="the hosted desk: one paper sandbox per visitor")
+    pub.add_argument("--host", default=None, help="default: $HOST or 127.0.0.1")
+    pub.add_argument("--port", type=int, default=None, help="default: $PORT or 7860")
+    pub.add_argument("--max-sessions", type=int, default=200)
+    pub.add_argument("--ttl", type=float, default=1800.0, help="seconds of inactivity before a sandbox is deleted")
+    pub.set_defaults(fn=cmd_public)
     r = sub.add_parser("refs")
     r.add_argument("query", nargs="+")
     r.add_argument("--limit", type=int, default=20)

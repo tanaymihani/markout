@@ -20,30 +20,19 @@ from pathlib import Path
 from markout import plotting as mp
 from markout import reporting as R
 from markout.cup import proposals as P
-from markout.cup.paper import PaperContest, load_scenario
+from markout.cup.clock import ManualClock
+from markout.cup.paper import SCENARIO, PaperContest, load_scenario
 from markout.cup.refs import References
 from markout.cup.service import Bot
-from markout.cup.sources.static import from_scenario
+from markout.cup.sources.static import bundled
 from markout.cup.store import Store
-from markout.cup.web import PAGE
+from markout.cup.web import page
 from markout.decision import journal
 from markout.paths import DATA, ROOT
 
-SCENARIO = ROOT / "configs" / "cup_demo_scenario.json"
 OUT = ROOT / "docs" / "demo"
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 START = datetime(2026, 10, 1, 16, 0, tzinfo=UTC)  # the contest opens at 12:00 ET
-
-
-class ManualClock:
-    def __init__(self, t: datetime):
-        self.t = t
-
-    def __call__(self) -> datetime:
-        return self.t
-
-    def advance(self, dt: timedelta) -> None:
-        self.t += dt
 
 
 def reviewer(p: dict) -> tuple[float | None, str]:
@@ -59,7 +48,7 @@ def static_page(state: dict) -> str:
         "window.fetch=async(u,o)=>new Response(JSON.stringify(u==='/api/state'?window.__STATE__:"
         "{ok:false,message:'Read-only demo snapshot'}));</script>"
     )
-    return PAGE.replace("__TOKEN__", "demo-snapshot").replace("<script>", shim + "<script>", 1)
+    return page("demo-snapshot").replace("<script>", shim + "<script>", 1)
 
 
 def take_screenshot(html: Path, png: Path, w: int = 1400, h: int = 1150, wait: float = 60.0) -> bool:
@@ -115,15 +104,10 @@ def run(
     clock = ManualClock(START)
     specs = load_scenario(SCENARIO, START)
     api = PaperContest(specs, start_cash=10_000.0, seed=seed, clock=clock)
-    static = {
-        cid: from_scenario([r for r in s.references if r["contract_id"] == cid])
-        for s in specs
-        for cid in {r["contract_id"] for r in s.references}
-    }
     bot = Bot(
         api,
         Store(work / "demo.db"),
-        References(live=False, static=static),
+        References(live=False, static=bundled(specs)),
         P.Config(mode=mode),
         journal_path=work / "journal.csv",
         clock=clock,
