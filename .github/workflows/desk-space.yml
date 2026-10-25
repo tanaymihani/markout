@@ -1,0 +1,67 @@
+name: deploy desk
+
+# Publishes the hosted desk to a Hugging Face Docker Space. It runs only once the
+# repository has a variable HF_SPACE (e.g. "your-name/markout-desk") and a secret
+# HF_TOKEN with write access to that Space; see deploy/README.md.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/markout/**"
+      - "configs/cup_demo_scenario.json"
+      - "Dockerfile"
+      - "deploy/**"
+      - ".github/workflows/desk-space.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-desk
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.HF_SPACE != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and smoke-test the image first
+        run: |
+          docker build -t markout-desk .
+          docker run -d --name desk -p 7860:7860 markout-desk
+          for i in $(seq 30); do curl -fsS http://127.0.0.1:7860/healthz && break; sleep 1; done
+          docker stop -t 10 desk
+      - name: Assemble the Space
+        run: |
+          mkdir -p space/src space/configs space/deploy
+          cp Dockerfile LICENSE space/
+          cp deploy/huggingface/README.md space/README.md
+          cp deploy/requirements-desk.txt space/deploy/
+          cp configs/cup_demo_scenario.json space/configs/
+          cp -r src/markout space/src/
+          find space -name "__pycache__" -prune -exec rm -rf {} +
+          find space -name "*.so" -delete
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Push to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          pip install "huggingface_hub>=0.25"
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
+              folder_path="space",
+              repo_id=os.environ["SPACE"],
+              repo_type="space",
+              delete_patterns=["src/**", "configs/**", "deploy/**"],
+              commit_message=f"Deploy {os.environ['GITHUB_SHA'][:7]} from GitHub",
+          )
+          PY
+          echo "deployed to https://huggingface.co/spaces/$SPACE"
