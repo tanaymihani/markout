@@ -163,6 +163,25 @@ def load_day(ticker: str, levels: int = LEVELS) -> Day:
     return Day(ticker, load_messages(ticker), load_book(ticker, levels))
 
 
+def read_csv(message_csv: str | Path, book_csv: str | Path, ticker: str = "") -> Day:
+    """Any LOBSTER day straight from the two CSV files LOBSTER delivers.
+
+    Works for every ticker, date and depth: the number of levels is read off the
+    order-book file (four columns per level). Rows must be aligned, as LOBSTER writes them.
+    """
+    msg = pl.read_csv(message_csv, has_header=False, columns=list(range(6)), new_columns=list(MESSAGE_COLUMNS))
+    messages = messages_from_frame(msg)
+    arr = pl.read_csv(book_csv, has_header=False).cast(pl.Int64).to_numpy()
+    if arr.ndim != 2 or arr.shape[1] % 4:
+        raise ValueError(
+            f"{book_csv}: expected 4 columns per level, got {arr.shape[1] if arr.ndim == 2 else arr.shape}"
+        )
+    if arr.shape[0] != len(messages):
+        raise ValueError(f"{len(messages)} messages but {arr.shape[0]} order-book rows: the files are not aligned")
+    book = Book(*(np.ascontiguousarray(arr[:, k::4]) for k in range(4)))
+    return Day(ticker or Path(message_csv).name.split("_")[0], messages, book)
+
+
 # --------------------------------------------------------------------------- helpers
 
 
