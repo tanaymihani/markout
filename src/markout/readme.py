@@ -194,8 +194,10 @@ def build() -> str:
         "Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias "
         "that comes from trying many strategies? This repo is my attempt to find out, step by step, on real "
         "market data where I could get it.", "",
-        "**Site:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has the main findings and "
-        "a playable market-making game.", "",
+        "**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four "
+        "interactive labs and a market-making game, all running in the browser.", "",
+        "[![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted "
+        "it as filled](docs/media/markout-demo.gif)](https://tanaymihani.github.io/markout/)", "",
         "The name comes from the *markout*, the price move right after a trade, which market makers use to check "
         "whether they got picked off. The same trap shows up at every stage here: the best of many backtests "
         "looks better than it is, and so do the order that happened to get filled and the bet where you disagree "
@@ -247,6 +249,7 @@ def build() -> str:
         "make report      # regenerate every report, figure and results file",
         "make demo        # the desk's offline demo",
         "make desk        # the desk on a paper contest, http://127.0.0.1:8765",
+        "make demo-video  # re-record the site's demo video (needs the demo extra)",
         "```", "",
         "Also: `python -m markout.backtest.report` prints the daily PnL of the chosen auction strategy, "
         "`python -m markout.games.cardgame` is a market-making practice game, and "

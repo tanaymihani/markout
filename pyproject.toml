@@ -27,6 +27,7 @@ dependencies = [
 dev = ["pytest>=8", "hypothesis>=6"]
 data = ["kaggle>=1.6", "yfinance>=0.2"]
 cpp = ["pybind11>=2.12"]
+demo = ["playwright>=1.40", "imageio-ffmpeg>=0.4"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

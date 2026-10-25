@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PYBIND11_DIR := $(shell $(PY) -m pybind11 --cmakedir 2>/dev/null)
 
-.PHONY: install test test-fast data lobster optiver options vol cpp bench report readme site demo desk all clean
+.PHONY: install test test-fast data lobster optiver options vol cpp bench report readme site demo demo-video desk all clean
 
 install:
 	.venv/bin/pip install -e ".[dev,data,cpp]"
@@ -58,6 +58,9 @@ site:
 
 demo:
 	$(PY) -m markout.cup demo
+
+demo-video:
+	$(PY) scripts/record_demo.py
 
 desk:
 	$(PY) -m markout.cup serve --paper

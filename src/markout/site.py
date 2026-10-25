@@ -1,71 +1,127 @@
 """Build the GitHub Pages site in docs/: `python -m markout.site`.
 
-A landing page with the main findings (numbers read from reports/results/), a few
-figures, the playable market-making game (docs/game.js), and the desk snapshot.
+The page (template: src/markout/site_template.html) is an interactive lab: a queue simulator,
+the replay results for five NASDAQ stocks, a cost slider on the closing-auction strategy and
+a Kelly-sizing lab on the S&P 500 volatility premium, plus the market-making game and the
+Predictions Cup desk. Every number on it is read from saved results here and embedded in
+the page as JSON; only derived results are published, never raw market data. The browser
+code lives in docs/js/ and docs/game.js and is tested against the Python code.
 """
 
 from __future__ import annotations
 
 import html
+import json
+import math
 import shutil
+from datetime import date
+from pathlib import Path
 
 from markout import results
 from markout.paths import FIGURES, ROOT
 
 DOCS = ROOT / "docs"
+TEMPLATE = Path(__file__).with_name("site_template.html")
+PAPER_DIR = ROOT / "paper" / "generated"  # fee/rebate and robustness results (paper/scripts/)
 REPO = "https://github.com/tanaymihani/markout"
 SITE = "https://tanaymihani.github.io/markout/"
-DESCRIPTION = ("Does a short-horizon trading edge survive the spread, realistic fills, competition and selection bias? "
-               "Six studies, mostly on real market data, and a trading desk for SIG's Predictions Cup.")
-PREVIEW = "h_kelly"  # link-preview image (about the 1.91:1 shape preview cards use)
+PAPER_URL: str | None = None  # SSRN link, once the paper is public
+VIDEO = DOCS / "media" / "markout-demo.mp4"
+DESCRIPTION = ("A reality check for trading backtests: how much of an edge survives the spread, a real order queue, "
+               "competing traders and selection bias, on real NASDAQ and S&P 500 data. Interactive labs run in the browser.")
+PREVIEW = "img/markout-card.png"  # link-preview image; falls back to a report figure if missing
 ICON = ("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
         "<rect width='32' height='32' rx='7' fill='%232a78d6'/><polyline points='6,22 12,15 17,19 26,9' fill='none' "
         "stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>")
-FIGS = [("b_voi", "Net edge per trade against forecast quality (report 01)", "01_auction"),
-        ("d_markouts", "Markouts of filled orders under three fill models (report 02)", "02_microstructure"),
-        ("e_arena_competition", "Spread and maker profit as market makers compete (report 03)", "03_arena"),
-        ("h_kelly", "Kelly sizing chosen before 2008, lived through it (report 06)", "06_vol_premium"),
-        ("h_straddle", "A delta-hedged straddle against a variance swap, month by month since 1993 (report 06)",
-         "06_vol_premium")]
-
-CSS = """
-:root{--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;
---border:rgba(11,11,11,.10);--accent:#2a78d6;--good:#006300;--bad:#d03b3b}
-@media (prefers-color-scheme:dark){:root{--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;
---muted:#898781;--grid:#2c2c2a;--border:rgba(255,255,255,.10);--accent:#3987e5;--good:#0ca30c;--bad:#e66767}}
-*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);
-font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:960px;margin:0 auto;padding:40px 20px 80px}
-h1{font-size:34px;margin:0 0 6px;letter-spacing:-.01em}h2{font-size:21px;margin:44px 0 12px}
-p{margin:0 0 14px;color:var(--ink)}.lede{font-size:18px;color:var(--ink2)}a{color:var(--accent)}
-.links{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 8px;font-size:15px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
-.card h3{margin:0 0 6px;font-size:15px}.card p{font-size:15px;margin:0;color:var(--ink2)}
-.num{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
-figure{margin:18px 0 26px}figure img{width:100%;height:auto;border-radius:10px;border:1px solid var(--border)}
-figcaption{font-size:14px;color:var(--muted);margin-top:6px}
-.game{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
-.cards{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
-.card.down,.cards .card{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:54px;height:76px;
-border-radius:8px;border:1px solid var(--border);background:var(--page);font-size:22px;font-weight:600;padding:0}
-.cards .card small{font-size:16px;font-weight:400}.cards .card.red{color:var(--bad)}
-.cards .card.down{background:repeating-linear-gradient(45deg,var(--grid),var(--grid) 6px,var(--surface) 6px,var(--surface) 12px)}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
-input[type=number]{width:96px;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--border);
-background:var(--page);color:var(--ink);font-variant-numeric:tabular-nums}
-button{font:inherit;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);
-padding:7px 14px;cursor:pointer}button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
-button:disabled{opacity:.45;cursor:not-allowed}.err{color:var(--bad);font-size:14px;min-height:20px}
-.muted{color:var(--muted);font-size:14px}.log .entry{font-size:14px;padding:8px 0;border-top:1px solid var(--grid)}
-.hint{color:var(--ink2)}.final{margin-top:12px;padding:12px;border-radius:10px;background:var(--page);border:1px solid var(--border)}
-footer{margin-top:60px;font-size:14px;color:var(--muted)}
-"""
+TICKERS = ("INTC", "MSFT", "AAPL", "AMZN", "GOOG")
+BUILT_WITH = ("Python", "NumPy", "pandas", "Polars", "SciPy", "LightGBM", "C++17", "pybind11", "JavaScript", "SVG",
+              "GitHub Actions", "GitHub Pages", "LOBSTER data", "Kaggle")
 
 
-def picture(name: str, alt: str) -> str:
-    return (f'<picture><source media="(prefers-color-scheme: dark)" srcset="img/{name}_dark.png">'
-            f'<img src="img/{name}.png" alt="{html.escape(alt)}" loading="lazy"></picture>')
+def _r(x, d=4):
+    return None if x is None or (isinstance(x, float) and math.isnan(x)) else round(float(x), d)
+
+
+def _ci(row, key="ci"):
+    lo, hi = row[key]
+    return [_r(lo), _r(hi)]
+
+
+def micro_data() -> dict | None:
+    m = results.load("microstructure")
+    if not m:
+        return None
+    out = {"tickers": list(TICKERS), "horizons": [0.1, 1, 10, 60], "stocks": {}}
+    rb = _json(PAPER_DIR / "rebates.json")
+    rob = _json(PAPER_DIR / "robustness.json")
+    for t in TICKERS:
+        fa, summ = m["facts"][t], {r["model"]: r for r in m["fills"][t]["summary"]}
+        s = {"class": fa["tick_class"].replace("-tick", ""), "price": _r(fa["mean_price_usd"], 2),
+             "tick_bps": _r(fa["tick_bps"], 2), "spread": _r(fa["spread_ticks"], 2), "depth": round(fa["depth_best"]),
+             "auc": _r(m["predictive"][t]["imbalance"]["auc"], 3), "uncond": _r(summ["touch"]["uncond_10"], 3),
+             "fills": {mod: {"p": _r(r["p_fill"], 3), "mk": [_r(r[f"mk_{h:g}"], 3) for h in out["horizons"]],
+                             "mk10bps": _r(r["mk_10_bps"], 2)} for mod, r in summ.items()}}
+        if rb:
+            def rule(model, rebate, rows=rb):
+                r = next(x for x in rows if x["ticker"] == t and x["model"] == model and x["rebate_ticks"] == rebate)
+                return {"rule": [_r(r["out_of_sample"])] + _ci(r), "always": [_r(r["always_post"])] + _ci(r, "always_post_ci"),
+                        "post": _r(r["share_post"], 3), "cross": _r(r["share_cross"], 3)}
+            s["rules"] = {"gross": {mod: rule(mod, None) for mod in ("touch", "fifo")},
+                          "r02": {mod: rule(mod, 0.2) for mod in ("touch", "fifo")},
+                          "r03": {mod: rule(mod, 0.3) for mod in ("touch", "fifo")}}
+        if rob:
+            for h in (10.0, 60.0):
+                s.setdefault("rules", {})[f"h{int(h)}"] = {
+                    mod: (lambda r: {"rule": [_r(r["out_of_sample"])] + _ci(r),
+                                     "always": [_r(r["always_post"])] + _ci(r, "always_post_ci"),
+                                     "post": _r(r["share_post"], 3), "cross": _r(r["share_cross"], 3)})(
+                        next(x for x in rob if x["ticker"] == t and x["model"] == mod and x["check"] == "horizon"
+                             and x["horizon"] == h))
+                    for mod in ("touch", "fifo")}
+        out["stocks"][t] = s
+    return out
+
+
+def auction_data() -> dict | None:
+    a = results.load("auction")
+    daily = ROOT / "reports" / "results" / "auction_daily_research.csv"
+    if not a or not daily.exists():
+        return None
+    import pandas as pd
+
+    d = pd.read_csv(daily)
+    rows = {r["cost_mult"]: r for r in a["robustness"]["cost_rows"]}
+    h = (a.get("holdout") or {}).get("adapted_1x", {})
+    return {"gross": [round(x, 2) for x in d["gross_usd"]], "cost": [round(x, 2) for x in d["cost_usd"]],
+            "days": int(len(d)), "sharpe": _r(a["selected"]["summary"]["sharpe_annualized"], 2),
+            "adapted": {str(int(k)): _r(v["adapted"]["sharpe_annualized"], 2) for k, v in rows.items()},
+            "holdout": {"sharpe": _r(h.get("sharpe_annualized"), 2), "days": h.get("days")}}
+
+
+def vol_data() -> dict | None:
+    from markout.vol import data as vdata
+
+    v = results.load("vol_premium")
+    if not v or not vdata.available():
+        return None
+    from markout.vol import straddle as ST
+    from markout.vol import vrp
+    from markout.vol.report import LONG
+
+    res = ST.run(vrp.frame(vdata.load()), LONG)
+    kf, kp = v["kelly_full"], v["kelly_pre2008"]
+    return {"dates": [str(d.date()) for d in res.index], "pnl": [round(x, 4) for x in res["var_swap"]],
+            "kelly": {"full": _r(100 * kf["v_star"], 2), "ruin": _r(100 * kf["v_max"], 2),
+                      "cont": _r(100 * kf["v_continuous"], 2), "pre": _r(100 * kp["v_star"], 2)},
+            "survivable_post2008": _r(v["survivable_vega_per_100"], 2)}
+
+
+def _json(path: Path):
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def lab_data() -> dict:
+    return {"repo": REPO, "micro": micro_data(), "auction": auction_data(), "vol": vol_data()}
 
 
 def findings() -> list[tuple[str, str, str]]:
@@ -112,78 +168,61 @@ def findings() -> list[tuple[str, str, str]]:
     return out
 
 
-GAME = """
-<div class="game" id="game">
-  <div class="controls"><b id="round"></b><span class="muted" id="known"></span></div>
-  <div class="cards" id="cards"></div>
-  <div class="controls">
-    <label>Bid <input type="number" id="bid" step="0.5"></label>
-    <label>Ask <input type="number" id="ask" step="0.5"></label>
-    <button class="primary" id="quote">Quote</button>
-    <button id="new">New game</button>
-  </div>
-  <div class="err" id="err"></div>
-  <div id="result"></div>
-  <div class="log" id="log"></div>
-</div>
-"""
+def hero_tiles() -> str:
+    tiles = []
+    m, a, v = results.load("microstructure"), results.load("auction"), results.load("vol_premium")
+    if m:
+        intc = {r["model"]: r for r in m["fills"]["INTC"]["summary"]}
+        tiles.append((f"{intc['touch']['mk_10_bps']:+.2f} → {intc['fifo']['mk_10_bps']:+.2f} bps",
+                      "INTC resting orders ten seconds after the fill: touch-fill backtest vs a real queue"))
+    if a:
+        one = a["selected"]["summary"]["sharpe_annualized"]
+        two = next(r for r in a["robustness"]["cost_rows"] if r["cost_mult"] == 2.0)["adapted"]["sharpe_annualized"]
+        tiles.append((f"{one:.1f} → {two:.1f}", "Closing-auction Sharpe ratio when trading costs double"))
+    if v:
+        kf = v["kelly_full"]
+        tiles.append((f"{kf['v_continuous'] / kf['v_star']:.1f}×", "How much the textbook Kelly formula overbets "
+                      "selling S&P 500 volatility"))
+    return "".join(f'<div class="tile"><b>{html.escape(n).replace("-", "&minus;")}</b><span>{html.escape(t)}</span></div>'
+                   for n, t in tiles)
+
+
+def render() -> str:
+    has_video = VIDEO.exists()
+    preview = PREVIEW if (DOCS / PREVIEW).exists() else "img/h_kelly.png"
+    cards = "".join(f'<div class="card"><h3><a href="{REPO}/blob/main/reports/{rep}.md">{html.escape(t)}</a></h3>'
+                    f"<p>{body}</p></div>" for t, rep, body in findings())
+    video_section = ("" if not has_video else
+                     '<section class="lab" id="video"><p class="eyebrow">Demo</p><h2>Watch the walkthrough</h2>'
+                     '<video controls preload="metadata" playsinline poster="media/markout-demo.jpg" '
+                     'src="media/markout-demo.mp4"></video></section>')
+    data = json.dumps(lab_data(), separators=(",", ":")).replace("</", "<\\/")
+    fills = {
+        "description": html.escape(DESCRIPTION), "site": SITE, "preview": preview, "icon": ICON, "repo": REPO,
+        "paper_href": PAPER_URL or f"{REPO}/blob/main/reports/02_microstructure.md",
+        "paper_label": "Read the paper" if PAPER_URL else "Read the study",
+        "video_button": '<a class="btn" href="#video">Watch the demo</a>' if has_video else "",
+        "hero_tiles": hero_tiles(), "findings_cards": cards, "video_section": video_section,
+        "built_with": "".join(f"<span>{html.escape(b)}</span>" for b in BUILT_WITH),
+        "generated": date.today().strftime("%B %Y"), "lab_json": data,
+    }
+    page = TEMPLATE.read_text()
+    for key, value in fills.items():
+        page = page.replace("{{" + key + "}}", value)
+    if "{{" in page:
+        raise ValueError("unfilled placeholder in site_template.html")
+    return page
 
 
 def build() -> str:
     DOCS.mkdir(parents=True, exist_ok=True)
-    img = DOCS / "img"
-    img.mkdir(exist_ok=True)
-    for name in dict.fromkeys([n for n, _, _ in FIGS] + [PREVIEW]):
-        for suffix in ("", "_dark"):
-            src = FIGURES / f"{name}{suffix}.png"
-            if src.exists():
-                shutil.copy(src, img / src.name)
-    (DOCS / "site.css").write_text(CSS.strip() + "\n")
+    (DOCS / "img").mkdir(exist_ok=True)
+    for suffix in ("", "_dark"):  # fallback link-preview image
+        src = FIGURES / f"h_kelly{suffix}.png"
+        if src.exists():
+            shutil.copy(src, DOCS / "img" / src.name)
     (DOCS / ".nojekyll").write_text("")
-    cards = "".join(f'<div class="card"><h3><a href="{REPO}/blob/main/reports/{rep}.md">{html.escape(t)}</a></h3>'
-                    f"<p>{body}</p></div>" for t, rep, body in findings())
-    figs = "".join(f'<figure><a href="{REPO}/blob/main/reports/{rep}.md">{picture(n, alt)}</a>'
-                   f"<figcaption>{html.escape(alt)}</figcaption></figure>"
-                   for n, alt, rep in FIGS if (FIGURES / f"{n}.png").exists())
-    return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Markout</title><meta name="description" content="{html.escape(DESCRIPTION)}">
-<meta property="og:type" content="website"><meta property="og:title" content="Markout">
-<meta property="og:description" content="{html.escape(DESCRIPTION)}"><meta property="og:url" content="{SITE}">
-<meta property="og:image" content="{SITE}img/{PREVIEW}.png"><meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="{ICON}"><link rel="stylesheet" href="site.css"></head>
-<body><main>
-<h1>Markout</h1>
-<p class="lede">Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias
-that comes from trying many strategies? These are the results of trying to find out, mostly on real market data.</p>
-<div class="links"><a href="{REPO}">Code on GitHub</a><a href="{REPO}#results">All results</a>
-<a href="demo/desk.html">Predictions Cup desk (snapshot)</a><a href="#play">Play the market-making game</a></div>
-
-<h2>What came out of it</h2>
-<div class="grid">{cards}</div>
-
-<h2>A few figures</h2>
-{figs}
-
-<h2 id="play">Play: make a market on five hidden cards</h2>
-<p>Five cards are dealt face down from a standard deck (A = 1 to K = 13). Quote a bid and an ask on their sum, at most
-four apart. Three bots trade against you each round: some know one of the hidden cards and only trade when your quote
-is wrong, the rest trade at random. One card is turned up after every round, and every trade settles at the final sum.
-After each round the game shows the best estimate given everything you have seen, and at the end it replays the same
-cards and bots with two scripted quoters so you can compare.</p>
-{GAME}
-
-<h2>The Predictions Cup desk</h2>
-<p>SIG's student prediction contest allows bots. The desk pools free reference prices (Polymarket, Kalshi,
-option-implied probabilities, earnings history) with the contest's own price, proposes trades sized by Kelly and by
-what the order book can fill, and never trades without a click. <a href="demo/desk.html">Open a read-only snapshot</a>
-or read <a href="{REPO}/blob/main/docs/demo/DEMO.md">the walkthrough</a>.</p>
-<figure><img src="demo/desk.png" alt="The approval desk" loading="lazy"><figcaption>The approval desk on a paper
-contest</figcaption></figure>
-
-<footer>Markout · <a href="{REPO}">github.com/tanaymihani/markout</a></footer>
-</main><script src="game.js"></script></body></html>
-"""
+    return render()
 
 
 def main() -> None:

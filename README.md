@@ -4,7 +4,9 @@
 
 Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias that comes from trying many strategies? This repo is my attempt to find out, step by step, on real market data where I could get it.
 
-**Site:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has the main findings and a playable market-making game.
+**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four interactive labs and a market-making game, all running in the browser.
+
+[![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted it as filled](docs/media/markout-demo.gif)](https://tanaymihani.github.io/markout/)
 
 The name comes from the *markout*, the price move right after a trade, which market makers use to check whether they got picked off. The same trap shows up at every stage here: the best of many backtests looks better than it is, and so do the order that happened to get filled and the bet where you disagree most with the market. Each part tries to measure that gap and correct for it.
 
@@ -93,7 +95,7 @@ The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`m
 
 ## How I tried to keep it honest
 
-- 369 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 374 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).
@@ -112,6 +114,7 @@ make test
 make report      # regenerate every report, figure and results file
 make demo        # the desk's offline demo
 make desk        # the desk on a paper contest, http://127.0.0.1:8765
+make demo-video  # re-record the site's demo video (needs the demo extra)
 ```
 
 Also: `python -m markout.backtest.report` prints the daily PnL of the chosen auction strategy, `python -m markout.games.cardgame` is a market-making practice game, and `python -m markout.decision.journal init|add|score` manages the contest journal.

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Markout · a reality check for trading backtests</title>
+<meta name="description" content="{{description}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Markout · a reality check for trading backtests">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{site}}">
+<meta property="og:image" content="{{site}}{{preview}}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="{{icon}}">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<nav class="topnav" aria-label="Sections">
+  <a class="brand" href="#top">Markout</a>
+  <div class="navlinks">
+    <a href="#lab-queue">Lab</a>
+    <a href="#results">Results</a>
+    <a href="#about">About</a>
+    <a href="{{repo}}">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <p class="eyebrow">Open-source research · Python, C++ and JavaScript</p>
+  <h1>Markout</h1>
+  <p class="tagline">A reality check for trading backtests.</p>
+  <p class="lede">A backtest tells you what a strategy would have made if every order filled at the price on the
+  screen. Markout measures how much of that survives the spread, a real order queue, other traders and the bias of
+  trying many ideas, on real NASDAQ and S&amp;P&nbsp;500 data. Every lab on this page runs in your browser.</p>
+  <div class="cta">
+    <a class="btn primary" href="#lab-queue">Try the lab</a>
+    {{video_button}}
+    <a class="btn" href="{{repo}}">Code on GitHub</a>
+    <a class="btn" href="{{paper_href}}">{{paper_label}}</a>
+  </div>
+  <div class="tiles">{{hero_tiles}}</div>
+</header>
+
+<main>
+
+<section class="lab" id="lab-queue">
+  <p class="eyebrow">Lab 1 · simulation</p>
+  <h2>Will your bid get filled?</h2>
+  <p>Join the best bid behind the queue and watch two backtests disagree. A <b>touch-fill</b> backtest counts your
+  order as filled the moment anyone trades at your price. A <b>real queue</b> fills you only after everyone ahead of
+  you has traded or cancelled. Some sellers are informed: when one arrives, the whole level breaks a few seconds
+  later and the price falls.</p>
+  <div class="panel">
+    <div class="controls-grid">
+      <label class="slider">Shares ahead of you <output id="q-ahead-out"></output>
+        <input type="range" id="q-ahead" min="500" max="30000" step="100" value="13600"></label>
+      <label class="slider">Sell orders that are informed <output id="q-informed-out"></output>
+        <input type="range" id="q-informed" min="0" max="80" step="5" value="40"></label>
+      <div class="buttons">
+        <button class="primary" id="q-watch">Watch one order</button>
+        <button id="q-run">Run 2,000 orders</button>
+      </div>
+    </div>
+    <div class="queue-view" id="q-view" aria-live="polite">
+      <div class="ladder">
+        <div class="lvl ask"><span class="px">ask</span><div class="bar"><div class="fill ask-fill" id="q-askbar"></div></div></div>
+        <div class="lvl bid"><span class="px">your bid</span>
+          <div class="bar"><div class="fill ahead" id="q-aheadbar"></div><div class="you" id="q-you">you</div></div></div>
+      </div>
+      <div class="clock"><span id="q-clock">0.0 s</span><span class="muted" id="q-aheadtxt"></span></div>
+      <div class="status-row">
+        <div class="status" id="q-touch"><span class="who">Touch-fill backtest</span><span class="what">waiting</span></div>
+        <div class="status" id="q-fifo"><span class="who">Real queue (FIFO)</span><span class="what">waiting</span></div>
+      </div>
+      <ol class="eventlog" id="q-log"></ol>
+    </div>
+    <div class="results-row" id="q-results" hidden>
+      <div class="stat"><span class="who">Touch-fill backtest</span><b id="q-touch-mk"></b><span id="q-touch-fill"></span></div>
+      <div class="stat"><span class="who">Real queue (FIFO)</span><b id="q-fifo-mk"></b><span id="q-fifo-fill"></span></div>
+    </div>
+  </div>
+  <p class="note">A deliberately small model of one price level, with parameters tuned so that its defaults roughly
+  reproduce INTC on 21 June 2012 (measured: touch fills <span data-k="intc_touch_fill"></span> of orders at
+  <span data-k="intc_touch_mk"></span> ticks after 10 seconds; the real queue <span data-k="intc_fifo_fill"></span> at
+  <span data-k="intc_fifo_mk"></span>). The measured results themselves are in the next lab.</p>
+</section>
+
+<section class="lab" id="lab-fills">
+  <p class="eyebrow">Lab 2 · real NASDAQ data</p>
+  <h2>Does the signal survive real fills?</h2>
+  <p>Queue imbalance, the gap between the shares waiting at the best bid and at the best ask, predicts the next price
+  move. These results come from replaying every order-book message for five NASDAQ stocks on 21 June 2012 against
+  hypothetical 100-share orders, under three fill models. Pick a stock.</p>
+  <div class="panel">
+    <div class="seg" id="f-stock" role="group" aria-label="Stock"></div>
+    <p class="readout" id="f-summary"></p>
+    <h3>What happens after a resting order fills</h3>
+    <div id="f-markouts"></div>
+    <h3>Can a trader make money with it?</h3>
+    <p class="small">Every 5 seconds the trader follows the sign of the imbalance and either posts at the best quote,
+    crosses the spread or waits, with the choice made on the morning and scored on the afternoon. Always posting needs
+    no choice at all.</p>
+    <div class="toggles">
+      <div class="seg" id="f-costs" role="group" aria-label="Fees and rebates"></div>
+      <div class="seg" id="f-horizon" role="group" aria-label="Horizon"></div>
+    </div>
+    <div id="f-rules"></div>
+    <p class="readout" id="f-rules-summary"></p>
+  </div>
+</section>
+
+<section class="lab" id="lab-auction">
+  <p class="eyebrow">Lab 3 · Optiver closing-auction data</p>
+  <h2>How wide is the edge?</h2>
+  <p>A LightGBM model of the NASDAQ closing auction (Optiver's Kaggle data, 200 stocks) beats a per-stock baseline on
+  every out-of-sample day. Traded net of the spread and fees, it earns an annualized Sharpe ratio of
+  <span data-k="auction_sharpe"></span> over <span data-k="auction_days"></span> days. Drag the cost multiplier to see
+  how much of that edge is left.</p>
+  <div class="panel">
+    <label class="slider wide">Trading costs <output id="a-mult-out"></output>
+      <input type="range" id="a-mult" min="0" max="3" step="0.05" value="1"></label>
+    <div class="results-row">
+      <div class="stat"><span class="who">Sharpe ratio (annualized)</span><b id="a-sharpe"></b></div>
+      <div class="stat"><span class="who">Profit over <span data-k="auction_days"></span> days</span><b id="a-total"></b></div>
+    </div>
+    <div id="a-chart"></div>
+  </div>
+  <p class="note">The slider keeps the same trades and scales their costs. A rule that adapts by trading less does
+  better at high costs but still loses money: Sharpe <span data-k="auction_adapt2"></span> at twice the costs and
+  <span data-k="auction_adapt3"></span> at three times. On a holdout opened exactly once, the strategy earned a Sharpe
+  ratio of <span data-k="auction_holdout"></span>.</p>
+</section>
+
+<section class="lab" id="lab-kelly">
+  <p class="eyebrow">Lab 4 · S&amp;P 500 and VIX, 1993 to 2026</p>
+  <h2>How big should the bet be?</h2>
+  <p>Selling one month of S&amp;P&nbsp;500 variance at a time collects a premium most months and loses heavily in a
+  crash. Choose a position size, in dollars of exposure (vega) per $100 of capital, and see what it did.</p>
+  <div class="panel">
+    <label class="slider wide">Position size <output id="k-size-out"></output>
+      <input type="range" id="k-size" min="0" max="6" step="0.01" value="1.09"></label>
+    <div class="presets" id="k-presets"></div>
+    <div class="results-row">
+      <div class="stat"><span class="who">Final wealth</span><b id="k-final"></b></div>
+      <div class="stat"><span class="who">Worst drawdown</span><b id="k-dd"></b></div>
+      <div class="stat"><span class="who">Outcome</span><b id="k-ruin"></b></div>
+    </div>
+    <div id="k-chart"></div>
+  </div>
+  <p class="note">Sizes are dollars of vega per $100 of capital. The exact Kelly size uses the whole history, which no
+  trader had in advance. Fitted on 1993–2007 alone, Kelly said <span data-k="kelly_pre"></span>, and every fraction of
+  that down to a quarter was wiped out after 2008. The textbook formula, mean over variance, says
+  <span data-k="kelly_cont"></span>.</p>
+</section>
+
+<section class="lab" id="lab-game">
+  <p class="eyebrow">Lab 5 · game</p>
+  <h2>Make a market on five hidden cards</h2>
+  <p>Five cards are dealt face down (A = 1 to K = 13). Quote a bid and an ask on their sum, at most four apart. Three
+  bots trade against you each round: some know one hidden card and only trade when your quote is wrong, the rest trade
+  at random. One card is turned up after every round, and every trade settles at the final sum. At the end the game
+  replays the same cards and bots with two scripted quoters, so you can compare.</p>
+  <div class="game" id="game">
+    <div class="controls"><b id="round"></b><span class="muted" id="known"></span></div>
+    <div class="cards" id="cards"></div>
+    <div class="controls">
+      <label>Bid <input type="number" id="bid" step="0.5"></label>
+      <label>Ask <input type="number" id="ask" step="0.5"></label>
+      <button class="primary" id="quote">Quote</button>
+      <button id="new">New game</button>
+    </div>
+    <div class="err" id="err"></div>
+    <div id="result"></div>
+    <div class="log" id="log"></div>
+  </div>
+</section>
+
+<section class="lab" id="desk">
+  <p class="eyebrow">Product · Predictions Cup</p>
+  <h2>The Predictions Cup desk</h2>
+  <p>SIG's student prediction-market contest allows bots, so I built one that runs on a laptop. It pools free
+  reference prices (Polymarket, Kalshi, option-implied probabilities, earnings history) with the contest's own price,
+  proposes trades sized by Kelly and by what the order book can fill, and never trades without a click.</p>
+  <a class="shot" href="demo/desk.html"><img src="demo/desk.png" alt="The approval desk showing proposed trades, their
+  probabilities, edges and stakes"></a>
+  <p class="small"><a href="demo/desk.html">Open a read-only snapshot</a> ·
+  <a href="{{repo}}/blob/main/docs/demo/DEMO.md">read the walkthrough</a></p>
+</section>
+
+{{video_section}}
+
+<section id="results">
+  <h2>Results across the project</h2>
+  <div class="grid">{{findings_cards}}</div>
+  <p class="small"><a href="{{repo}}#results">Every result, with figures, in the README</a></p>
+</section>
+
+<section id="about" class="about">
+  <h2>About this project</h2>
+  <div class="about-grid">
+    <div><h3>What it does</h3><p>Markout asks one question at every stage of a trading idea: how much of the edge is
+    real? It covers a machine-learning forecast of the NASDAQ closing auction, an order-by-order replay of NASDAQ
+    queues, game-theory models of competing market makers, options hedging, the S&amp;P&nbsp;500 volatility premium,
+    and a trading desk for SIG's Predictions Cup.</p></div>
+    <div><h3>How I built it</h3><p>The research is in Python, with walk-forward validation, a log of every variant
+    tried, deflated Sharpe ratios and a holdout that can only be opened once. The order-book replay is written in
+    C++17 with pybind11 bindings and is bit-identical to the Python reference. This site is plain HTML, CSS and
+    JavaScript; the browser versions of the simulations are tested against the Python code.</p></div>
+    <div><h3>Challenges</h3><p>Getting fills right. An early pessimistic fill model filled more orders than the
+    realistic one, which forced a rewrite and a test that the three models nest order by order. Keeping evaluation
+    honest was the other: because every variant is logged, the final numbers account for the whole search.</p></div>
+    <div><h3>What I learned</h3><p>A prediction and a profit are different things. Queue imbalance predicts the next
+    price move, but the fills a real queue gives you are the ones you didn't want. And sizing a fat-tailed bet needs
+    the actual distribution of outcomes, not just its mean and variance.</p></div>
+    <div><h3>What's next</h3><p>More trading days and recent data, modelling latency and market impact, and connecting
+    the desk to the contest's live API.</p></div>
+    <div><h3>Built with</h3><p class="tags">{{built_with}}</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Markout · <a href="{{repo}}">github.com/tanaymihani/markout</a> · data: LOBSTER sample files, Optiver
+  <i>Trading at the Close</i> (Kaggle), Yahoo Finance. Raw data is not redistributed. Built {{generated}}.</p>
+</footer>
+
+<script id="lab-data" type="application/json">{{lab_json}}</script>
+<script src="js/charts.js"></script>
+<script src="js/queue-sim.js"></script>
+<script src="js/lab-math.js"></script>
+<script src="js/lab.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
