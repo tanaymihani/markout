@@ -1,6 +1,6 @@
 # Markout
 
-[![tests](https://github.com/tanaymihani/markout/actions/workflows/tests.yml/badge.svg)](https://github.com/tanaymihani/markout/actions/workflows/tests.yml)
+[![tests](https://github.com/tanaymihani/markout/actions/workflows/tests.yml/badge.svg)](https://github.com/tanaymihani/markout/actions/workflows/tests.yml) [![codeql](https://github.com/tanaymihani/markout/actions/workflows/codeql.yml/badge.svg)](https://github.com/tanaymihani/markout/actions/workflows/codeql.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias that comes from trying many strategies? This repo is my attempt to find out, step by step, on real market data where I could get it.
 
@@ -93,14 +93,29 @@ SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), a
 
 The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`make demo`); `make desk` starts it on a paper contest at http://127.0.0.1:8765. The [matcher dry run](docs/demo/DRYRUN.md) tests the matching against live Polymarket and Kalshi questions. Its first version mostly suggested look-alikes (the other team, another stat line, a different threshold); those cases are now tests.
 
+A hosted version (`python -m markout.cup public`, or the Docker image) gives every visitor a private paper-trading sandbox with its own exchange, journal and clock. Sessions travel in a header rather than a cookie, are evicted and expired, rate-limited and served under a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and [deploy/README.md](deploy/README.md) the deployment.
+
 ## How I tried to keep it honest
 
-- 374 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 403 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).
 - Replications are checked against known answers: the worked example in the Deflated Sharpe paper, the Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks.
 - `make report` regenerates every report and figure from fixed seeds, so the numbers in the text are never typed by hand.
+
+## Use it on your own data
+
+The tools under the reports work on other data too. `markout fills` runs the three fill models on any LOBSTER day, and `markout sharpe` and `markout pbo` check a backtest against the search that produced it:
+
+```bash
+markout fills AAPL_2012-06-21_34200000_57600000_message_10.csv AAPL_2012-06-21_34200000_57600000_orderbook_10.csv
+markout sharpe pnl.csv --trials 50 --sr-var 0.0009   # bootstrap CI, PSR and the Deflated Sharpe
+markout pbo trials.csv --index date                  # probability of backtest overfitting
+markout kelly --p 0.62 --price 0.55 --fraction 0.5
+```
+
+[USAGE.md](USAGE.md) covers the command line and the Python API (fill simulation, the Deflated Sharpe, PBO, the trial registry, the holdout guard, Kelly, Black–Scholes and hedging). Its examples run in the test suite, so they stay correct. The [API reference](https://tanaymihani.github.io/markout/api/) documents every module (`make api-docs`).
 
 ## Running it
 
@@ -114,10 +129,23 @@ make test
 make report      # regenerate every report, figure and results file
 make demo        # the desk's offline demo
 make desk        # the desk on a paper contest, http://127.0.0.1:8765
+make public-desk # the hosted desk, one sandbox per visitor, http://127.0.0.1:7860
+make docker      # the hosted desk's image (docker run --rm -p 7860:7860 markout-desk)
 make demo-video  # re-record the site's demo video (needs the demo extra)
 ```
 
 Also: `python -m markout.backtest.report` prints the daily PnL of the chosen auction strategy, `python -m markout.games.cardgame` is a market-making practice game, and `python -m markout.decision.journal init|add|score` manages the contest journal.
+
+## Development
+
+```bash
+make check       # what CI runs: ruff, mypy, the tests and the browser tests
+make cov         # coverage report (htmlcov/)
+make lock        # re-resolve requirements.lock after changing dependencies
+pre-commit install
+```
+
+CI installs the exact versions in `requirements.lock` and runs lint, types, the tests with a coverage floor, browser tests in Chrome and a smoke test of the desk's container; CodeQL scans the code. [ARCHITECTURE.md](ARCHITECTURE.md) explains how the pieces fit together and how each is tested, and [CHANGELOG.md](CHANGELOG.md) lists the releases.
 
 ## Layout
 
@@ -130,10 +158,13 @@ src/markout/lob/         LOBSTER parser, order-flow imbalance, fill simulator, m
 src/markout/games/       Glosten–Milgrom, Kyle, market-making arena, Kuhn CFR, card game, report 03
 src/markout/options/     Black–Scholes, delta hedging, SPY smile, report 04
 src/markout/vol/         S&P 500 / VIX data, variance risk premium, HAR forecast, sizing, hedged straddles, report 06
-src/markout/cup/         Predictions Cup desk: sources, matcher, estimates, sizing, paper exchange, web page
+src/markout/cup/         Predictions Cup desk: sources, matcher, estimates, sizing, paper exchange, local and hosted desk
+src/markout/cli.py       the markout command
 cpp/                     C++17 queue simulator and pybind11 bindings
 reports/                 generated reports, figures (light and dark) and results
-tests/                   pytest suite
+docs/                    the site (GitHub Pages)
+deploy/                  the hosted desk's pinned requirements and Hugging Face Space card
+tests/                   pytest suite; tests/e2e/ drives a browser, tests/js/ runs the site's labs in Node
 ```
 
 ## Data
@@ -146,4 +177,8 @@ tests/                   pytest suite
 ## Limitations
 
 Each report ends with its own. The main ones: the auction target is measured against a synthetic index, so the PnL assumes a hedge I can't observe; the microstructure study is a single day from 2012 and my own orders have no market impact; the arena is a stylized dealer market where everyone shares one belief; and the contest study has to assume the field size and the number of markets.
+
+## License
+
+MIT, see [LICENSE](LICENSE). The datasets keep their own terms and are not redistributed here.
 

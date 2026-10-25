@@ -205,7 +205,9 @@
     <div><h3>How I built it</h3><p>The research is in Python, with walk-forward validation, a log of every variant
     tried, deflated Sharpe ratios and a holdout that can only be opened once. The order-book replay is written in
     C++17 with pybind11 bindings and is bit-identical to the Python reference. This site is plain HTML, CSS and
-    JavaScript; the browser versions of the simulations are tested against the Python code.</p></div>
+    JavaScript; the browser versions of the simulations are tested against the Python code. The desk also runs as a
+    hosted service in Docker, with a private paper-trading sandbox for every visitor, and CI checks types, coverage,
+    a real browser and the container on every push.</p></div>
     <div><h3>Challenges</h3><p>Getting fills right. An early pessimistic fill model filled more orders than the
     realistic one, which forced a rewrite and a test that the three models nest order by order. Keeping evaluation
     honest was the other: because every variant is logged, the final numbers account for the whole search.</p></div>
@@ -214,7 +216,7 @@
     the actual distribution of outcomes, not just its mean and variance.</p></div>
     <div><h3>What's next</h3><p>More trading days and recent data, modelling latency and market impact, and connecting
     the desk to the contest's live API.</p></div>
-    <div><h3>Built with</h3><p class="tags"><span>Python</span><span>NumPy</span><span>pandas</span><span>Polars</span><span>SciPy</span><span>LightGBM</span><span>C++17</span><span>pybind11</span><span>JavaScript</span><span>SVG</span><span>GitHub Actions</span><span>GitHub Pages</span><span>LOBSTER data</span><span>Kaggle</span></p></div>
+    <div><h3>Built with</h3><p class="tags"><span>Python</span><span>NumPy</span><span>pandas</span><span>Polars</span><span>SciPy</span><span>LightGBM</span><span>C++17</span><span>pybind11</span><span>JavaScript</span><span>SVG</span><span>Docker</span><span>Playwright</span><span>GitHub Actions</span><span>GitHub Pages</span><span>LOBSTER data</span><span>Kaggle</span></p></div>
   </div>
 </section>
 

@@ -136,3 +136,13 @@ def test_status_and_clock(capsys):
     out = run(capsys, "status", "--json")
     assert set(out) >= {"version", "lobster_sample", "cpp_extension", "results"}
     assert cli._clock("09:35") == 34_500 and cli._clock("15:55:30") == 57_330 and cli._clock("34500") == 34_500
+
+
+def test_version_is_defined_once(capsys):
+    import tomllib
+
+    from markout import __version__
+    from markout.paths import ROOT
+
+    assert tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"] == __version__
+    assert cli.main(["--version"]) == 0 and capsys.readouterr().out.strip() == __version__

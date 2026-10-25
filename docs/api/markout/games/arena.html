@@ -1,0 +1,2123 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="pdoc 16.0.0"/>
+    <title>markout.games.arena API documentation</title>
+
+    <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
+    <style>/*! syntax-highlighting.css */pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
+    <style>/*! theme.css */:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
+    <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;z-index:999;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;opacity:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent; z-index:1}nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
+    <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:.75rem center;margin-bottom:1rem;}.pdoc .alert > em{display:none;}.pdoc .alert > *:last-child{margin-bottom:0;}.pdoc .alert.note{color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .alert.tip{color:#0a3622;background-color:#d1e7dd;border-color:#a3cfbb;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%230a3622%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%206a6%206%200%201%201%2010.174%204.31c-.203.196-.359.4-.453.619l-.762%201.769A.5.5%200%200%201%2010.5%2013a.5.5%200%200%201%200%201%20.5.5%200%200%201%200%201l-.224.447a1%201%200%200%201-.894.553H6.618a1%201%200%200%201-.894-.553L5.5%2015a.5.5%200%200%201%200-1%20.5.5%200%200%201%200-1%20.5.5%200%200%201-.46-.302l-.761-1.77a2%202%200%200%200-.453-.618A5.98%205.98%200%200%201%202%206m6-5a5%205%200%200%200-3.479%208.592c.263.254.514.564.676.941L5.83%2012h4.342l.632-1.467c.162-.377.413-.687.676-.941A5%205%200%200%200%208%201%22/%3E%3C/svg%3E");}.pdoc .alert.important{color:#055160;background-color:#cff4fc;border-color:#9eeaf9;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23055160%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%200a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V2a2%202%200%200%200-2-2zm6%204c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%204.995A.905.905%200%200%201%208%204m.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E");}.pdoc .alert.warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .alert.caution{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M11.46.146A.5.5%200%200%200%2011.107%200H4.893a.5.5%200%200%200-.353.146L.146%204.54A.5.5%200%200%200%200%204.893v6.214a.5.5%200%200%200%20.146.353l4.394%204.394a.5.5%200%200%200%20.353.146h6.214a.5.5%200%200%200%20.353-.146l4.394-4.394a.5.5%200%200%200%20.146-.353V4.893a.5.5%200%200%200-.146-.353zM8%204c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%204.995A.905.905%200%200%201%208%204m.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E");}.pdoc .alert.danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--accent);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .decorator-deprecated{color:#842029;}.pdoc .decorator-deprecated ~ span{filter:grayscale(1) opacity(0.8);}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:27px;vertical-align:bottom;width:50px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
+    <style>/*! custom.css */</style></head>
+<body>
+    <nav class="pdoc">
+        <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
+        <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
+        <div>            <a class="pdoc-button module-list-button" href="../games.html">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
+  <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+</svg>                &nbsp;markout.games</a>
+
+
+
+            <h2>Contents</h2>
+            <ul>
+  <li><a href="#market-one-episode-one-seed">Market (one episode = one seed)</a></li>
+  <li><a href="#zero-profit-and-monopoly-quotes">Zero-profit and monopoly quotes</a></li>
+  <li><a href="#agents">Agents</a></li>
+</ul>
+
+
+
+            <h2>API Documentation</h2>
+                <ul class="memberlist">
+            <li>
+                    <a class="variable" href="#BIG">BIG</a>
+            </li>
+            <li>
+                    <a class="class" href="#Market">Market</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Market.__init__">Market</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.v_low">v_low</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.v_high">v_high</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.prior">prior</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.mu">mu</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.c_max">c_max</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.tick">tick</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.n_periods">n_periods</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.dv">dv</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Market.noise_trade_prob">noise_trade_prob</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Market.noise_rate">noise_rate</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Market.tables">tables</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="function" href="#zero_profit_edge">zero_profit_edge</a>
+            </li>
+            <li>
+                    <a class="function" href="#zero_profit_edges">zero_profit_edges</a>
+            </li>
+            <li>
+                    <a class="function" href="#zero_profit_half_spread_at_half">zero_profit_half_spread_at_half</a>
+            </li>
+            <li>
+                    <a class="function" href="#side_profit">side_profit</a>
+            </li>
+            <li>
+                    <a class="function" href="#one_period_profit">one_period_profit</a>
+            </li>
+            <li>
+                    <a class="function" href="#monopoly_edge">monopoly_edge</a>
+            </li>
+            <li>
+                    <a class="class" href="#QuoteTables">QuoteTables</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#QuoteTables.__init__">QuoteTables</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#QuoteTables.grid">grid</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#QuoteTables.be_ask">be_ask</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#QuoteTables.be_bid">be_bid</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#QuoteTables.mono_ask">mono_ask</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#QuoteTables.mono_bid">mono_bid</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#QuoteTables.mono_profit">mono_profit</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#QuoteTables.build">build</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#QuoteTables.lookup">lookup</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Context">Context</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Context.__init__">Context</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.mkt">mkt</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.t">t</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.pi">pi</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.mid">mid</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.q">q</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.be_ask">be_ask</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.be_bid">be_bid</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.mono_ask">mono_ask</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.mono_bid">mono_bid</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Context.var_v">var_v</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Context.ask_ticks">ask_ticks</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Context.bid_ticks">bid_ticks</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Agent">Agent</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Agent.__init__">Agent</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Agent.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Agent.reactive">reactive</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#QuotingAgent">QuotingAgent</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#QuotingAgent.quote">quote</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#ReactiveAgent">ReactiveAgent</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#ReactiveAgent.bounds">bounds</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#FixedSpread">FixedSpread</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#FixedSpread.__init__">FixedSpread</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#FixedSpread.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#FixedSpread.half_spread">half_spread</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#FixedSpread.reactive">reactive</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#FixedSpread.quote">quote</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#GMQuoter">GMQuoter</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#GMQuoter.__init__">GMQuoter</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#GMQuoter.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#GMQuoter.reactive">reactive</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#GMQuoter.quote">quote</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#InventorySkew">InventorySkew</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#InventorySkew.__init__">InventorySkew</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#InventorySkew.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#InventorySkew.half_spread">half_spread</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#InventorySkew.gamma">gamma</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#InventorySkew.sigma2">sigma2</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#InventorySkew.reactive">reactive</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#InventorySkew.quote">quote</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Undercutter">Undercutter</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Undercutter.__init__">Undercutter</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Undercutter.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Undercutter.reactive">reactive</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Undercutter.bounds">bounds</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#MarkoutQuoter">MarkoutQuoter</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#MarkoutQuoter.__init__">MarkoutQuoter</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#MarkoutQuoter.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#MarkoutQuoter.gamma">gamma</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#MarkoutQuoter.reactive">reactive</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#MarkoutQuoter.bounds">bounds</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="function" href="#default_agents">default_agents</a>
+            </li>
+            <li>
+                    <a class="class" href="#ArenaRun">ArenaRun</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#ArenaRun.__init__">ArenaRun</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.mkt">mkt</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.names">names</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.value_high">value_high</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.pnl">pnl</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.fills">fills</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.informed_fills">informed_fills</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.edge">edge</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.adverse">adverse</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.q2">q2</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.q_final">q_final</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.trades">trades</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.informed_trades">informed_trades</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.noise_trades">noise_trades</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.noise_arrivals">noise_arrivals</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.noise_pnl">noise_pnl</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.noise_surplus">noise_surplus</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.informed_pnl">informed_pnl</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.quoted_spread">quoted_spread</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.zero_profit_spread">zero_profit_spread</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.eff_half">eff_half</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.spread_path">spread_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.zero_profit_path">zero_profit_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.belief_truth_path">belief_truth_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.final_belief">final_belief</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.fill_path">fill_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.informed_fill_path">informed_fill_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.edge_path">edge_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.adverse_path">adverse_path</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.rounds_max">rounds_max</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ArenaRun.n_seeds">n_seeds</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ArenaRun.agent_summary">agent_summary</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ArenaRun.market_summary">market_summary</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="function" href="#simulate">simulate</a>
+            </li>
+            <li>
+                    <a class="function" href="#clone">clone</a>
+            </li>
+            <li>
+                    <a class="function" href="#head_to_head">head_to_head</a>
+            </li>
+            <li>
+                    <a class="function" href="#replicator">replicator</a>
+            </li>
+    </ul>
+
+
+            <footer>Markout 1.0.0 · MIT licence</footer>
+
+        <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
+            built with <span class="visually-hidden">pdoc</span><img
+                alt="pdoc logo"
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-label%3D%22pdoc%20logo%22%20width%3D%22300%22%20height%3D%22160%22%20viewBox%3D%220%200%20150%2080%22%3E%3Ctitle%3Epdoc%3C/title%3E%3Cpath%20d%3D%22M132.316%2048.886c.276-4.679%202.342-6.698%204.409-7.982s4.27-1.165%206.751-1.055c1.586.07%203.044.156%204.222-.482%201.142-.619%202.026-1.932%202.162-3.739.268-3.576-1.929-5.368-5.006-5.551s-7.599.524-10.517%201.606c-4.455%201.652-8.588%206.606-9.552%208.992s-2.342%206.193-1.745%2010.873%202.664%209.221%205.878%2011.79%205.878%203.808%2010.103%204.312%203.444.229%206.062.229%205.006-2.202%204.914-4.909-2.296-5.001-4.501-4.863-3.077.505-5.281.229-7.715-2.064-7.899-9.451z%22%20fill%3D%22%23198754%22/%3E%3Ccircle%20cx%3D%22101.504%22%20cy%3D%2248.943%22%20r%3D%2214.208%22%20fill%3D%22none%22%20stroke%3D%22%23198754%22%20stroke-width%3D%229.354%22/%3E%3Cpath%20d%3D%22M87.81.002c-3.637.065-5.001.454-7.014%201.232s-3.443%201.363-6.3%204.282c-1.723%201.76-3.148%205.019-3.776%207.329-.413%201.521-.316%202.63-.316%202.63l-.195%2034.612c.065%205.774-6.755%208.305-9.612%208.37s-9.678-1.038-9.743-9.408%207.128-9.521%208.362-9.521c1.413-.13%202.526-.021%203.718-.016%202.071.009%204.157-.778%204.092-4.671s-4.157-4.736-4.157-4.736c-6.3-.843-11.43%202.206-11.43%202.206S40.917%2038.15%2041.372%2049.634%2051.568%2068.19%2061.311%2068.125s18.316-7.007%2018.445-17.193l.13-22.772c.046-2.291%202.683-3.644%204.476-4.203.745-.232%201.694-.274%201.694-.274l10.457-.13s4.871-.324%207.729-3.114%204.352-6.294%204.352-6.294.974-3.049.13-4.606-.195-1.233-2.792-3.309-8.573-4.477-8.573-4.477S91.447-.063%2087.81.002zM0%2047.169l.065%2028.417S0%2080.127%204.481%2079.997s5.072-3.866%205.049-4.152l-.113-28.482s1.624-7.656%209.937-7.721%2010.002%206.942%2010.002%208.499-.909%2010.51-9.093%2010.51c-.948%200-2.99-.567-4.145-.272-3.919%201-3.194%204.554-3.194%204.554s.065%205.061%207.404%204.996%2018.575-6.034%2018.575-19.074S26.953%2030.04%2019.549%2029.91%201.234%2035.296%200%2047.169z%22%20fill%3D%22%23198754%22/%3E%3Cg%20transform%3D%22matrix%28.325601%200%200%20.325256%20-10.32669%20-45.802786%29%22%3E%3Ccircle%20cx%3D%22297.554%22%20cy%3D%22172.286%22%20r%3D%2216.5%22%20fill%3D%22%23fff%22/%3E%3Cellipse%20cx%3D%22297.709%22%20cy%3D%22172.642%22%20rx%3D%2211.071%22%20ry%3D%2210.871%22%20fill%3D%22%23105a48%22/%3E%3Ccircle%20cx%3D%22304.104%22%20cy%3D%22167.667%22%20r%3D%224.5%22%20fill%3D%22%23fff%22/%3E%3C/g%3E%3Cpath%20d%3D%22M94.661%2017.032l.893-1.476s.99.714%201.916.925%201.575.114%202.955.114l14.565-.162c1.283-.032%203.085-.762%203.02-3.293s-.373-3.503-.373-3.503l1.283-.487s.52.503.877%201.573.309%201.995.292%202.66-.227%201.541-.227%201.541%201.564-.308%202.359-1.038.823-.779%201.489-1.508.812-.86.812-.86.552-.13.877.26.341.957.065%201.46-1.672%202.206-3.247%203.066-2.76%201.427-3.929%201.768-3.848.73-7.063.714l-10.944-.114s-2.143-.081-3.02-.373-2.241-.973-2.598-1.265z%22%20fill%3D%22%23d36d49%22/%3E%3Cg%20fill%3D%22%23105a48%22%3E%3Cellipse%20cx%3D%2293.052%22%20cy%3D%2243.567%22%20rx%3D%22.869%22%20ry%3D%221.014%22%20transform%3D%22rotate%28341.022%29%22/%3E%3Cellipse%20cx%3D%22104.3%22%20cy%3D%22-16.184%22%20rx%3D%22.865%22%20ry%3D%221.009%22%20transform%3D%22rotate%2814.786%29%22/%3E%3C/g%3E%3C/svg%3E"/>
+        </a>
+</div>
+    </nav>
+    <main class="pdoc">
+            <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/tanaymihani/markout/blob/main/src/markout/games/arena.py">Edit on GitHub</a>
+                    <h1 class="modulename">
+<a href="./../../markout.html">markout</a><wbr>.<a href="./../games.html">games</a><wbr>.arena    </h1>
+
+                        <div class="docstring"><p>Market-making tournament: Glosten–Milgrom informed flow, K competing makers.</p>
+
+<p>This is module E's "simulated competition". It extends the Glosten &amp; Milgrom
+(1985) market (see :mod:<code><a href="glosten_milgrom.html">markout.games.glosten_milgrom</a></code>) to several makers who
+compete on price, and to noise traders whose demand is <em>elastic</em>.</p>
+
+<h2 id="market-one-episode-one-seed">Market (one episode = one seed)</h2>
+
+<ul>
+<li><strong>Value.</strong> V ∈ {V_L, V_H}, drawn once per episode from the prior π₀. Binary V
+keeps the Bayesian benchmark exact: the public belief and the zero-profit
+quotes have closed forms, so "did competition drive spreads to the zero-profit
+level?" can be checked against an exact number every period. It also makes an
+episode one information event, as in GM and in the PIN model of Easley et al.
+(1996). The cost is that V is learned within the episode, so adverse selection
+is concentrated early; T is chosen so learning takes a large part of it.</li>
+<li><strong>Arrivals.</strong> One trader per period. With probability μ it is informed: it
+knows V and buys (sells) one unit if the best ask is below (best bid above) V.
+Otherwise it is a noise trader with a coin-flip direction and a private
+urgency c ~ U[0, c_max]. A noise buyer trades only if the half-spread it pays,
+ask − m_t, is below c (a seller: m_t − bid), which happens with probability
+q(e) = 1 − e/c_max for an edge e. For quotes centred on the mid this is exactly
+"the half-spread is below c". Measuring each side from the mid is what
+Avellaneda &amp; Stoikov's arrival intensities do; it also means a maker cannot
+tax one side for free by skewing. Elastic demand gives a monopolist a finite
+optimal spread.</li>
+<li><strong>Quotes and matching.</strong> K makers each post a bid and an ask on a tick grid.
+The trader hits the best price; ties are split uniformly at random.</li>
+<li><strong>Information.</strong> Quotes and trades are public. Every maker sees the same tape
+and shares one Bayesian belief π_t = P(V = V_H | tape), computed with the true
+μ and c_max; the public mid is m_t = V_L + π_t(V_H − V_L). Makers therefore
+differ only in how they turn that belief (and their own inventory) into
+quotes, which isolates quoting policy from forecasting skill.</li>
+<li><strong>Accounting.</strong> Cash plus inventory marked to V at the end of the episode.
+Each fill's PnL splits exactly into edge − adverse selection:
+d·(price − V) = d·(price − m_t) − d·(V − m_t), with d = +1 when the trader
+buys. The second term is the fill's markout to the episode-end value.</li>
+</ul>
+
+<h2 id="zero-profit-and-monopoly-quotes">Zero-profit and monopoly quotes</h2>
+
+<p>Write a = ask − m and b = m − bid for the edges, Δ = V_H − V_L, and
+n(e) = (1 − μ)q(e)/2 for the probability of a noise buy at edge e. A buy then
+comes from an informed trader with probability πμ / (πμ + n(a)), and the
+zero-profit (GM) edges are the least fixed points of</p>
+
+<pre><code>a = Δπ(1 − π)μ / (πμ + n(a)),   b = Δπ(1 − π)μ / ((1 − π)μ + n(b)).
+</code></pre>
+
+<p>With inelastic noise (c_max → ∞, so n ≡ (1 − μ)/2) this is exactly the GM
+spread. A single maker's expected profit per period separates by side:</p>
+
+<pre><code>n(a)·a + πμ·min(0, a − (1 − π)Δ)   +   n(b)·b + (1 − π)μ·min(0, b − πΔ),
+</code></pre>
+
+<p>noise flow pays the edge, and informed flow costs the distance to V whenever the
+quote is inside V. The (myopic) monopoly quote maximizes each side. Both are
+tabulated on a grid of beliefs and interpolated.</p>
+
+<h2 id="agents">Agents</h2>
+
+<ul>
+<li><code><a href="#GMQuoter">GMQuoter</a></code>: posts the zero-profit quotes at the public belief (Glosten &amp;
+Milgrom 1985 with elastic noise). It earns no rents and loses nothing on
+average.</li>
+<li><code><a href="#FixedSpread">FixedSpread</a></code>: mid ± a fixed half-spread ("tight" and "wide").</li>
+<li><code><a href="#InventorySkew">InventorySkew</a></code>: Avellaneda &amp; Stoikov (2008) reservation price
+r = m − q·γ·σ²·(T − t) with a fixed half-spread around r; σ² = Δ²/(4T) spreads
+the prior variance of V evenly over the episode.</li>
+<li><code><a href="#Undercutter">Undercutter</a></code>: quotes one tick inside the best rival's last quote on each
+side while that stays at or above its zero-profit quote, and never wider than
+the monopoly quote (which is what it posts when it has no rival).</li>
+<li><code><a href="#MarkoutQuoter">MarkoutQuoter</a></code> (this project's design): the undercutter's competitive logic,
+but its floor is the zero-profit quote plus the Avellaneda–Stoikov
+indifference adjustment with the Bayesian conditional variance
+Var_t(V) = π(1 − π)Δ² in place of σ²(T − t): it sells no lower than
+E[V | buy] + (1 − 2q)γVar_t(V)/2 and buys no higher than
+E[V | sell] − (1 + 2q)γVar_t(V)/2. Alone, it posts the monopoly edges around
+its reservation price m − qγVar_t(V).</li>
+</ul>
+
+<p>Quote revisions are fast relative to arrivals: before each arrival the reactive
+makers (undercutter, markout) revise simultaneously, each responding to its
+rivals' previous-round quotes, until nobody moves. The response rule is monotone
+and its fixed point is unique, so the outcome is the Bertrand price on the tick
+grid given everyone's floors and caps.</p>
+</div>
+
+                
+                
+                
+            </section>
+                <section id="BIG">
+                    <div class="attr variable">
+            <span class="name">BIG</span>        =
+<span class="default_value">np.int64(1099511627776)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#BIG"></a>
+    
+    
+
+                </section>
+                <section id="Market">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass(frozen=True)</div>
+
+    <span class="def">class</span>
+    <span class="name">Market</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#Market"></a>
+    
+            <div class="docstring"><p>Parameters of one tournament market (prices in dollars).</p>
+</div>
+
+
+                            <div id="Market.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">Market</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">v_low</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">99.0</span>,</span><span class="param">	<span class="n">v_high</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">101.0</span>,</span><span class="param">	<span class="n">prior</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>,</span><span class="param">	<span class="n">mu</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span>,</span><span class="param">	<span class="n">c_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span>,</span><span class="param">	<span class="n">tick</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span>,</span><span class="param">	<span class="n">n_periods</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.v_low" class="classattr">
+                                <div class="attr variable">
+            <span class="name">v_low</span><span class="annotation">: float</span>        =
+<span class="default_value">99.0</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.v_low"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.v_high" class="classattr">
+                                <div class="attr variable">
+            <span class="name">v_high</span><span class="annotation">: float</span>        =
+<span class="default_value">101.0</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.v_high"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.prior" class="classattr">
+                                <div class="attr variable">
+            <span class="name">prior</span><span class="annotation">: float</span>        =
+<span class="default_value">0.5</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.prior"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.mu" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mu</span><span class="annotation">: float</span>        =
+<span class="default_value">0.2</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.mu"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.c_max" class="classattr">
+                                <div class="attr variable">
+            <span class="name">c_max</span><span class="annotation">: float</span>        =
+<span class="default_value">1.2</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.c_max"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.tick" class="classattr">
+                                <div class="attr variable">
+            <span class="name">tick</span><span class="annotation">: float</span>        =
+<span class="default_value">0.01</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.tick"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.n_periods" class="classattr">
+                                <div class="attr variable">
+            <span class="name">n_periods</span><span class="annotation">: int</span>        =
+<span class="default_value">100</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.n_periods"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.dv" class="classattr">
+                                <div class="attr variable">
+            <span class="name">dv</span><span class="annotation">: float</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.dv"></a>
+    
+    
+
+                            </div>
+                            <div id="Market.noise_trade_prob" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">noise_trade_prob</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">e</span></span><span class="return-annotation">):</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.noise_trade_prob"></a>
+    
+            <div class="docstring"><p>q(e) = P(c &gt; e) for c ~ U[0, c_max] (1 for a negative edge).</p>
+</div>
+
+
+                            </div>
+                            <div id="Market.noise_rate" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">noise_rate</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">e</span></span><span class="return-annotation">):</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.noise_rate"></a>
+    
+            <div class="docstring"><p>n(e) = (1 − μ)q(e)/2: probability that a period brings a noise buy at ask edge e.</p>
+</div>
+
+
+                            </div>
+                            <div id="Market.tables" class="classattr">
+                                <div class="attr variable">
+            <span class="name">tables</span><span class="annotation">: <a href="#QuoteTables">QuoteTables</a></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Market.tables"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="zero_profit_edge">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">zero_profit_edge</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">pi</span>, </span><span class="param"><span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>, </span><span class="param"><span class="n">side</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'ask'</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#zero_profit_edge"></a>
+    
+            <div class="docstring"><p>Zero-profit edge on one side at beliefs <code>pi</code> (NaN where none exists).</p>
+
+<p>With w = π for the ask (1 − π for the bid) and k = Δπ(1 − π)μ, the condition
+e = k/(wμ + n(e)) with linear demand n(e) = (1 − μ)(1 − e/c_max)/2 is the
+quadratic A·e² − B·e + k = 0, A = (1 − μ)/(2c_max), B = wμ + (1 − μ)/2. Its
+smaller root is the competitive (GM) quote, the least fixed point. If the
+discriminant is negative, or the root is not below c_max (no noise trader
+would trade there), the side breaks down and NaN is returned.</p>
+</div>
+
+
+                </section>
+                <section id="zero_profit_edges">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">zero_profit_edges</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">pi</span>,</span><span class="param">	<span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#zero_profit_edges"></a>
+    
+            <div class="docstring"><p>Zero-profit (ask edge, bid edge) at beliefs <code>pi</code>.</p>
+</div>
+
+
+                </section>
+                <section id="zero_profit_half_spread_at_half">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">zero_profit_half_spread_at_half</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">mu</span><span class="p">:</span> <span class="nb">float</span>, </span><span class="param"><span class="n">c_max</span><span class="p">:</span> <span class="nb">float</span>, </span><span class="param"><span class="n">dv</span><span class="p">:</span> <span class="nb">float</span></span><span class="return-annotation">) -> <span class="nb">float</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#zero_profit_half_spread_at_half"></a>
+    
+            <div class="docstring"><p>Closed form of the zero-profit half-spread at π = ½ with elastic noise.</p>
+
+<p>At π = ½, h(2μ + 2(1 − μ)(1 − h/c_max)) = μΔ, whose smaller root is
+h* = c_max·(1 − √(1 − 2μ(1 − μ)Δ/c_max)) / (2(1 − μ)). As c_max → ∞ this tends
+to μΔ/2, the GM half-spread. Returns NaN if no root exists (market breakdown).</p>
+</div>
+
+
+                </section>
+                <section id="side_profit">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">side_profit</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">e</span>, </span><span class="param"><span class="n">pi</span>, </span><span class="param"><span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>, </span><span class="param"><span class="n">side</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'ask'</span></span><span class="return-annotation">):</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#side_profit"></a>
+    
+            <div class="docstring"><p>Expected profit per period from one side of a lone maker's quote.</p>
+
+<p>Ask: n(a)·a + πμ·min(0, a − (1 − π)Δ); bid: n(b)·b + (1 − π)μ·min(0, b − πΔ).</p>
+</div>
+
+
+                </section>
+                <section id="one_period_profit">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">one_period_profit</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">a</span>, </span><span class="param"><span class="n">b</span>, </span><span class="param"><span class="n">pi</span>, </span><span class="param"><span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span></span><span class="return-annotation">):</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#one_period_profit"></a>
+    
+            <div class="docstring"><p>Expected profit per period of a lone maker quoting edges (a, b) at belief π.</p>
+</div>
+
+
+                </section>
+                <section id="monopoly_edge">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">monopoly_edge</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">pi</span>,</span><span class="param">	<span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>,</span><span class="param">	<span class="n">side</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'ask'</span>,</span><span class="param">	<span class="n">de</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0005</span>,</span><span class="param">	<span class="n">chunk</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#monopoly_edge"></a>
+    
+            <div class="docstring"><p>Myopic monopoly edge on one side and its one-period profit (grid search).</p>
+</div>
+
+
+                </section>
+                <section id="QuoteTables">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass(frozen=True)</div>
+
+    <span class="def">class</span>
+    <span class="name">QuoteTables</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables"></a>
+    
+            <div class="docstring"><p>Zero-profit and monopoly edges tabulated on a belief grid.</p>
+</div>
+
+
+                            <div id="QuoteTables.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">QuoteTables</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">grid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">be_ask</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">be_bid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">mono_ask</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">mono_bid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">mono_profit</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.grid" class="classattr">
+                                <div class="attr variable">
+            <span class="name">grid</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.grid"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.be_ask" class="classattr">
+                                <div class="attr variable">
+            <span class="name">be_ask</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.be_ask"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.be_bid" class="classattr">
+                                <div class="attr variable">
+            <span class="name">be_bid</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.be_bid"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.mono_ask" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mono_ask</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.mono_ask"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.mono_bid" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mono_bid</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.mono_bid"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.mono_profit" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mono_profit</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.mono_profit"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.build" class="classattr">
+                                <div class="attr function">
+                    <div class="decorator decorator-classmethod">@classmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">build</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">cls</span>,</span><span class="param">	<span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>,</span><span class="param">	<span class="n">n_grid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2001</span></span><span class="return-annotation">) -> <span class="n"><a href="#QuoteTables">QuoteTables</a></span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.build"></a>
+    
+    
+
+                            </div>
+                            <div id="QuoteTables.lookup" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">lookup</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">pi</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuoteTables.lookup"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="Context">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">Context</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#Context"></a>
+    
+            <div class="docstring"><p>What a maker sees when it quotes in period t (arrays over seeds).</p>
+</div>
+
+
+                            <div id="Context.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">Context</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>,</span><span class="param">	<span class="n">t</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">pi</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">mid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">q</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">be_ask</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">be_bid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">mono_ask</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">mono_bid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.mkt" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mkt</span><span class="annotation">: <a href="#Market">Market</a></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.mkt"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.t" class="classattr">
+                                <div class="attr variable">
+            <span class="name">t</span><span class="annotation">: int</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.t"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.pi" class="classattr">
+                                <div class="attr variable">
+            <span class="name">pi</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.pi"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.mid" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mid</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.mid"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.q" class="classattr">
+                                <div class="attr variable">
+            <span class="name">q</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.q"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.be_ask" class="classattr">
+                                <div class="attr variable">
+            <span class="name">be_ask</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.be_ask"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.be_bid" class="classattr">
+                                <div class="attr variable">
+            <span class="name">be_bid</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.be_bid"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.mono_ask" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mono_ask</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.mono_ask"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.mono_bid" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mono_bid</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.mono_bid"></a>
+    
+    
+
+                            </div>
+                            <div id="Context.var_v" class="classattr">
+                                <div class="attr variable">
+            <span class="name">var_v</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.var_v"></a>
+    
+            <div class="docstring"><p>Var(V | tape) = π(1 − π)Δ².</p>
+</div>
+
+
+                            </div>
+                            <div id="Context.ask_ticks" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">ask_ticks</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">price</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.ask_ticks"></a>
+    
+            <div class="docstring"><p>Round an ask up to the tick grid (away from the mid).</p>
+</div>
+
+
+                            </div>
+                            <div id="Context.bid_ticks" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">bid_ticks</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">price</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Context.bid_ticks"></a>
+    
+            <div class="docstring"><p>Round a bid down to the tick grid (away from the mid).</p>
+</div>
+
+
+                            </div>
+                </section>
+                <section id="Agent">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Agent</span><wbr>(<span class="base">typing.Protocol</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#Agent"></a>
+    
+            <div class="docstring"><p>A tournament entrant.</p>
+
+<p>Non-reactive agents (<code>reactive = False</code>) implement <code>quote(ctx)</code>, which
+returns (ask, bid) in ticks. Reactive agents implement <code>bounds(ctx)</code>,
+which returns (ask floor, ask cap, bid cap, bid floor) in ticks; the engine
+then applies the undercutting rule between those bounds.</p>
+</div>
+
+
+                            <div id="Agent.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">Agent</span><span class="signature pdoc-code condensed">(<span class="param"><span class="o">*</span><span class="n">args</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Agent.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="Agent.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Agent.name"></a>
+    
+    
+
+                            </div>
+                            <div id="Agent.reactive" class="classattr">
+                                <div class="attr variable">
+            <span class="name">reactive</span><span class="annotation">: bool</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Agent.reactive"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="QuotingAgent">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">QuotingAgent</span><wbr>(<span class="base"><a href="#Agent">Agent</a></span>, <span class="base">typing.Protocol</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#QuotingAgent"></a>
+    
+            <div class="docstring"><p>A tournament entrant.</p>
+
+<p>Non-reactive agents (<code>reactive = False</code>) implement <code>quote(ctx)</code>, which
+returns (ask, bid) in ticks. Reactive agents implement <code>bounds(ctx)</code>,
+which returns (ask floor, ask cap, bid cap, bid floor) in ticks; the engine
+then applies the undercutting rule between those bounds.</p>
+</div>
+
+
+                            <div id="QuotingAgent.quote" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">quote</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#QuotingAgent.quote"></a>
+    
+    
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#Agent">Agent</a></dt>
+                                <dd id="QuotingAgent.__init__" class="function"><a href="#Agent.__init__">Agent</a></dd>
+                <dd id="QuotingAgent.name" class="variable"><a href="#Agent.name">name</a></dd>
+                <dd id="QuotingAgent.reactive" class="variable"><a href="#Agent.reactive">reactive</a></dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="ReactiveAgent">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">ReactiveAgent</span><wbr>(<span class="base"><a href="#Agent">Agent</a></span>, <span class="base">typing.Protocol</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#ReactiveAgent"></a>
+    
+            <div class="docstring"><p>A tournament entrant.</p>
+
+<p>Non-reactive agents (<code>reactive = False</code>) implement <code>quote(ctx)</code>, which
+returns (ask, bid) in ticks. Reactive agents implement <code>bounds(ctx)</code>,
+which returns (ask floor, ask cap, bid cap, bid floor) in ticks; the engine
+then applies the undercutting rule between those bounds.</p>
+</div>
+
+
+                            <div id="ReactiveAgent.bounds" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">bounds</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#ReactiveAgent.bounds"></a>
+    
+    
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#Agent">Agent</a></dt>
+                                <dd id="ReactiveAgent.__init__" class="function"><a href="#Agent.__init__">Agent</a></dd>
+                <dd id="ReactiveAgent.name" class="variable"><a href="#Agent.name">name</a></dd>
+                <dd id="ReactiveAgent.reactive" class="variable"><a href="#Agent.reactive">reactive</a></dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="FixedSpread">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">FixedSpread</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#FixedSpread"></a>
+    
+            <div class="docstring"><p>Quote mid ± h, whatever the belief or the flow.</p>
+</div>
+
+
+                            <div id="FixedSpread.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">FixedSpread</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">half_spread</span><span class="p">:</span> <span class="nb">float</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#FixedSpread.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="FixedSpread.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#FixedSpread.name"></a>
+    
+    
+
+                            </div>
+                            <div id="FixedSpread.half_spread" class="classattr">
+                                <div class="attr variable">
+            <span class="name">half_spread</span><span class="annotation">: float</span>
+
+        
+    </div>
+    <a class="headerlink" href="#FixedSpread.half_spread"></a>
+    
+    
+
+                            </div>
+                            <div id="FixedSpread.reactive" class="classattr">
+                                <div class="attr variable">
+            <span class="name">reactive</span><span class="annotation">: bool</span>        =
+<span class="default_value">False</span>
+
+        
+    </div>
+    <a class="headerlink" href="#FixedSpread.reactive"></a>
+    
+    
+
+                            </div>
+                            <div id="FixedSpread.quote" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">quote</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#FixedSpread.quote"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="GMQuoter">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">GMQuoter</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#GMQuoter"></a>
+    
+            <div class="docstring"><p>Zero-profit quotes ask = E[V | buy], bid = E[V | sell] (Glosten–Milgrom).</p>
+</div>
+
+
+                            <div id="GMQuoter.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">GMQuoter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'gm'</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GMQuoter.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="GMQuoter.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>        =
+<span class="default_value">&#39;gm&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GMQuoter.name"></a>
+    
+    
+
+                            </div>
+                            <div id="GMQuoter.reactive" class="classattr">
+                                <div class="attr variable">
+            <span class="name">reactive</span><span class="annotation">: bool</span>        =
+<span class="default_value">False</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GMQuoter.reactive"></a>
+    
+    
+
+                            </div>
+                            <div id="GMQuoter.quote" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">quote</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#GMQuoter.quote"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="InventorySkew">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">InventorySkew</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew"></a>
+    
+            <div class="docstring"><p>Avellaneda–Stoikov reservation price r = m − q·γ·σ²·(T − t), mid ± h around r.</p>
+</div>
+
+
+                            <div id="InventorySkew.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">InventorySkew</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'inventory'</span>,</span><span class="param">	<span class="n">half_spread</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>,</span><span class="param">	<span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span>,</span><span class="param">	<span class="n">sigma2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="InventorySkew.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>        =
+<span class="default_value">&#39;inventory&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.name"></a>
+    
+    
+
+                            </div>
+                            <div id="InventorySkew.half_spread" class="classattr">
+                                <div class="attr variable">
+            <span class="name">half_spread</span><span class="annotation">: float</span>        =
+<span class="default_value">0.25</span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.half_spread"></a>
+    
+    
+
+                            </div>
+                            <div id="InventorySkew.gamma" class="classattr">
+                                <div class="attr variable">
+            <span class="name">gamma</span><span class="annotation">: float</span>        =
+<span class="default_value">0.02</span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.gamma"></a>
+    
+    
+
+                            </div>
+                            <div id="InventorySkew.sigma2" class="classattr">
+                                <div class="attr variable">
+            <span class="name">sigma2</span><span class="annotation">: float | None</span>        =
+<span class="default_value">None</span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.sigma2"></a>
+    
+    
+
+                            </div>
+                            <div id="InventorySkew.reactive" class="classattr">
+                                <div class="attr variable">
+            <span class="name">reactive</span><span class="annotation">: bool</span>        =
+<span class="default_value">False</span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.reactive"></a>
+    
+    
+
+                            </div>
+                            <div id="InventorySkew.quote" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">quote</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#InventorySkew.quote"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="Undercutter">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">Undercutter</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#Undercutter"></a>
+    
+            <div class="docstring"><p>One tick inside the best rival, floored at zero profit, capped at monopoly.</p>
+
+<p><code><a href="#Undercutter.bounds">bounds</a></code> returns (ask floor, ask cap, bid cap, bid floor) in ticks, where
+the floors are the tightest acceptable quotes (+EV under the belief, rounded
+away from the mid) and the caps are the monopoly quotes.</p>
+</div>
+
+
+                            <div id="Undercutter.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">Undercutter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'undercut'</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Undercutter.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="Undercutter.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>        =
+<span class="default_value">&#39;undercut&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Undercutter.name"></a>
+    
+    
+
+                            </div>
+                            <div id="Undercutter.reactive" class="classattr">
+                                <div class="attr variable">
+            <span class="name">reactive</span><span class="annotation">: bool</span>        =
+<span class="default_value">True</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Undercutter.reactive"></a>
+    
+    
+
+                            </div>
+                            <div id="Undercutter.bounds" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">bounds</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#Undercutter.bounds"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="MarkoutQuoter">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">MarkoutQuoter</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#MarkoutQuoter"></a>
+    
+            <div class="docstring"><p>Bayesian (GM) floors + Avellaneda–Stoikov inventory terms + Bertrand undercutting.</p>
+
+<p>Uses Var_t(V) = π(1 − π)Δ² from the public belief as the inventory risk, so
+the skew fades as the tape reveals V rather than linearly in time.</p>
+</div>
+
+
+                            <div id="MarkoutQuoter.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">MarkoutQuoter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'markout'</span>, </span><span class="param"><span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MarkoutQuoter.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="MarkoutQuoter.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>        =
+<span class="default_value">&#39;markout&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MarkoutQuoter.name"></a>
+    
+    
+
+                            </div>
+                            <div id="MarkoutQuoter.gamma" class="classattr">
+                                <div class="attr variable">
+            <span class="name">gamma</span><span class="annotation">: float</span>        =
+<span class="default_value">0.02</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MarkoutQuoter.gamma"></a>
+    
+    
+
+                            </div>
+                            <div id="MarkoutQuoter.reactive" class="classattr">
+                                <div class="attr variable">
+            <span class="name">reactive</span><span class="annotation">: bool</span>        =
+<span class="default_value">True</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MarkoutQuoter.reactive"></a>
+    
+    
+
+                            </div>
+                            <div id="MarkoutQuoter.bounds" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">bounds</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">c</span><span class="p">:</span> <span class="n"><a href="#Context">Context</a></span></span><span class="return-annotation">) -> <span class="nb">tuple</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#MarkoutQuoter.bounds"></a>
+    
+    
+
+                            </div>
+                </section>
+                <section id="default_agents">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">default_agents</span><span class="signature pdoc-code condensed">(<span class="return-annotation">) -> <span class="nb">list</span><span class="p">[</span><span class="n"><a href="#Agent">Agent</a></span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#default_agents"></a>
+    
+            <div class="docstring"><p>The six tournament entrants with the parameters used in the report.</p>
+</div>
+
+
+                </section>
+                <section id="ArenaRun">
+                    <div class="attr class">
+                    <div class="decorator decorator-dataclass">@dataclass</div>
+
+    <span class="def">class</span>
+    <span class="name">ArenaRun</span>:
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun"></a>
+    
+            <div class="docstring"><p>Per-seed outcomes of one tournament configuration.</p>
+</div>
+
+
+                            <div id="ArenaRun.__init__" class="classattr">
+                                <div class="attr function">
+            
+        <span class="name">ArenaRun</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>,</span><span class="param">	<span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>,</span><span class="param">	<span class="n">value_high</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">pnl</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">fills</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">informed_fills</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">edge</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">adverse</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">q2</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">q_final</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">trades</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">informed_trades</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">noise_trades</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">noise_arrivals</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">noise_pnl</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">noise_surplus</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">informed_pnl</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">quoted_spread</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">zero_profit_spread</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">eff_half</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">spread_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">zero_profit_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">belief_truth_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">final_belief</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">fill_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">informed_fill_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">edge_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">adverse_path</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">rounds_max</span><span class="p">:</span> <span class="nb">int</span></span>)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.__init__"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.mkt" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mkt</span><span class="annotation">: <a href="#Market">Market</a></span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.mkt"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.names" class="classattr">
+                                <div class="attr variable">
+            <span class="name">names</span><span class="annotation">: list[str]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.names"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.value_high" class="classattr">
+                                <div class="attr variable">
+            <span class="name">value_high</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.value_high"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.pnl" class="classattr">
+                                <div class="attr variable">
+            <span class="name">pnl</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.pnl"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.fills" class="classattr">
+                                <div class="attr variable">
+            <span class="name">fills</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.fills"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.informed_fills" class="classattr">
+                                <div class="attr variable">
+            <span class="name">informed_fills</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.informed_fills"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.edge" class="classattr">
+                                <div class="attr variable">
+            <span class="name">edge</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.edge"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.adverse" class="classattr">
+                                <div class="attr variable">
+            <span class="name">adverse</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.adverse"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.q2" class="classattr">
+                                <div class="attr variable">
+            <span class="name">q2</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.q2"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.q_final" class="classattr">
+                                <div class="attr variable">
+            <span class="name">q_final</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.q_final"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.trades" class="classattr">
+                                <div class="attr variable">
+            <span class="name">trades</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.trades"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.informed_trades" class="classattr">
+                                <div class="attr variable">
+            <span class="name">informed_trades</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.informed_trades"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.noise_trades" class="classattr">
+                                <div class="attr variable">
+            <span class="name">noise_trades</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.noise_trades"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.noise_arrivals" class="classattr">
+                                <div class="attr variable">
+            <span class="name">noise_arrivals</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.noise_arrivals"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.noise_pnl" class="classattr">
+                                <div class="attr variable">
+            <span class="name">noise_pnl</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.noise_pnl"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.noise_surplus" class="classattr">
+                                <div class="attr variable">
+            <span class="name">noise_surplus</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.noise_surplus"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.informed_pnl" class="classattr">
+                                <div class="attr variable">
+            <span class="name">informed_pnl</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.informed_pnl"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.quoted_spread" class="classattr">
+                                <div class="attr variable">
+            <span class="name">quoted_spread</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.quoted_spread"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.zero_profit_spread" class="classattr">
+                                <div class="attr variable">
+            <span class="name">zero_profit_spread</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.zero_profit_spread"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.eff_half" class="classattr">
+                                <div class="attr variable">
+            <span class="name">eff_half</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.eff_half"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.spread_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">spread_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.spread_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.zero_profit_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">zero_profit_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.zero_profit_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.belief_truth_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">belief_truth_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.belief_truth_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.final_belief" class="classattr">
+                                <div class="attr variable">
+            <span class="name">final_belief</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.final_belief"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.fill_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">fill_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.fill_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.informed_fill_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">informed_fill_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.informed_fill_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.edge_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">edge_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.edge_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.adverse_path" class="classattr">
+                                <div class="attr variable">
+            <span class="name">adverse_path</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.adverse_path"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.rounds_max" class="classattr">
+                                <div class="attr variable">
+            <span class="name">rounds_max</span><span class="annotation">: int</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.rounds_max"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.n_seeds" class="classattr">
+                                <div class="attr variable">
+            <span class="name">n_seeds</span><span class="annotation">: int</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.n_seeds"></a>
+    
+    
+
+                            </div>
+                            <div id="ArenaRun.agent_summary" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">agent_summary</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">i</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="nb">dict</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.agent_summary"></a>
+    
+            <div class="docstring"><p>PnL, fill share, per-fill economics and inventory risk of maker i.</p>
+</div>
+
+
+                            </div>
+                            <div id="ArenaRun.market_summary" class="classattr">
+                                <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">market_summary</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="nb">dict</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#ArenaRun.market_summary"></a>
+    
+            <div class="docstring"><p>Spreads, maker profit per trade and noise-trader welfare for the market.</p>
+</div>
+
+
+                            </div>
+                </section>
+                <section id="simulate">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">simulate</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">mkt</span><span class="p">:</span> <span class="n"><a href="#Market">Market</a></span>,</span><span class="param">	<span class="n">agents</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n"><a href="#Agent">Agent</a></span><span class="p">]</span>,</span><span class="param">	<span class="n">n_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>,</span><span class="param">	<span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>,</span><span class="param">	<span class="n">max_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5000</span></span><span class="return-annotation">) -> <span class="n"><a href="#ArenaRun">ArenaRun</a></span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#simulate"></a>
+    
+            <div class="docstring"><p>Run one tournament configuration over <code>n_seeds</code> independent episodes.</p>
+
+<p>The exogenous randomness (V, who arrives, noise direction and urgency, tie
+breaks) depends only on <code>seed</code>, so different line-ups face the same flow
+(common random numbers), which sharpens paired comparisons.</p>
+</div>
+
+
+                </section>
+                <section id="clone">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">clone</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">agent</span>, </span><span class="param"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">):</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#clone"></a>
+    
+            <div class="docstring"><p>A copy of <code>agent</code> under a new name (for line-ups of identical makers).</p>
+</div>
+
+
+                </section>
+                <section id="head_to_head">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">head_to_head</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">run</span><span class="p">:</span> <span class="n"><a href="#ArenaRun">ArenaRun</a></span></span><span class="return-annotation">) -> <span class="nb">dict</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#head_to_head"></a>
+    
+            <div class="docstring"><p>Paired PnL difference of the first two makers (same seeds, same flow).</p>
+</div>
+
+
+                </section>
+                <section id="replicator">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">replicator</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">payoff</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">x0</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>,</span><span class="param">	<span class="n">n_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4000</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#replicator"></a>
+    
+            <div class="docstring"><p>Discrete-time replicator dynamics ẋ_i = x_i((Ax)_i − xᵀAx).</p>
+
+<p><code>payoff[i, j]</code> is strategy i's mean payoff against j. Uses the exact
+exponential-weights update x_i ← x_i·exp(dt·(Ax)_i)/Z, which stays on the
+simplex and is the replicator equation in the limit dt → 0. Returns the path
+of shares, shape (n_steps + 1, n).</p>
+</div>
+
+
+                </section>
+    </main>
+</body>
+</html>

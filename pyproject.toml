@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markout"
-version = "0.1.0"
+version = "1.0.0"
 description = "Does a short-horizon edge survive costs, fills, and competition?"
 readme = "README.md"
 license = "MIT"

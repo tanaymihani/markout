@@ -26,6 +26,7 @@ TEMPLATE = Path(__file__).with_name("site_template.html")
 REPO = "https://github.com/tanaymihani/markout"
 SITE = "https://tanaymihani.github.io/markout/"
 PAPER_URL: str | None = None  # SSRN link, once the paper is public
+DESK_URL: str | None = None  # the hosted desk on Hugging Face, once deployed (deploy/README.md)
 VIDEO = DOCS / "media" / "markout-demo.mp4"
 DESCRIPTION = (
     "A reality check for trading backtests: how much of an edge survives the spread, a real order queue, "
@@ -49,6 +50,8 @@ BUILT_WITH = (
     "pybind11",
     "JavaScript",
     "SVG",
+    "Docker",
+    "Playwright",
     "GitHub Actions",
     "GitHub Pages",
     "LOBSTER data",
@@ -300,6 +303,7 @@ def render() -> str:
         "repo": REPO,
         "paper_href": PAPER_URL or f"{REPO}/blob/main/reports/02_microstructure.md",
         "paper_label": "Read the paper" if PAPER_URL else "Read the study",
+        "desk_link": f'<a href="{DESK_URL}">Try the live desk</a> · ' if DESK_URL else "",
         "video_button": '<a class="btn" href="#video">Watch the demo</a>' if has_video else "",
         "hero_tiles": hero_tiles(),
         "findings_cards": cards,
