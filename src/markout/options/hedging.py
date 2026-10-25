@@ -39,6 +39,7 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
+from typing import Any
 
 import numpy as np
 from scipy.special import ndtr
@@ -93,7 +94,7 @@ class HedgeResult:
     turnover: np.ndarray  # PV of dollars traded; cost = kappa * turnover
     attribution: np.ndarray  # PV gamma-theta attribution
     rebalance_turnover: np.ndarray  # turnover excluding the initial hedge and the final unwind
-    config: HedgeConfig = field(repr=False, default=None)
+    config: HedgeConfig = field(repr=False)
 
     def net(self, kappa: float) -> np.ndarray:
         return self.pnl - kappa * self.turnover
@@ -166,6 +167,7 @@ def simulate(cfg: HedgeConfig, intervals: Sequence[int]) -> dict[int, HedgeResul
             s["attr"] += disc * 0.5 * s["G_last"] * s["S_last"] ** 2 * (cfg.sigma_imp**2 * h * dt - R * R)
             if last:
                 continue
+            assert dg is not None  # computed whenever some interval rebalances
             new, G = dg
             trade = new - s["shares"]
             s["cash"] -= trade * S
@@ -238,7 +240,7 @@ def frontier(
     Returns (points, choices): one point per (kappa, interval) and, for each
     (kappa, k), the interval with the smallest objective.
     """
-    points = []
+    points: list[dict[str, Any]] = []
     for kappa in kappas:
         for h, res in sorted(results.items(), reverse=True):
             net = res.net(kappa)

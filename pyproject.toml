@@ -56,3 +56,14 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["markout"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/markout"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+# no type information shipped (pandas-stubs and scipy-stubs are not used)
+module = ["pandas.*", "scipy.*", "sklearn.*", "statsmodels.*", "yfinance.*", "pyarrow.*", "lightgbm.*", "arch.*"]
+ignore_missing_imports = true

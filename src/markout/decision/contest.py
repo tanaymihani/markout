@@ -185,8 +185,14 @@ def simulate(cfg: ContestConfig, policies: Sequence[Policy], chunk_elems: int = 
     chunk = max(1, chunk_elems // (M * K))
     prizes = np.array(cfg.prizes, float)
     n_paid = len(cfg.prizes)
-    out = {p.name: {"wealth": [], "p1": [], "top3": [], "prize": []} for p in policies}
-    fld = {"winner_wealth": [], "third_wealth": [], "winner_allin": [], "winner_sharp": [], "median_wealth": []}
+    out: dict[str, dict[str, list]] = {p.name: {"wealth": [], "p1": [], "top3": [], "prize": []} for p in policies}
+    fld: dict[str, list] = {
+        "winner_wealth": [],
+        "third_wealth": [],
+        "winner_allin": [],
+        "winner_sharp": [],
+        "median_wealth": [],
+    }
     user_stats = {
         "brier_user": 0.0,
         "brier_market": 0.0,
@@ -215,7 +221,7 @@ def simulate(cfg: ContestConfig, policies: Sequence[Policy], chunk_elems: int = 
             )
             qf = q[:, None, :].astype(np.float32)
             yes, f = kelly.kelly_binary(pf, qf)
-            ret = kelly.payoff_per_unit(yes, qf, y[:, None, :].astype(np.float32))
+            ret = np.asarray(kelly.payoff_per_unit(yes, qf, y[:, None, :].astype(np.float32)))
             k = M - n_paid  # the field's n_paid-th best bankroll marks the last paid place
             leaders = np.partition(W, k, axis=1)[:, k] if k >= 0 else np.zeros(B)
             W = W * (1.0 + _round_gain(f.astype(np.float32), ret.astype(np.float32), mult, allin)).astype(np.float32)
@@ -223,9 +229,9 @@ def simulate(cfg: ContestConfig, policies: Sequence[Policy], chunk_elems: int = 
             lp = L + cfg.user_noise_ratio * cfg.market_noise * rng.standard_normal((B, K))
             pu = _sigmoid(lp)
             yes_u, fu = kelly.kelly_binary(pu, q)
-            ret_u = kelly.payoff_per_unit(yes_u, q, y)
+            ret_u = np.asarray(kelly.payoff_per_unit(yes_u, q, y))
             yes_c, fc = kelly.kelly_binary(_posterior_prob(lq, lp, cfg), q)
-            ret_c = kelly.payoff_per_unit(yes_c, q, y)
+            ret_c = np.asarray(kelly.payoff_per_unit(yes_c, q, y))
             perceived = np.where(yes_u, (pu - q) / q, (q - pu) / (1 - q))  # E[return] under your own belief
             user_stats["brier_user"] += float(((pu - y) ** 2).sum())
             user_stats["brier_market"] += float(((q - y) ** 2).sum())
@@ -393,7 +399,7 @@ def run_study(base: ContestConfig = BASE) -> tuple[dict, dict]:
         "third": sim["field"]["third_wealth"],
         "user_wealth": {n: sim["policies"][n]["wealth"] for n in ("1x Kelly", "5x Kelly")},
     }
-    sens = {}
+    sens: dict[str, list] = {}
     for j, (param, values) in enumerate(SENSITIVITY.items()):
         sens[param] = []
         for i, v in enumerate(values):
@@ -834,7 +840,7 @@ def part1_markdown(C: dict) -> str:
                 or pol[b1["policy"]].late_share > 0,
             }
         )
-    n_above = sum(r.pop("_above") for r in srows)
+    n_above = sum(bool(r.pop("_above")) for r in srows)
     edge_scen = [e for k, v in C["sensitivity"].items() if k == "user_noise_ratio" for e in v]
     prize_by_edge = [_row(e["rows"], robust["policy"])["expected_prize"] for e in edge_scen]
     skill_by_edge = [e["field"]["brier_skill"] for e in edge_scen]

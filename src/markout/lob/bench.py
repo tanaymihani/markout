@@ -24,7 +24,9 @@ import pstats
 import statistics
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, TypeVar
 
 import numpy as np
 
@@ -37,6 +39,7 @@ from markout.paths import ROOT
 
 NAME = "cpp_bench"
 RUNS = 5
+T = TypeVar("T")
 PROFILE_TICKER = "MSFT"
 PROFILE_ROWS = 12
 
@@ -49,8 +52,10 @@ def profile_python(ticker: str = PROFILE_TICKER, model: str = "fifo", rows: int 
     simulate(day.messages, day.book, orders, model, engine="python")
     pr.disable()
     st = pstats.Stats(pr)
-    total = st.total_tt
-    top = sorted(st.stats.items(), key=lambda kv: kv[1][2], reverse=True)[:rows]
+    # Stats sets these in __init__; typeshed does not declare them
+    total: float = st.total_tt  # type: ignore[attr-defined]
+    raw: dict = st.stats  # type: ignore[attr-defined]
+    top = sorted(raw.items(), key=lambda kv: kv[1][2], reverse=True)[:rows]
     table = []
     for (file, line, func), (_cc, nc, tt, ct, _) in top:
         where = f"{Path(file).name}:{line}" if line else file
@@ -71,13 +76,13 @@ def profile_python(ticker: str = PROFILE_TICKER, model: str = "fifo", rows: int 
         "ticker": ticker,
         "model": model,
         "total_s": total,
-        "function_calls": int(sum(v[1] for v in st.stats.values())),
+        "function_calls": int(sum(v[1] for v in raw.values())),
         "rows": table,
         "text": clean,
     }
 
 
-def timed(fn, runs: int = RUNS) -> tuple[float, list[float], object]:
+def timed(fn: Callable[[], T], runs: int = RUNS) -> tuple[float, list[float], T]:
     out = fn()  # warm-up (also the result we check)
     times = []
     for _ in range(runs):
@@ -99,7 +104,7 @@ def compiler_info() -> dict:
 
 
 def run(runs: int = RUNS) -> dict:
-    rows = []
+    rows: list[dict[str, Any]] = []
     for t in TICKERS:
         day = load_day(t)
         orders = sample_orders(day).orders

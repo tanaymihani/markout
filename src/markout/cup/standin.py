@@ -56,7 +56,9 @@ def standin_specs(
         and now + timedelta(hours=6) < q.end < now + timedelta(days=horizon_days)
         and (q.volume_24h or 0) >= min_volume
     ]
-    seen, chosen, per = set(), [], {}
+    seen: set[str] = set()
+    chosen: list = []
+    per: dict[str, int] = {}
     for q in sorted(quotes, key=lambda x: -(x.volume_24h or 0)):
         event = q.url.rsplit("/", 1)[-1] if source == "kalshi" else q.question
         cat = category(q.question)
@@ -70,6 +72,7 @@ def standin_specs(
     rng = np.random.default_rng(seed)
     specs, exclude = [], set()
     for q in chosen:
+        assert q.end is not None  # filtered above
         mid = f"{source[0]}:{q.id}"
         cs = (Contract(f"{mid}:yes", mid, "Yes"), Contract(f"{mid}:no", mid, "No"))
         m = Market(mid, q.question, category(q.question), cs, q.end - timedelta(minutes=30), q.end, url=q.url)

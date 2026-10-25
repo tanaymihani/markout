@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from typing import Any
 
 from markout.cup.match import Candidate
 from markout.cup.types import Book
@@ -73,7 +74,9 @@ def estimate(book: Book, refs: list[Candidate], min_band: float = 0.02) -> Estim
     """None when there is nothing but the contest price (no view, no trade)."""
     if not refs or book.mid is None:
         return None
-    comps = [{"label": "contest mid", "p": book.mid, "w": contest_weight(book), "url": "", "source": "contest"}]
+    comps: list[dict[str, Any]] = [
+        {"label": "contest mid", "p": book.mid, "w": contest_weight(book), "url": "", "source": "contest"}
+    ]
     for c in refs:
         comps.append(
             {

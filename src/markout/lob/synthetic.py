@@ -102,8 +102,7 @@ class SyntheticExchange:
         """Aggressive order of `side` (+1 buy): walks the opposite book in price-time
         priority, one type-4 message per resting order hit. Returns shares filled."""
         done = 0
-        while done < size and self.best(-side) is not None:
-            price = self.best(-side)
+        while done < size and (price := self.best(-side)) is not None:
             oid = self.queues[-side][price][0]
             take = min(size - done, self.orders[oid][2])
             self.execute(t, oid, take)
@@ -178,6 +177,7 @@ def apply_action(
         ex.market(t, side, size)
     elif kind == "hidden":  # usually inside the spread, sometimes at the touch
         bb, ba = ex.best(1), ex.best(-1)
+        assert bb is not None and ba is not None  # both sides are non-empty past the first branch
         steps = (ba - bb) // tick
         ex.hidden(t, bb + tick * (pick % (steps + 1)), size, side)
     elif kind == "cross":

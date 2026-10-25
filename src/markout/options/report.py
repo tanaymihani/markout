@@ -12,6 +12,7 @@ import functools
 import math
 import time
 from datetime import UTC, datetime
+from typing import Any
 
 import numpy as np
 from scipy.special import ndtr
@@ -66,7 +67,7 @@ FD_CASES = [
 
 def _price_with(base: dict, kind: str, **kw) -> float:
     """Black-Scholes price at `base` parameters with some of them overridden."""
-    return bs.price(**{**base, **kw}, kind=kind)
+    return float(bs.price(**{**base, **kw}, kind=kind))
 
 
 def bs_checks(seed: int = SEED, n: int = 20_000) -> dict:
@@ -263,7 +264,8 @@ def run_snapshot() -> tuple[dict | None, dict | None]:
     S = meta["underlying_price"]
     qt = smile.quote_datetime(meta)
     expiries = smile.pick_expiries(df["expiry"].unique(), qt.date(), TARGET_DAYS)
-    per, figdata = [], {"smiles": {}, "parity": {}}
+    per: list[dict] = []
+    figdata: dict[str, dict] = {"smiles": {}, "parity": {}}
     for e in expiries:
         cy = smile.carry_for(meta, e)
         sm = smile.smile(fresh, meta, e)
@@ -1243,7 +1245,7 @@ section reads the saved snapshot and never refetches). Numbers: `reports/results
 
 def main() -> dict:
     t0 = time.time()
-    R = {"generated_utc": datetime.now(UTC).replace(microsecond=0).isoformat()}
+    R: dict[str, Any] = {"generated_utc": datetime.now(UTC).replace(microsecond=0).isoformat()}
     R["bs"] = bs_checks()
     R["hedging"], hfig = run_hedging()
     R["snapshot"], sfig = run_snapshot()

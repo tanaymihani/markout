@@ -9,6 +9,8 @@ weights, which the features and the post-processing then use.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import polars as pl
 
@@ -16,6 +18,15 @@ GROUP = ["stock_id", "date_id"]
 XS = ["date_id", "seconds_in_bucket"]
 HORIZON_STEPS = 6  # 60 s in 10 s snapshots
 STEPS_PER_DAY = 55
+
+
+def _f(x: Any) -> float:
+    """Polars scalar aggregates are typed as a broad union; they are numbers here."""
+    return float(x)
+
+
+def _i(x: Any) -> int:
+    return int(x)
 
 
 def with_forward_return(df: pl.DataFrame) -> pl.DataFrame:
@@ -44,9 +55,9 @@ def coverage(df: pl.DataFrame) -> dict:
         "n_rows": df.height,
         "n_stocks": df["stock_id"].n_unique(),
         "n_days": df["date_id"].n_unique(),
-        "stocks_per_day_min": int(per_day["n"].min()),
-        "stocks_per_day_median": float(per_day["n"].median()),
-        "stocks_per_day_max": int(per_day["n"].max()),
+        "stocks_per_day_min": _i(per_day["n"].min()),
+        "stocks_per_day_median": _f(per_day["n"].median()),
+        "stocks_per_day_max": _i(per_day["n"].max()),
         "incomplete_stock_days": int((rows["n"] != STEPS_PER_DAY).sum()),
         "stock_days": rows.height,
         "per_day": per_day,
@@ -67,7 +78,7 @@ def distributions(df: pl.DataFrame) -> dict:
         "target_quantiles": dict(zip([f"q{int(100 * p):02d}" for p in q], np.quantile(t, q))),
         "target_excess_kurtosis": float((tc**4).mean() / (tc**2).mean() ** 2 - 3.0),
         "target_share_abs_gt_20bps": float((np.abs(t) > 20).mean()),
-        "target_null_share": float(df["target"].is_null().mean()),
+        "target_null_share": _f(df["target"].is_null().mean()),
     }
 
 
@@ -85,9 +96,9 @@ def reconstruction(df: pl.DataFrame) -> dict:
         .filter(pl.col("n") >= 5)
     )
     return {
-        "median_cross_stock_std_implied_index_bps": float(per["implied_std"].median()),
-        "median_cross_stock_std_ret60_bps": float(per["ret_std"].median()),
-        "ratio": float(per["implied_std"].median() / per["ret_std"].median()),
+        "median_cross_stock_std_implied_index_bps": _f(per["implied_std"].median()),
+        "median_cross_stock_std_ret60_bps": _f(per["ret_std"].median()),
+        "ratio": _f(per["implied_std"].median()) / _f(per["ret_std"].median()),
         "n_timestamps": per.height,
     }
 
@@ -155,9 +166,9 @@ def run(df: pl.DataFrame, weight_days: tuple[int, int]) -> dict:
         "coverage": cov,
         "stocks_per_day": per_day,
         "missingness": miss,
-        "far_near_first_second": int(first_far.min()) if first_far.len() else None,
-        "far_null_share_before_300": float(miss.filter(pl.col("seconds_in_bucket") < 300)["far_price"].mean()),
-        "far_null_share_after_300": float(miss.filter(pl.col("seconds_in_bucket") >= 300)["far_price"].mean()),
+        "far_near_first_second": _i(first_far.min()) if first_far.len() else None,
+        "far_null_share_before_300": _f(miss.filter(pl.col("seconds_in_bucket") < 300)["far_price"].mean()),
+        "far_null_share_after_300": _f(miss.filter(pl.col("seconds_in_bucket") >= 300)["far_price"].mean()),
         "distributions": distributions(df),
         "reconstruction": reconstruction(df),
         "weights": weights,

@@ -196,11 +196,11 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
     reason = [int(End.ACTIVE)] * k_ord
     queue0 = [0] * k_ord
     ahead = [0] * k_ord  # FIFO: displayed shares still ahead of us
-    behind: list[set | None] = [None] * k_ord  # FIFO: ids that joined our level after us
+    behind: list[set[int]] = [set() for _ in range(k_ord)]  # FIFO: ids that joined our level after us
     deadline = [0.0] * k_ord
 
     # live orders by side and price: {price: [order indices]}
-    live = {1: {}, -1: {}}
+    live: dict[int, dict[int, list[int]]] = {1: {}, -1: {}}
     heap: list[tuple[float, int]] = []  # (deadline, order) for timeouts
 
     def finish(j: int, why: End, n: int, when: float) -> None:
@@ -310,7 +310,6 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
                 reason[j], end_idx[j], end_time[j] = int(End.REJECTED), n, tn
                 continue
             ahead[j] = queue0[j]
-            behind[j] = set() if fifo else None
             deadline[j] = tn + max_wait[j]
             live[s].setdefault(q, []).append(j)
             heapq.heappush(heap, (deadline[j], j))

@@ -29,21 +29,21 @@ OUT_DIR = PROCESSED / "optiver"
 PARQUET = OUT_DIR / "train.parquet"
 
 SCHEMA: dict[str, pl.DataType] = {
-    "stock_id": pl.Int16,
-    "date_id": pl.Int16,
-    "seconds_in_bucket": pl.Int16,
-    "imbalance_size": pl.Float32,
-    "imbalance_buy_sell_flag": pl.Int8,
-    "reference_price": pl.Float32,
-    "matched_size": pl.Float32,
-    "far_price": pl.Float32,
-    "near_price": pl.Float32,
-    "bid_price": pl.Float32,
-    "bid_size": pl.Float32,
-    "ask_price": pl.Float32,
-    "ask_size": pl.Float32,
-    "wap": pl.Float32,
-    "target": pl.Float32,
+    "stock_id": pl.Int16(),
+    "date_id": pl.Int16(),
+    "seconds_in_bucket": pl.Int16(),
+    "imbalance_size": pl.Float32(),
+    "imbalance_buy_sell_flag": pl.Int8(),
+    "reference_price": pl.Float32(),
+    "matched_size": pl.Float32(),
+    "far_price": pl.Float32(),
+    "near_price": pl.Float32(),
+    "bid_price": pl.Float32(),
+    "bid_size": pl.Float32(),
+    "ask_price": pl.Float32(),
+    "ask_size": pl.Float32(),
+    "wap": pl.Float32(),
+    "target": pl.Float32(),
 }
 KEYS = ["stock_id", "date_id", "seconds_in_bucket"]
 

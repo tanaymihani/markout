@@ -100,7 +100,9 @@ def _bootstrap(
     if block < 1:
         raise ValueError(f"expected block length must be >= 1, got {block}")
 
-    bs = StationaryBootstrap(block, x, seed=seed)
+    # arch annotates block_size as int, but the stationary bootstrap takes a real-valued expected
+    # block length; rounding it here would change every reported interval.
+    bs = StationaryBootstrap(block, x, seed=seed)  # type: ignore[arg-type]
     draws = np.empty(n_boot)
     chunk = max(1, _CHUNK_ELEMS // T)
     for start in range(0, n_boot, chunk):

@@ -14,6 +14,7 @@ import gc
 import time
 from collections.abc import Callable
 from dataclasses import asdict
+from typing import Any
 
 import numpy as np
 
@@ -251,7 +252,7 @@ def classes(res: dict) -> tuple[list[str], list[str]]:
 def verdict(res: dict) -> dict:
     """Does the queue-imbalance signal survive realistic (FIFO) fills? Decided from the
     out-of-sample EV of the post-or-cross rule, its block-bootstrap CI and the fee cap."""
-    out = {"fee_ticks": TAKER_FEE_TICKS, "tickers": {}}
+    out: dict[str, Any] = {"fee_ticks": TAKER_FEE_TICKS, "tickers": {}}
     for t in res["meta"]["tickers"]:
         r = res["post_vs_cross"][t]["rules"]
         fifo, touch = r["fifo"], r["touch"]
@@ -764,7 +765,7 @@ def section_fills(res: dict) -> list[str]:
             "orders are 'filled' by touch but not by the queue."
         )
     unc = each(tickers, lambda t: "{:.2f}".format(row[t, "fifo"]["uncond_10"]))
-    m10 = {m: each(tickers, lambda t, m=m: "{:+.2f}".format(row[t, m]["mk_10"])) for m in MODELS}
+    m10 = {m: listing(["{:+.2f}".format(row[t, m]["mk_10"]) for t in tickers]) for m in MODELS}
     less = all(row[t, m]["mk_10"] < row[t, m]["uncond_10"] for t in tickers for m in MODELS)
     text2 = (
         "A random fill would earn the half-spread, and the *unconditional* markout "

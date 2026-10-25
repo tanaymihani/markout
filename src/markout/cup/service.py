@@ -118,9 +118,9 @@ class Bot:
 
         cutoff = (now - timedelta(hours=self.cfg.cooldown_hours)).isoformat()
         last: dict[str, dict] = {}
-        for p in self.store.proposals():
-            if p["status"] in ("executed", "logged", "skipped", "rejected") and (p.get("decided") or "") >= cutoff:
-                last.setdefault(p["contract_id"], p)  # proposals() is newest first
+        for row in self.store.proposals():
+            if row["status"] in ("executed", "logged", "skipped", "rejected") and (row.get("decided") or "") >= cutoff:
+                last.setdefault(row["contract_id"], row)  # proposals() is newest first
         keep = []
         for p in new:
             prev = last.get(p.contract_id)
@@ -142,18 +142,18 @@ class Bot:
                 old["status"], old["decided"] = "expired", now.isoformat(timespec="seconds")
                 self.store.put_proposal(old)
         for p in new:
-            old = pending.get(p.contract_id)
+            prior = pending.get(p.contract_id)
             if (
-                old
-                and old["status"] == "pending"
-                and abs(old["ask"] - p.ask) < 1e-9
-                and abs(old["p"] - p.p) < 0.005
-                and abs(old["stake"] - p.stake) < 1e-6
+                prior
+                and prior["status"] == "pending"
+                and abs(prior["ask"] - p.ask) < 1e-9
+                and abs(prior["p"] - p.p) < 0.005
+                and abs(prior["stake"] - p.stake) < 1e-6
             ):
                 continue  # unchanged: keep the original (and its id)
-            if old and old["status"] == "pending":
-                old["status"], old["decided"] = "expired", now.isoformat(timespec="seconds")
-                self.store.put_proposal(old)
+            if prior and prior["status"] == "pending":
+                prior["status"], prior["decided"] = "expired", now.isoformat(timespec="seconds")
+                self.store.put_proposal(prior)
             self.store.put_proposal(p.to_dict())
 
     # ------------------------------------------------------------------ decisions
@@ -216,7 +216,7 @@ class Bot:
                 "order",
                 {"proposal": pid, "order": order.id, "status": order.status, "filled": filled, "price": px},
             )
-            if filled:
+            if filled and px is not None:
                 journal.add(
                     self.journal_path,
                     market=p["contract_id"],
@@ -372,7 +372,7 @@ class Bot:
                         "pnl": (mid - p.avg_price) * p.qty if mid is not None else None,
                     }
                 )
-            maps = {}
+            maps: dict[str, list[dict]] = {}
             for r in self.store.mappings():
                 maps.setdefault(r["contract_id"], []).append(r)
             pend = self.store.proposals("pending")

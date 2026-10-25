@@ -85,7 +85,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Protocol
+from typing import Protocol, cast
 
 import numpy as np
 
@@ -281,6 +281,14 @@ class Agent(Protocol):
 
     name: str
     reactive: bool
+
+
+class QuotingAgent(Agent, Protocol):
+    def quote(self, c: Context) -> tuple[np.ndarray, np.ndarray]: ...
+
+
+class ReactiveAgent(Agent, Protocol):
+    def bounds(self, c: Context) -> tuple[np.ndarray, ...]: ...
 
 
 @dataclass
@@ -555,7 +563,7 @@ def simulate(
         for i, ag in enumerate(agents):
             c = Context(mkt, t, pi, mid, q[i], be_a, be_b, mo_a, mo_b)
             if ag.reactive:
-                fa, ca, cb, fb = ag.bounds(c)
+                fa, ca, cb, fb = cast(ReactiveAgent, ag).bounds(c)
                 lo_a[i], hi_a[i] = fa, np.maximum(fa, ca)
                 lo_b[i], hi_b[i] = np.minimum(cb, fb), fb
                 if t == 0:  # no last quotes yet: start from the monopoly quote
@@ -564,7 +572,7 @@ def simulate(
                     asks[i] = np.clip(c.ask_ticks(mid + prev_ask_edge[i]), lo_a[i], hi_a[i])
                     bids[i] = np.clip(c.bid_ticks(mid - prev_bid_edge[i]), lo_b[i], hi_b[i])
             else:
-                asks[i], bids[i] = ag.quote(c)
+                asks[i], bids[i] = cast(QuotingAgent, ag).quote(c)
 
         # simultaneous best-response revisions until nobody moves
         if reactive:

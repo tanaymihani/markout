@@ -16,6 +16,7 @@ import math
 import shutil
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from markout import results
 from markout.paths import FIGURES, ROOT
@@ -69,7 +70,7 @@ def micro_data() -> dict | None:
     m = results.load("microstructure")
     if not m:
         return None
-    out = {"tickers": list(TICKERS), "horizons": [0.1, 1, 10, 60], "stocks": {}}
+    out: dict[str, Any] = {"tickers": list(TICKERS), "horizons": [0.1, 1, 10, 60], "stocks": {}}
     rb = _json(PAPER_DIR / "rebates.json")
     rob = _json(PAPER_DIR / "robustness.json")
     for t in TICKERS:

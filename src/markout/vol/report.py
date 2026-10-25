@@ -126,7 +126,7 @@ def straddle_analysis(fr: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     return out, res
 
 
-def analyse(fr: pd.DataFrame) -> dict:
+def analyse(fr: pd.DataFrame) -> tuple[dict, dict, pd.DataFrame]:
     from markout.evaluation.bootstrap import sharpe_ci
     from markout.evaluation.dsr import deflated_sharpe
 

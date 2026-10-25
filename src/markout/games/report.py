@@ -13,6 +13,7 @@ import itertools
 import math
 import time
 from fractions import Fraction
+from typing import Any
 
 import numpy as np
 
@@ -128,11 +129,11 @@ def gm_section() -> dict:
     maker = mean_ci(paths.maker_pnl)
     insider = mean_ci(paths.insider_pnl)
     noise = mean_ci(paths.noise_pnl)
-    zs = []
-    for s in np.random.SeedSequence(SEED + 1).spawn(GM_BATCHES):
-        c = mean_ci(gm.simulate(p, GM_STEPS, GM_RUNS, np.random.default_rng(s)).maker_pnl)
-        zs.append(c["mean"] / c["se"])
-    zs = np.array(zs)
+    batches = [
+        mean_ci(gm.simulate(p, GM_STEPS, GM_RUNS, np.random.default_rng(s)).maker_pnl)
+        for s in np.random.SeedSequence(SEED + 1).spawn(GM_BATCHES)
+    ]
+    zs = np.array([c["mean"] / c["se"] for c in batches])
 
     ex = gm.expected_paths(p, GM_STEPS + 1)
     sp = paths.spread
@@ -161,7 +162,7 @@ def gm_section() -> dict:
         2 * ar.zero_profit_half_spread_at_half(float(m), mkt.c_max, mkt.dv) / mkt.dv if m > 0 else 0.0 for m in mus
     ]
 
-    conv = {"t": list(range(GM_STEPS)), "mu": [0.1, 0.3, 0.5], "spread": {}, "truth": {}}
+    conv: dict[str, Any] = {"t": list(range(GM_STEPS)), "mu": [0.1, 0.3, 0.5], "spread": {}, "truth": {}}
     for mu in conv["mu"]:
         e = gm.expected_paths(gm.GMParams(p.v_low, p.v_high, mu, p.prior), GM_STEPS)
         conv["spread"][str(mu)] = e["spread"].tolist()
@@ -338,7 +339,7 @@ def arena_section() -> dict:
     for i, r in selfplay.items():
         per_seed[i, i] = r.pnl.mean(axis=0)
     payoff = per_seed.mean(axis=2)
-    standings = []
+    standings: list[dict[str, Any]] = []
     for i, nm in enumerate(names):
         wins = sum(1 for p in pair_rows if p["winner"] == nm)
         losses = sum(1 for p in pair_rows if nm in (p["a"], p["b"]) and p["winner"] not in (nm, "draw"))

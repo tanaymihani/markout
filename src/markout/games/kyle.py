@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeGuard
 
 import numpy as np
 
@@ -182,7 +182,7 @@ def _as_rows(block: Any) -> list[dict]:
     return []
 
 
-def _is_num(v: Any) -> bool:
+def _is_num(v: Any) -> TypeGuard[int | float]:
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
 

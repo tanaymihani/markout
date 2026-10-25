@@ -10,6 +10,11 @@ data/
 __pycache__/
 *.egg-info/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 .hypothesis/
 build/
 dist/

@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import secrets
 import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -403,7 +404,7 @@ def main(
     ap.add_argument("--samples", type=int, default=20_000)
     args = ap.parse_args(argv)
     cfg = Config(args.cards, args.bots, args.p_informed, args.width)
-    seed = args.seed if args.seed is not None else int(np.random.SeedSequence().entropy % 2**32)
+    seed = args.seed if args.seed is not None else secrets.randbits(32)
     d = deal(cfg, np.random.default_rng(seed))
     write(
         f"Card market game (seed {seed}): {cfg.n_cards} cards face down, sum S. "

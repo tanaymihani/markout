@@ -126,13 +126,12 @@ def choose(train: pd.DataFrame, min_n: int = 20) -> dict[tuple[int, int], str]:
     rule = {}
     for key, g in train.groupby(["queue_bucket", "signal_bucket"]):
         ev = {"none": 0.0, "post": g["ev_post"].mean(), "cross": g["ev_cross"].mean()}
-        rule[(int(key[0]), int(key[1]))] = max(ACTIONS, key=ev.get) if len(g) >= min_n else "none"
+        rule[(int(key[0]), int(key[1]))] = max(ACTIONS, key=ev.__getitem__) if len(g) >= min_n else "none"
     return rule
 
 
 def apply(rule: dict[tuple[int, int], str], df: pd.DataFrame) -> np.ndarray:
-    act = [rule.get((int(q), int(s)), "none") for q, s in zip(df["queue_bucket"], df["signal_bucket"])]
-    act = np.array(act)
+    act = np.array([rule.get((int(q), int(s)), "none") for q, s in zip(df["queue_bucket"], df["signal_bucket"])])
     return np.where(act == "post", df["ev_post"], np.where(act == "cross", df["ev_cross"], 0.0))
 
 

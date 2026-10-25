@@ -377,7 +377,7 @@ class Registry:
             raise ValueError("duplicate trial_ids in registry")
         kinds = {r.get("pnl_key_type") for r in recs if r.get("pnl_keys")}
         if len(kinds) > 1:
-            raise ValueError(f"trials use incompatible PnL key types {sorted(kinds)}; filter with `where`")
+            raise ValueError(f"trials use incompatible PnL key types {sorted(map(str, kinds))}; filter with `where`")
         series = [_deserialise_pnl(r) for r in recs]
         nonempty = [s.index for s in series if len(s)]
         if nonempty:

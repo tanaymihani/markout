@@ -11,6 +11,7 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import polars as pl
@@ -21,6 +22,11 @@ from markout.auction.models import make
 
 ID = ["stock_id", "date_id", "seconds_in_bucket"]
 XS = ["date_id", "seconds_in_bucket"]
+
+
+def _f(x: Any) -> float:
+    """Polars scalar aggregates are typed as a broad union; they are numbers here."""
+    return float(x)
 
 
 @dataclass(frozen=True)
@@ -101,7 +107,7 @@ def walk_forward(
         parts.append(p)
         infos.append(info)
     preds = neutralize(pl.concat(parts), weights)
-    if path is not None:
+    if path is not None and meta_path is not None:
         preds.write_parquet(path, compression="zstd")
         meta_path.write_text(json.dumps(infos, default=float))
     return preds, infos
@@ -119,11 +125,11 @@ def forecast_metrics(preds: pl.DataFrame, truth: pl.DataFrame) -> dict:
         .filter(pl.col("ic").is_not_nan())
     )
     ic_day = ic.group_by("date_id").agg(pl.col("ic").mean()).sort("date_id")["ic"].to_numpy()
-    pearson = float(np.corrcoef(j["pred"].to_numpy(), j["target"].to_numpy())[0, 1]) if j["pred"].std() > 0 else 0.0
+    pearson = float(np.corrcoef(j["pred"].to_numpy(), j["target"].to_numpy())[0, 1]) if _f(j["pred"].std()) > 0 else 0.0
     return {
         "mae": float(j.select(err.mean()).item()),
         "n_rows": j.height,
-        "ic_spearman_mean": float(ic["ic"].mean()) if ic.height else 0.0,
+        "ic_spearman_mean": _f(ic["ic"].mean()) if ic.height else 0.0,
         "ic_day_tstat": float(ic_day.mean() / (ic_day.std(ddof=1) / np.sqrt(len(ic_day))))
         if len(ic_day) > 2 and ic_day.std() > 0
         else 0.0,

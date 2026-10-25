@@ -155,11 +155,14 @@ def size(
         else f"steady mode: {cfg.kelly_mult:g}x Kelly, at most {cfg.max_frac_per_market:.0%} of equity"
     )
     for c in cands:
+        ask = c.book.best_ask
+        if ask is None:  # screen() only passes contracts with an ask; keep the invariant explicit
+            continue
         target = cfg.kelly_mult * c.kelly * eq
         if cfg.mode == "steady":
             target = min(target, cfg.max_frac_per_market * eq)
-        stake = max(target - held.get(c.contract_id, 0.0) * c.book.best_ask, 0.0)
-        stake = min(stake, cash, max(cap - held.get(c.contract_id, 0.0) * c.book.best_ask, 0.0))
+        stake = max(target - held.get(c.contract_id, 0.0) * ask, 0.0)
+        stake = min(stake, cash, max(cap - held.get(c.contract_id, 0.0) * ask, 0.0))
         out.append((c, stake, why if stake > 0 else "already at the target exposure; logged as a forecast"))
         cash -= stake
     return out
@@ -186,6 +189,8 @@ def build(
     props = []
     for c, stake, why in size(screen(markets, books, estimates, cfg, now), account, cfg, held):
         a = c.book.best_ask
+        if a is None:
+            continue
         policy_stake = stake
         qty, limit, cost = fill_plan(c.book, c.est.p - cfg.min_edge, stake)
         if stake > 0 and qty < math.floor(stake / a):

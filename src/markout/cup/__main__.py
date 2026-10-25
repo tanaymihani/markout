@@ -33,8 +33,10 @@ class SimClock:
 
 
 def cmd_serve(a) -> int:
+    from typing import cast
+
     from markout.cup import proposals as P
-    from markout.cup.api import Limited, LiveAPI, RateLimiter
+    from markout.cup.api import ContestAPI, Limited, LiveAPI, RateLimiter
     from markout.cup.paper import PaperContest, load_scenario
     from markout.cup.refs import References
     from markout.cup.service import Bot
@@ -43,8 +45,10 @@ def cmd_serve(a) -> int:
     from markout.cup.web import Desk
 
     cfg = P.Config(mode=a.mode, min_edge=a.min_edge, max_stake=a.max_stake)
+    api: ContestAPI
     if a.live:
-        api = Limited(LiveAPI(), RateLimiter(rate=a.rate))  # raises until the adapter is written
+        # LiveAPI raises until the adapter is written; Limited proxies every ContestAPI call
+        api = cast(ContestAPI, Limited(cast(ContestAPI, LiveAPI()), RateLimiter(rate=a.rate)))
         refs, store, clock = References(live=True), Store(DATA / "cup" / "cup.db"), None
         journal_path = DATA / "journal.csv"
     else:

@@ -17,6 +17,7 @@ index-relative 60 s move, so the PnL assumes the index hedge is available.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from typing import Any
 
 import numpy as np
 import polars as pl
@@ -129,6 +130,11 @@ def daily(tr: pl.DataFrame, days: tuple[int, int]) -> pl.DataFrame:
     )
 
 
+def _f(x: Any) -> float:
+    """Polars scalar aggregates are typed as a broad union; they are numbers here."""
+    return float(x)
+
+
 def summarize(day: pl.DataFrame, tr: pl.DataFrame, capital: float) -> dict:
     """Headline metrics. Sharpe is per day (non-annualized) plus x sqrt(252) for display."""
     pnl = day["pnl_usd"].to_numpy().astype(float)
@@ -143,16 +149,16 @@ def summarize(day: pl.DataFrame, tr: pl.DataFrame, capital: float) -> dict:
         "std_daily_pnl_usd": float(sd),
         "sharpe_daily": sr,
         "sharpe_annualized": sr * np.sqrt(252),
-        "max_drawdown_usd": float(day["drawdown_usd"].min()),
+        "max_drawdown_usd": _f(day["drawdown_usd"].min()),
         "trades": int(tr.height),
         "trades_per_day": float(tr.height / max(len(pnl), 1)),
-        "hit_rate": float((tr["pnl_usd"] > 0).mean()) if tr.height else 0.0,
+        "hit_rate": _f((tr["pnl_usd"] > 0).mean()) if tr.height else 0.0,
         "turnover_usd_per_day": float(2 * notional / max(len(pnl), 1)),
         "gross_usd": gross,
         "cost_usd": cost,
         "cost_share_of_gross": float(cost / gross) if gross > 0 else None,
-        "edge_pred_bps": float((tr["edge"].abs() * tr["notional"]).sum() / notional) if notional else None,
-        "edge_realized_bps": float((tr["side"] * tr["target"] * tr["notional"]).sum() / notional) if notional else None,
+        "edge_pred_bps": _f((tr["edge"].abs() * tr["notional"]).sum()) / notional if notional else None,
+        "edge_realized_bps": _f((tr["side"] * tr["target"] * tr["notional"]).sum()) / notional if notional else None,
         "net_bps_per_trade": float(1e4 * pnl.sum() / notional) if notional else None,
         "capital_usd": capital,
         "return_on_capital_daily": float(pnl.mean() / capital),

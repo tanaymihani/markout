@@ -19,6 +19,7 @@ import shutil
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import polars as pl
@@ -45,6 +46,11 @@ from markout.decision import voi
 from markout.paths import PROCESSED, REGISTRY, RESULTS
 
 RHOS = np.array([0.0, 0.02, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0])
+
+
+def _f(x: Any) -> float:
+    """Polars scalar aggregates are typed as a broad union; they are numbers here."""
+    return float(x)
 
 
 @dataclass
@@ -130,7 +136,7 @@ def run_audit(ctx: Ctx) -> dict:
 
 
 # ----------------------------------------------------------------------------- A
-def run_forecasts(ctx: Ctx, weights: pl.DataFrame) -> tuple[pl.DataFrame, dict]:
+def run_forecasts(ctx: Ctx, weights: pl.DataFrame) -> tuple[dict[str, pl.DataFrame], dict]:
     feat = F.build(ctx.df, weights)
     preds_by_model, infos, metrics = {}, {}, {}
     eval_lo = ctx.design.first_eval
@@ -252,7 +258,7 @@ def capacity(tr: pl.DataFrame, day: pl.DataFrame, policy: Policy) -> dict:
     """
     if tr.height == 0:
         return {}
-    peak = float(tr.group_by(["date_id", "seconds_in_bucket"]).agg(pl.col("notional").sum())["notional"].max())
+    peak = _f(tr.group_by(["date_id", "seconds_in_bucket"]).agg(pl.col("notional").sum())["notional"].max())
     r = day["pnl_usd"].to_numpy() / peak
     touch = np.where(tr["side"].to_numpy() > 0, tr["ask_size"].to_numpy(), tr["bid_size"].to_numpy())
     depth_cap = policy.depth_frac * touch
@@ -260,7 +266,7 @@ def capacity(tr: pl.DataFrame, day: pl.DataFrame, policy: Policy) -> dict:
         "peak_gross_usd": peak,
         "kelly_leverage_on_peak": float(r.mean() / r.var(ddof=1)) if r.var() > 0 else None,
         "share_trades_depth_capped": float(np.mean(depth_cap < policy.max_notional)),
-        "mean_notional_usd": float(tr["notional"].mean()),
+        "mean_notional_usd": _f(tr["notional"].mean()),
         "max_notional_usd": policy.max_notional,
         "median_touch_usd": float(np.median(touch)),
     }
