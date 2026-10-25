@@ -52,7 +52,7 @@ Issues = "https://github.com/tanaymihani/markout/issues"
 markout = "markout.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "hypothesis>=6", "pytest-cov>=5", "mypy>=1.10", "ruff>=0.6", "pre-commit>=3.7"]
+dev = ["pytest>=8", "hypothesis>=6", "pytest-cov>=5", "mypy>=1.10", "ruff>=0.6", "pre-commit>=3.7", "pdoc>=14"]
 data = ["kaggle>=1.6", "yfinance>=0.2"]
 cpp = ["pybind11>=2.12"]
 demo = ["playwright>=1.40", "imageio-ffmpeg>=0.4"]
@@ -85,6 +85,16 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["markout"]
+
+[tool.coverage.run]
+source = ["markout"]
+
+[tool.coverage.report]
+# CI has no downloaded datasets, so the report builders and the live price sources only
+# partly run there (68% of lines in October 2026); this floor catches untested new code.
+fail_under = 66
+skip_covered = true
+exclude_also = ['if __name__ == "__main__":']
 
 [tool.mypy]
 python_version = "3.11"

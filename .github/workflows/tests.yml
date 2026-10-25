@@ -4,19 +4,47 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_SYSTEM_PYTHON: "1"  # install into the interpreter from setup-python
+
 jobs:
-  test:
+  lint:
+    name: lint, format, types
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
-          cache: pip
-      - name: Install
+      - uses: astral-sh/setup-uv@v7
+      - name: Install the locked environment
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev,cpp]"
+          uv pip install -r requirements.lock
+          uv pip install --no-deps -e .
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+
+  test:
+    name: tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v7
+      - name: Install the locked environment
+        run: |
+          uv pip install -r requirements.lock
+          uv pip install --no-deps -e .
       - name: Build the C++ extension
         run: |
           cmake -S cpp -B build/cpp -DCMAKE_BUILD_TYPE=Release \
@@ -24,5 +52,49 @@ jobs:
           cmake --build build/cpp -j
       - name: Test
         # tests that need the downloaded datasets skip themselves; everything else runs,
-        # including the C++ vs Python equivalence tests on randomized event streams
-        run: python -m pytest -q
+        # including the C++ vs Python equivalence tests on randomized event streams.
+        # The coverage floor is in pyproject.toml ([tool.coverage.report] fail_under).
+        run: python -m pytest --cov --cov-report=term --cov-report=xml
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  e2e:
+    name: browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v7
+      - name: Install the locked environment
+        run: |
+          uv pip install -r requirements.lock
+          uv pip install --no-deps -e .
+      - name: Browser
+        # the runner image ships Google Chrome; fall back to Playwright's Chromium without it
+        run: command -v google-chrome || python -m playwright install --with-deps chromium
+      - run: python -m pytest -m e2e
+
+  container:
+    name: container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t markout-desk .
+      - name: Smoke test
+        run: |
+          docker run -d --name desk -p 7860:7860 markout-desk
+          for i in $(seq 30); do curl -fsS http://127.0.0.1:7860/healthz && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:7860/api/state)" = 401
+          sid=$(curl -fsS -X POST http://127.0.0.1:7860/api/session | python3 -c 'import json, sys; print(json.load(sys.stdin)["session"])')
+          curl -fsS -H "X-Markout-Session: $sid" http://127.0.0.1:7860/api/state \
+            | python3 -c 'import json, sys; s = json.load(sys.stdin); assert s["pending"], s; print(len(s["pending"]), "proposals")'
+          curl -fsS -X POST -H "X-Markout-Session: $sid" -d '{"hours": 24}' http://127.0.0.1:7860/api/advance
+          docker stop -t 10 desk
+          test "$(docker inspect -f '{{.State.ExitCode}}' desk)" = 0
+          docker logs desk | tail -3

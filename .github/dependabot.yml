@@ -1,0 +1,15 @@
+# Python dependencies are pinned in requirements.lock and moved deliberately with
+# `make lock` (and a full test run); Dependabot only watches the actions and the base image.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
