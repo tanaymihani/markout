@@ -7,6 +7,7 @@ import re
 import threading
 import urllib.error
 import urllib.request
+from html.parser import HTMLParser
 
 import pytest
 
@@ -37,6 +38,32 @@ def server(tmp_path, monkeypatch):
     srv.shutdown()
     srv.server_close()
     sessions.close()
+
+
+class _Scripts(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.blocks, self.inside = [], False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script":
+            self.inside = True
+            self.blocks.append("")
+
+    def handle_endtag(self, tag):
+        self.inside = self.inside and tag != "script"
+
+    def handle_data(self, data):
+        if self.inside:
+            self.blocks[-1] += data
+
+
+def inline_scripts(html: str) -> list[str]:
+    """Every <script> body, read with a real HTML parser (independent of the server's)."""
+    p = _Scripts()
+    p.feed(html)
+    p.close()
+    return p.blocks
 
 
 def call(port, path, body=None, sid=None, raw=None, method=None):
@@ -196,7 +223,7 @@ def test_page_csp_allows_only_its_own_scripts(server):
     csp = headers["Content-Security-Policy"]
     script_src = re.search(r"script-src ([^;]+)", csp).group(1)
     assert "unsafe-inline" not in script_src and "unsafe-eval" not in script_src
-    blocks = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+    blocks = inline_scripts(html)
     assert len(blocks) == 2
     for b in blocks:
         h = base64.b64encode(hashlib.sha256(b.encode()).digest()).decode()

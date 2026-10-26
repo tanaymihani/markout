@@ -143,7 +143,7 @@ def append_line(path: Path, obj: Mapping[str, Any]) -> None:
         "utf-8"
     )
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+    fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)  # owner-only, like any audit log
     try:
         if fcntl is not None:
             fcntl.flock(fd, fcntl.LOCK_EX)

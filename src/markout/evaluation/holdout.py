@@ -91,7 +91,7 @@ class HoldoutGuard:
         """Create the lock atomically. False if it already exists."""
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            fd = os.open(self.lock_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            fd = os.open(self.lock_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)  # owner-only
         except FileExistsError:
             return False
         with os.fdopen(fd, "w", encoding="utf-8") as f:

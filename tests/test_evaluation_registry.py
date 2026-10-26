@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -198,12 +199,12 @@ def test_git_state_outside_a_repository(tmp_path, monkeypatch):
 
 
 def test_git_state_matches_head_in_this_repository():
-    try:
-        head = subprocess.run(
-            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
+    if shutil.which("git") is None:
+        pytest.skip("git is not installed")
+    r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    if r.returncode:
         pytest.skip("not running inside a git checkout")
+    head = r.stdout.strip()
     state = git_state(ROOT)
     assert state["git_sha"] == head and isinstance(state["git_dirty"], bool)
 

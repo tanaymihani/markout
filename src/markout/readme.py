@@ -125,11 +125,13 @@ def results_section() -> list[str]:
     b = results.load("cpp_bench")
     if b:
         out += [
-            f"**C++.** The order-book replay and queue simulator from part 02 is sequential and keeps state, "
-            f"so it was the one piece worth porting. `cpp/queue_sim.cpp` (C++17 with pybind11) runs "
-            f"{b['speedup_min']:.0f}–{b['speedup_max']:.0f}× faster than the Python version and gives "
-            f"{'identical output' if b['all_identical'] else 'different output (see report 02)'}, checked on "
-            "all five stocks and on randomized event streams.",
+            (
+                f"**C++.** The order-book replay and queue simulator from part 02 is sequential and keeps state, "
+                f"so it was the one piece worth porting. `cpp/queue_sim.cpp` (C++17 with pybind11) runs "
+                f"{b['speedup_min']:.0f}–{b['speedup_max']:.0f}× faster than the Python version and gives "
+                f"{'identical output' if b['all_identical'] else 'different output (see report 02)'}, checked on "
+                "all five stocks and on randomized event streams."
+            ),
             "",
             _fig("g_throughput", "C++ against Python throughput"),
             "",
@@ -141,30 +143,42 @@ def desk_section() -> list[str]:
     out = [
         "## The Predictions Cup desk",
         "",
-        "SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), and its rules allow "
-        "bots as long as each person keeps one account and stays within the platform's limits. The desk is my "
-        "bot for it. It runs on a laptop, uses only free public data, and never trades without a click.",
+        (
+            "SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), and its rules allow "
+            "bots as long as each person keeps one account and stays within the platform's limits. The desk is my "
+            "bot for it. It runs on a laptop, uses only free public data, and never trades without a click."
+        ),
         "",
-        "- It looks up reference prices for each contest market: real-money prices from Polymarket and Kalshi, "
-        "option-implied probabilities for stock-price questions, and earnings-beat history. Every suggested "
-        "match between a contest market and a reference has to be confirmed by hand, because matching is where "
-        "things quietly go wrong.",
-        "- It pools those references with the contest's own price in log-odds, so it never treats a single "
-        "reference as the truth.",
-        "- It proposes a trade only when the whole uncertainty band clears the ask. Size comes from Kelly as a "
-        "target exposure (either the pre-registered contest policy from part 05, or a steadier half-Kelly), "
-        "capped by what the order book can fill right now. Nothing is left resting on the book.",
-        "- Every decision, including the ones I skip, goes into a journal that scores my forecasts against the "
-        "market once the questions resolve.",
+        (
+            "- It looks up reference prices for each contest market: real-money prices from Polymarket and Kalshi, "
+            "option-implied probabilities for stock-price questions, and earnings-beat history. Every suggested "
+            "match between a contest market and a reference has to be confirmed by hand, because matching is where "
+            "things quietly go wrong."
+        ),
+        (
+            "- It pools those references with the contest's own price in log-odds, so it never treats a single "
+            "reference as the truth."
+        ),
+        (
+            "- It proposes a trade only when the whole uncertainty band clears the ask. Size comes from Kelly as a "
+            "target exposure (either the pre-registered contest policy from part 05, or a steadier half-Kelly), "
+            "capped by what the order book can fill right now. Nothing is left resting on the book."
+        ),
+        (
+            "- Every decision, including the ones I skip, goes into a journal that scores my forecasts against the "
+            "market once the questions resolve."
+        ),
         "",
     ]
     if (ROOT / "docs" / "demo" / "desk.png").exists():
         out += ["![The approval desk](docs/demo/desk.png)", ""]
     out += [
-        "The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`make demo`); `make desk` "
-        "starts it on a paper contest at http://127.0.0.1:8765. The [matcher dry run](docs/demo/DRYRUN.md) "
-        "tests the matching against live Polymarket and Kalshi questions. Its first version mostly suggested "
-        "look-alikes (the other team, another stat line, a different threshold); those cases are now tests.",
+        (
+            "The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`make demo`); `make desk` "
+            "starts it on a paper contest at http://127.0.0.1:8765. The [matcher dry run](docs/demo/DRYRUN.md) "
+            "tests the matching against live Polymarket and Kalshi questions. Its first version mostly suggested "
+            "look-alikes (the other team, another stat line, a different threshold); those cases are now tests."
+        ),
         "",
         (f"A [hosted version]({DESK_URL}) " if DESK_URL else "A hosted version ")
         + "(`python -m markout.cup public`, or the Docker image) gives every visitor a private paper-trading "
@@ -251,48 +265,70 @@ def build() -> str:
     lines = [
         "# Markout",
         "",
-        "[![tests](https://github.com/tanaymihani/markout/actions/workflows/tests.yml/badge.svg)]"
-        "(https://github.com/tanaymihani/markout/actions/workflows/tests.yml) "
-        "[![codeql](https://github.com/tanaymihani/markout/actions/workflows/codeql.yml/badge.svg)]"
-        "(https://github.com/tanaymihani/markout/actions/workflows/codeql.yml) "
-        "[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)",
+        (
+            "[![tests](https://github.com/tanaymihani/markout/actions/workflows/tests.yml/badge.svg)]"
+            "(https://github.com/tanaymihani/markout/actions/workflows/tests.yml) "
+            "[![codeql](https://github.com/tanaymihani/markout/actions/workflows/codeql.yml/badge.svg)]"
+            "(https://github.com/tanaymihani/markout/actions/workflows/codeql.yml) "
+            "[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)"
+        ),
         "",
-        "Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias "
-        "that comes from trying many strategies? This repo is my attempt to find out, step by step, on real "
-        "market data where I could get it.",
+        (
+            "Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias "
+            "that comes from trying many strategies? This repo is my attempt to find out, step by step, on real "
+            "market data where I could get it."
+        ),
         "",
         "**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four "
         "interactive labs and a market-making game, all running in the browser."
         + (f" **Hosted desk:** [try it]({DESK_URL}), with a private paper-trading sandbox." if DESK_URL else ""),
         "",
-        "[![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted "
-        "it as filled](docs/media/markout-demo.gif)](https://tanaymihani.github.io/markout/)",
+        (
+            "[![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted "
+            "it as filled](docs/media/markout-demo.gif)](https://tanaymihani.github.io/markout/)"
+        ),
         "",
-        "The name comes from the *markout*, the price move right after a trade, which market makers use to check "
-        "whether they got picked off. The same trap shows up at every stage here: the best of many backtests "
-        "looks better than it is, and so do the order that happened to get filled and the bet where you disagree "
-        "most with the market. Each part tries to measure that gap and correct for it.",
+        (
+            "The name comes from the *markout*, the price move right after a trade, which market makers use to check "
+            "whether they got picked off. The same trap shows up at every stage here: the best of many backtests "
+            "looks better than it is, and so do the order that happened to get filled and the bet where you disagree "
+            "most with the market. Each part tries to measure that gap and correct for it."
+        ),
         "",
         *brief(),
         "## Contents",
         "",
         "| Part | Question | Data |",
         "|---|---|---|",
-        "| [01 Closing auction](reports/01_auction.md) | Can a model predict 60-second moves in the NASDAQ closing "
-        "auction well enough to pay the spread? | Optiver *Trading at the Close* (Kaggle): 200 stocks, 481 days |",
-        "| [02 Microstructure](reports/02_microstructure.md) | Does an order-book signal survive realistic "
-        "queue-position fills? | LOBSTER sample: five NASDAQ stocks, one day, every order |",
-        "| [03 Arena](reports/03_arena.md) | What does competition between market makers do to spreads and "
-        "profits? | Simulated markets: Glosten–Milgrom, Kyle, a market-making tournament, Kuhn poker |",
-        "| [04 Options](reports/04_options.md) | What does delta hedging actually earn, and how often should you "
-        "hedge? | Simulation, plus one SPY option chain |",
-        "| [05 Predictions Cup](reports/05_predictions_cup.md) | How should you size bets when only the top three "
-        "places get paid? | Simulation of SIG's student contest |",
-        "| [06 Volatility premium](reports/06_vol_premium.md) | How big is the premium in S&P options, when does "
-        "selling it blow up, and how much should you sell? | S&P 500, VIX and VIX3M daily closes, 1990 onward |",
+        (
+            "| [01 Closing auction](reports/01_auction.md) | Can a model predict 60-second moves in the NASDAQ closing "
+            "auction well enough to pay the spread? | Optiver *Trading at the Close* (Kaggle): 200 stocks, 481 days |"
+        ),
+        (
+            "| [02 Microstructure](reports/02_microstructure.md) | Does an order-book signal survive realistic "
+            "queue-position fills? | LOBSTER sample: five NASDAQ stocks, one day, every order |"
+        ),
+        (
+            "| [03 Arena](reports/03_arena.md) | What does competition between market makers do to spreads and "
+            "profits? | Simulated markets: Glosten–Milgrom, Kyle, a market-making tournament, Kuhn poker |"
+        ),
+        (
+            "| [04 Options](reports/04_options.md) | What does delta hedging actually earn, and how often should you "
+            "hedge? | Simulation, plus one SPY option chain |"
+        ),
+        (
+            "| [05 Predictions Cup](reports/05_predictions_cup.md) | How should you size bets when only the top three "
+            "places get paid? | Simulation of SIG's student contest |"
+        ),
+        (
+            "| [06 Volatility premium](reports/06_vol_premium.md) | How big is the premium in S&P options, when does "
+            "selling it blow up, and how much should you sell? | S&P 500, VIX and VIX3M daily closes, 1990 onward |"
+        ),
         "",
-        "There is also a trading desk for SIG's Predictions Cup, and a C++ version of the order-book replay "
-        "from part 02.",
+        (
+            "There is also a trading desk for SIG's Predictions Cup, and a C++ version of the order-book replay "
+            "from part 02."
+        ),
         "",
     ]
     lines += results_section()
@@ -300,23 +336,35 @@ def build() -> str:
     lines += [
         "## How I tried to keep it honest",
         "",
-        f"- {_n_tests()} tests (`make test`). One of them corrupts every future row of the auction data and checks "
-        "that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.",
-        "- Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; "
-        "`src/markout/auction/cv.py` explains why.",
-        "- Every variant I tried is logged with its git commit and config, including the losers, so the Deflated "
-        "Sharpe and PBO count all of the searching.",
+        (
+            f"- {_n_tests()} tests (`make test`). One of them corrupts every future row of the auction data and checks "
+            "that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks."
+        ),
+        (
+            "- Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; "
+            "`src/markout/auction/cv.py` explains why."
+        ),
+        (
+            "- Every variant I tried is logged with its git commit and config, including the losers, so the Deflated "
+            "Sharpe and PBO count all of the searching."
+        ),
         "- The auction holdout sits behind a guard that refuses a second look"
         + (f" (it has been opened {times} time{'s' if times != 1 else ''})." if times else "."),
-        "- Replications are checked against known answers: the worked example in the Deflated Sharpe paper, the "
-        "Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks.",
-        "- `make report` regenerates every report and figure from fixed seeds, so the numbers in the text are "
-        "never typed by hand.",
+        (
+            "- Replications are checked against known answers: the worked example in the Deflated Sharpe paper, the "
+            "Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks."
+        ),
+        (
+            "- `make report` regenerates every report and figure from fixed seeds, so the numbers in the text are "
+            "never typed by hand."
+        ),
         "",
         "## Use it on your own data",
         "",
-        "The tools under the reports work on other data too. `markout fills` runs the three fill models on any "
-        "LOBSTER day, and `markout sharpe` and `markout pbo` check a backtest against the search that produced it:",
+        (
+            "The tools under the reports work on other data too. `markout fills` runs the three fill models on any "
+            "LOBSTER day, and `markout sharpe` and `markout pbo` check a backtest against the search that produced it:"
+        ),
         "",
         "```bash",
         "markout fills AAPL_2012-06-21_34200000_57600000_message_10.csv AAPL_2012-06-21_34200000_57600000_orderbook_10.csv",
@@ -325,10 +373,12 @@ def build() -> str:
         "markout kelly --p 0.62 --price 0.55 --fraction 0.5",
         "```",
         "",
-        "[USAGE.md](USAGE.md) covers the command line and the Python API (fill simulation, the Deflated Sharpe, PBO, "
-        "the trial registry, the holdout guard, Kelly, Black–Scholes and hedging). Its examples run in the test "
-        "suite, so they stay correct. The [API reference](https://tanaymihani.github.io/markout/api/) documents "
-        "every module (`make api-docs`).",
+        (
+            "[USAGE.md](USAGE.md) covers the command line and the Python API (fill simulation, the Deflated Sharpe, PBO, "
+            "the trial registry, the holdout guard, Kelly, Black–Scholes and hedging). Its examples run in the test "
+            "suite, so they stay correct. The [API reference](https://tanaymihani.github.io/markout/api/) documents "
+            "every module (`make api-docs`)."
+        ),
         "",
         "## Running it",
         "",
@@ -347,9 +397,11 @@ def build() -> str:
         "make demo-video  # re-record the site's demo video (needs the demo extra)",
         "```",
         "",
-        "Also: `python -m markout.backtest.report` prints the daily PnL of the chosen auction strategy, "
-        "`python -m markout.games.cardgame` is a market-making practice game, and "
-        "`python -m markout.decision.journal init|add|score` manages the contest journal.",
+        (
+            "Also: `python -m markout.backtest.report` prints the daily PnL of the chosen auction strategy, "
+            "`python -m markout.games.cardgame` is a market-making practice game, and "
+            "`python -m markout.decision.journal init|add|score` manages the contest journal."
+        ),
         "",
         "## Development",
         "",
@@ -360,10 +412,12 @@ def build() -> str:
         "pre-commit install",
         "```",
         "",
-        "CI installs the exact versions in `requirements.lock` and runs lint, types, the tests with a coverage "
-        "floor, browser tests in Chrome and a smoke test of the desk's container; CodeQL scans the code. "
-        "[ARCHITECTURE.md](ARCHITECTURE.md) explains how the pieces fit together and how each is tested, and "
-        "[CHANGELOG.md](CHANGELOG.md) lists the releases.",
+        (
+            "CI installs the exact versions in `requirements.lock` and runs lint, types, the tests with a coverage "
+            "floor, browser tests in Chrome and a smoke test of the desk's container; CodeQL scans the code. "
+            "[ARCHITECTURE.md](ARCHITECTURE.md) explains how the pieces fit together and how each is tested, and "
+            "[CHANGELOG.md](CHANGELOG.md) lists the releases."
+        ),
         "",
         "## Layout",
         "",
@@ -387,21 +441,27 @@ def build() -> str:
         "",
         "## Data",
         "",
-        "- **Optiver *Trading at the Close*** (Kaggle). Kaggle's rules don't allow redistributing it, so it is "
-        "downloaded by `make optiver` and never committed.",
-        "- **LOBSTER sample files** for AAPL, AMZN, GOOG, INTC and MSFT on 2012-06-21. The official download "
-        "links stopped working when lobsterdata.com was rebuilt, so the script tries them first and otherwise "
-        "uses a pinned, hash-checked mirror. A replay that checks every message against the book is the "
-        "authenticity check. Not committed.",
+        (
+            "- **Optiver *Trading at the Close*** (Kaggle). Kaggle's rules don't allow redistributing it, so it is "
+            "downloaded by `make optiver` and never committed."
+        ),
+        (
+            "- **LOBSTER sample files** for AAPL, AMZN, GOOG, INTC and MSFT on 2012-06-21. The official download "
+            "links stopped working when lobsterdata.com was rebuilt, so the script tries them first and otherwise "
+            "uses a pinned, hash-checked mirror. A replay that checks every message against the book is the "
+            "authenticity check. Not committed."
+        ),
         "- **One SPY option chain**, saved with yfinance on 2026-09-29 after the close.",
         "- **S&P 500, VIX and VIX3M daily closes** from Yahoo Finance (`make vol`). Not committed.",
         "",
         "## Limitations",
         "",
-        "Each report ends with its own. The main ones: the auction target is measured against a synthetic index, "
-        "so the PnL assumes a hedge I can't observe; the microstructure study is a single day from 2012 and my "
-        "own orders have no market impact; the arena is a stylized dealer market where everyone shares one "
-        "belief; and the contest study has to assume the field size and the number of markets.",
+        (
+            "Each report ends with its own. The main ones: the auction target is measured against a synthetic index, "
+            "so the PnL assumes a hedge I can't observe; the microstructure study is a single day from 2012 and my "
+            "own orders have no market impact; the arena is a stylized dealer market where everyone shares one "
+            "belief; and the contest study has to assume the field size and the number of markets."
+        ),
         "",
         "## License",
         "",

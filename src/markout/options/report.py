@@ -1204,17 +1204,25 @@ def write_markdown(R: dict) -> str:
     a_fine = H["attribution"][-1]
     k1 = [next(c for c in H["choices"] if c["k"] == K_HEADLINE and c["kappa_bps"] == kap) for kap in cfg["kappas_bps"]]
     bullets = [
-        f"Pricing engine: put–call parity holds to {R['bs']['parity_max_rel_err']:.0e} of the strike, Greeks match "
-        f"finite differences to {max(R['bs']['fd_max_rel_err'].values()):.0e} relative, and IVs round-trip to "
-        f"{R['bs']['iv_max_abs_err']:.0e}.",
-        f"Short {cfg['days']}-day ATM call sold at σ_imp = {_pct(cfg['sigma_imp'], 0)} and hedged every {fine} with "
-        f"σ_real = {_pct(min(cfg['scenarios']), 0)}: mean PnL {_money(low['mean'], 4, True)} ± {low['se']:.4f} vs "
-        f"C(σ_imp) − C(σ_real) = {_money(low['exact'], 4, True)}. Short gamma earns when realized < implied.",
-        f"Hedging-error std falls like N^{H['scaling']['slope_std']:.2f} (theory: 1/√N) while turnover grows like "
-        f"N^{H['scaling']['slope_turnover']:.2f}. The best frequency for cost + {K_HEADLINE:g} × std moves from "
-        f"{k1[0]['label']} (κ = {k1[0]['kappa_bps']:g} bp) to {k1[-1]['label']} (κ = {k1[-1]['kappa_bps']:g} bp).",
-        f"The gamma–theta attribution explains {_pct(a_fine['attr_r2'], 2)} of hedged-PnL variance path by path "
-        f"at {fine} hedging (corr {a_fine['attr_corr']:.4f}).",
+        (
+            f"Pricing engine: put–call parity holds to {R['bs']['parity_max_rel_err']:.0e} of the strike, Greeks match "
+            f"finite differences to {max(R['bs']['fd_max_rel_err'].values()):.0e} relative, and IVs round-trip to "
+            f"{R['bs']['iv_max_abs_err']:.0e}."
+        ),
+        (
+            f"Short {cfg['days']}-day ATM call sold at σ_imp = {_pct(cfg['sigma_imp'], 0)} and hedged every {fine} with "
+            f"σ_real = {_pct(min(cfg['scenarios']), 0)}: mean PnL {_money(low['mean'], 4, True)} ± {low['se']:.4f} vs "
+            f"C(σ_imp) − C(σ_real) = {_money(low['exact'], 4, True)}. Short gamma earns when realized < implied."
+        ),
+        (
+            f"Hedging-error std falls like N^{H['scaling']['slope_std']:.2f} (theory: 1/√N) while turnover grows like "
+            f"N^{H['scaling']['slope_turnover']:.2f}. The best frequency for cost + {K_HEADLINE:g} × std moves from "
+            f"{k1[0]['label']} (κ = {k1[0]['kappa_bps']:g} bp) to {k1[-1]['label']} (κ = {k1[-1]['kappa_bps']:g} bp)."
+        ),
+        (
+            f"The gamma–theta attribution explains {_pct(a_fine['attr_r2'], 2)} of hedged-PnL variance path by path "
+            f"at {fine} hedging (corr {a_fine['attr_corr']:.4f})."
+        ),
     ]
     if P.get("available"):
         ex = P["expiries"]

@@ -591,9 +591,11 @@ def write_report(
             if ctx.synthetic
             else ""
         ),
-        "**Question.** A model can forecast 60-second index-relative returns in the NASDAQ closing auction "
-        "better than a baseline. Is that edge still there after paying the spread, fees and the index hedge, "
-        "and after correcting for how many variants were tried?",
+        (
+            "**Question.** A model can forecast 60-second index-relative returns in the NASDAQ closing auction "
+            "better than a baseline. Is that edge still there after paying the spread, fees and the index hedge, "
+            "and after correcting for how many variants were tried?"
+        ),
         "",
     ]
     ans = [
@@ -650,22 +652,32 @@ def write_report(
         "",
         R.bullets(
             [
-                f"{cov['n_rows']:,} rows: {cov['n_stocks']} stocks × {cov['n_days']} days × 55 snapshots "
-                f"(0–540 s). Stocks per day: {cov['stocks_per_day_min']}–{cov['stocks_per_day_max']}; "
-                f"incomplete stock-days: {cov['incomplete_stock_days']}.",
-                f"Far/near indicative prices are null in {n(100 * au['far_null_share_before_300'])}% of rows "
-                f"before 300 s and {n(100 * au['far_null_share_after_300'])}% after: Nasdaq publishes them "
-                "from 3:55 pm, so the auction changes regime halfway through.",
-                f"Target: std {n(dist['target_std'])} bps, mean |target| {n(dist['target_mae_vs_zero'])} bps "
-                f"(the MAE of predicting zero), excess kurtosis {n(dist['target_excess_kurtosis'])}; "
-                f"{n(100 * dist['target_share_abs_gt_20bps'])}% of targets exceed 20 bps in size.",
-                f"Quoted spread: median {n(dist['spread_bps_quantiles']['q50'])} bps "
-                f"(5th–95th percentile {n(dist['spread_bps_quantiles']['q05'])}–"
-                f"{n(dist['spread_bps_quantiles']['q95'])}). A 60 s round trip pays about one full spread.",
-                f"Target reconstruction: stock WAP return − target is the same number for every stock at an "
-                f"instant (median cross-stock std {n(rec['median_cross_stock_std_implied_index_bps'])} bps vs "
-                f"{n(rec['median_cross_stock_std_ret60_bps'])} bps for raw returns), so the target really is "
-                '"stock minus a fixed index".',
+                (
+                    f"{cov['n_rows']:,} rows: {cov['n_stocks']} stocks × {cov['n_days']} days × 55 snapshots "
+                    f"(0–540 s). Stocks per day: {cov['stocks_per_day_min']}–{cov['stocks_per_day_max']}; "
+                    f"incomplete stock-days: {cov['incomplete_stock_days']}."
+                ),
+                (
+                    f"Far/near indicative prices are null in {n(100 * au['far_null_share_before_300'])}% of rows "
+                    f"before 300 s and {n(100 * au['far_null_share_after_300'])}% after: Nasdaq publishes them "
+                    "from 3:55 pm, so the auction changes regime halfway through."
+                ),
+                (
+                    f"Target: std {n(dist['target_std'])} bps, mean |target| {n(dist['target_mae_vs_zero'])} bps "
+                    f"(the MAE of predicting zero), excess kurtosis {n(dist['target_excess_kurtosis'])}; "
+                    f"{n(100 * dist['target_share_abs_gt_20bps'])}% of targets exceed 20 bps in size."
+                ),
+                (
+                    f"Quoted spread: median {n(dist['spread_bps_quantiles']['q50'])} bps "
+                    f"(5th–95th percentile {n(dist['spread_bps_quantiles']['q05'])}–"
+                    f"{n(dist['spread_bps_quantiles']['q95'])}). A 60 s round trip pays about one full spread."
+                ),
+                (
+                    f"Target reconstruction: stock WAP return − target is the same number for every stock at an "
+                    f"instant (median cross-stock std {n(rec['median_cross_stock_std_implied_index_bps'])} bps vs "
+                    f"{n(rec['median_cross_stock_std_ret60_bps'])} bps for raw returns), so the target really is "
+                    '"stock minus a fixed index".'
+                ),
                 f"Index weights recovered by least squares on days {wi['days'][0]}–{wi['days'][1]} "
                 f"({wi['method']}, R² {R.prob(wi.get('r2'))}, weights sum to {n(wi.get('weight_sum'))})"
                 + (
@@ -686,20 +698,24 @@ def write_report(
     lines += [
         "## 2. Forecasts (walk-forward, research period)",
         "",
-        f"Four expanding walk-forward blocks of {ctx.design.block} days cover days "
-        f"{ctx.design.eval_days[0]}–{ctx.design.eval_days[1]} ({ctx.design.eval_days[1] - ctx.design.eval_days[0] + 1} "
-        f"out-of-sample days); a fifth, earlier block exists only to calibrate the first. Every feature passes a "
-        "perturbation test (corrupt the future, the past must not change). "
-        "Predictions are neutralized to an index-weighted mean of zero at each instant.",
+        (
+            f"Four expanding walk-forward blocks of {ctx.design.block} days cover days "
+            f"{ctx.design.eval_days[0]}–{ctx.design.eval_days[1]} ({ctx.design.eval_days[1] - ctx.design.eval_days[0] + 1} "
+            f"out-of-sample days); a fifth, earlier block exists only to calibrate the first. Every feature passes a "
+            "perturbation test (corrupt the future, the past must not change). "
+            "Predictions are neutralized to an index-weighted mean of zero at each instant."
+        ),
         "",
         R.table(rows, formats={"MAE (bps)": "{:.4f}", "IC (Spearman)": "{:+.4f}", "IC t-stat (daily)": "{:.1f}"}),
         "",
     ]
     if dm:
         lines += [
-            f"Diebold–Mariano test on daily MAE, {model_label(best.spec)} vs median: statistic "
-            f"{n(dm['stat'])}, p {R.prob(dm['p_value']) if R.prob(dm['p_value']).startswith(('<', '>')) else '= ' + R.prob(dm['p_value'])}; the model has lower MAE on "
-            f"{n(100 * dm['share_days_better'])}% of days.",
+            (
+                f"Diebold–Mariano test on daily MAE, {model_label(best.spec)} vs median: statistic "
+                f"{n(dm['stat'])}, p {R.prob(dm['p_value']) if R.prob(dm['p_value']).startswith(('<', '>')) else '= ' + R.prob(dm['p_value'])}; the model has lower MAE on "
+                f"{n(100 * dm['share_days_better'])}% of days."
+            ),
             "",
         ]
     mbs = m_med["mae_by_second"]
@@ -708,9 +724,11 @@ def write_report(
         mbs.filter((pl.col("seconds_in_bucket") < 200) | (pl.col("seconds_in_bucket") > 320))["mae"].median()
     )
     lines += [
-        f"The error is not uniform: the baseline's MAE peaks at {n(peak['mae'])} bps at {peak['seconds_in_bucket']} s, "
-        f"{n(peak['mae'] / typical)}× its typical level, for snapshots whose 60 s window crosses 300 s, when "
-        "Nasdaq starts publishing the indicative prices.",
+        (
+            f"The error is not uniform: the baseline's MAE peaks at {n(peak['mae'])} bps at {peak['seconds_in_bucket']} s, "
+            f"{n(peak['mae'] / typical)}× its typical level, for snapshots whose 60 s window crosses 300 s, when "
+            "Nasdaq starts publishing the indicative prices."
+        ),
         "",
         mp.picture(ctx.name("a_mae_by_second"), "MAE by second, model vs baseline"),
         "",
@@ -759,9 +777,11 @@ def write_report(
     if rob["deciles"]:
         lines += [mp.picture(ctx.name("b_calibration"), "Calibration by decile"), ""]
     lines += [
-        '**Cost sensitivity.** "Adapted" re-decides with the true cost; "unadapted" keeps deciding with the '
-        "1× estimate while paying more, which is what an underestimated cost model does to you. The oracle "
-        "knows every target: it is the ceiling for any model under this cost model.",
+        (
+            '**Cost sensitivity.** "Adapted" re-decides with the true cost; "unadapted" keeps deciding with the '
+            "1× estimate while paying more, which is what an underestimated cost model does to you. The oracle "
+            "knows every target: it is the ceiling for any model under this cost model."
+        ),
         "",
         R.table(
             [
@@ -798,14 +818,16 @@ def write_report(
     cap = rob.get("capacity") or {}
     if cap:
         lines += [
-            f"**Sizing: risk or liquidity?** Kelly leverage on this PnL stream, relative to the peak capital "
-            f"actually deployed ({R.usd(cap['peak_gross_usd'])} at one instant), is "
-            f"{n(cap['kelly_leverage_on_peak'])}×. Capital is at risk for only 60 s per trade, so risk never binds. "
-            f"Liquidity does: the depth cap ({n(100 * pol.depth_frac)}% of the displayed touch, median touch "
-            f"{R.usd(cap['median_touch_usd'])}) is below the {R.usd(cap['max_notional_usd'])} per-trade cap on "
-            f"{n(100 * cap['share_trades_depth_capped'])}% of trades, and the average trade is "
-            f"{R.usd(cap['mean_notional_usd'])}. The decision that matters is which trades to take, not how "
-            "much leverage to use.",
+            (
+                f"**Sizing: risk or liquidity?** Kelly leverage on this PnL stream, relative to the peak capital "
+                f"actually deployed ({R.usd(cap['peak_gross_usd'])} at one instant), is "
+                f"{n(cap['kelly_leverage_on_peak'])}×. Capital is at risk for only 60 s per trade, so risk never binds. "
+                f"Liquidity does: the depth cap ({n(100 * pol.depth_frac)}% of the displayed touch, median touch "
+                f"{R.usd(cap['median_touch_usd'])}) is below the {R.usd(cap['max_notional_usd'])} per-trade cap on "
+                f"{n(100 * cap['share_trades_depth_capped'])}% of trades, and the average trade is "
+                f"{R.usd(cap['mean_notional_usd'])}. The decision that matters is which trades to take, not how "
+                "much leverage to use."
+            ),
             "",
         ]
 
@@ -814,16 +836,26 @@ def write_report(
         lines += [
             R.bullets(
                 [
-                    f"Trials run: {hon['n_trials']} ({hon['n_trading_trials']} ever traded); effective independent trials "
-                    f"after clustering near-duplicates: {hon['n_effective']}.",
-                    f"Selected daily Sharpe {n(dsr['sr'])} over T = {dsr['T']} days (skew {n(dsr['skew'])}, kurtosis "
-                    f"{n(dsr['kurt'])}); PSR vs 0: {R.prob(dsr['psr_0'])}.",
-                    f"Expected best daily Sharpe from {hon['n_effective']} tries of pure luck: SR* = {n(dsr['sr_star'])}. "
-                    f"Deflated Sharpe Ratio: {R.prob(dsr['dsr'])}, the probability that the true Sharpe beats SR*.",
-                    f"PBO (CSCV, 16 blocks) = {n(pb.get('pbo'))}: how often the in-sample winner lands in the bottom half "
-                    "out of sample.",
-                    f"Stationary-bootstrap 95% CI for the annualized Sharpe: {n(ci.get('lo', np.nan) * np.sqrt(252))} to "
-                    f"{n(ci.get('hi', np.nan) * np.sqrt(252))} (block length {n(ci.get('block'))} days).",
+                    (
+                        f"Trials run: {hon['n_trials']} ({hon['n_trading_trials']} ever traded); effective independent trials "
+                        f"after clustering near-duplicates: {hon['n_effective']}."
+                    ),
+                    (
+                        f"Selected daily Sharpe {n(dsr['sr'])} over T = {dsr['T']} days (skew {n(dsr['skew'])}, kurtosis "
+                        f"{n(dsr['kurt'])}); PSR vs 0: {R.prob(dsr['psr_0'])}."
+                    ),
+                    (
+                        f"Expected best daily Sharpe from {hon['n_effective']} tries of pure luck: SR* = {n(dsr['sr_star'])}. "
+                        f"Deflated Sharpe Ratio: {R.prob(dsr['dsr'])}, the probability that the true Sharpe beats SR*."
+                    ),
+                    (
+                        f"PBO (CSCV, 16 blocks) = {n(pb.get('pbo'))}: how often the in-sample winner lands in the bottom half "
+                        "out of sample."
+                    ),
+                    (
+                        f"Stationary-bootstrap 95% CI for the annualized Sharpe: {n(ci.get('lo', np.nan) * np.sqrt(252))} to "
+                        f"{n(ci.get('hi', np.nan) * np.sqrt(252))} (block length {n(ci.get('block'))} days)."
+                    ),
                 ]
             ),
             "",
@@ -835,11 +867,12 @@ def write_report(
 
     lines += [f"## 5. Holdout: days {ctx.design.holdout[0]}–{ctx.design.holdout[1]}", ""]
     if hold and hold.get("adapted_1x"):
-        h = hold["adapted_1x"]
         hci = hold.get("sharpe_ci", {})
         lines += [
-            f"Scored once through `HoldoutGuard` (accesses recorded: {hold['accessed']}), with the frozen "
-            f"model, policy and a calibration slope of {n(hold['slope'])} fitted on research predictions only.",
+            (
+                f"Scored once through `HoldoutGuard` (accesses recorded: {hold['accessed']}), with the frozen "
+                f"model, policy and a calibration slope of {n(hold['slope'])} fitted on research predictions only."
+            ),
             "",
             R.table(
                 [
@@ -898,10 +931,14 @@ def write_report(
         "",
         R.bullets(
             [
-                f"{len(losers)} of {len(trials)} trials lost money after costs; {len(idle)} never traded because no "
-                "calibrated edge cleared their threshold.",
-                f"Ramp vs flat sizing: mean annualized Sharpe {n(np.mean([t.summary['sharpe_annualized'] for t in ramp]))} vs "
-                f"{n(np.mean([t.summary['sharpe_annualized'] for t in flat]))}.",
+                (
+                    f"{len(losers)} of {len(trials)} trials lost money after costs; {len(idle)} never traded because no "
+                    "calibrated edge cleared their threshold."
+                ),
+                (
+                    f"Ramp vs flat sizing: mean annualized Sharpe {n(np.mean([t.summary['sharpe_annualized'] for t in ramp]))} vs "
+                    f"{n(np.mean([t.summary['sharpe_annualized'] for t in flat]))}."
+                ),
                 "Models that did not beat the per-stock median on MAE: "
                 + (
                     ", ".join(
@@ -922,14 +959,20 @@ def write_report(
         R.bullets(
             [
                 "The target is relative to a synthetic index, so PnL assumes a hedge whose cost is an assumption here.",
-                "Fills are at the touch with no queue, no latency and no market impact from our own orders; depth caps "
-                "limit size but do not model impact. Module D measures what realistic fills do to a signal.",
-                "The closing cross itself (4:00 pm) is not traded: positions opened at 540 s are marked to the "
-                "600 s WAP that the target uses.",
+                (
+                    "Fills are at the touch with no queue, no latency and no market impact from our own orders; depth caps "
+                    "limit size but do not model impact. Module D measures what realistic fills do to a signal."
+                ),
+                (
+                    "The closing cross itself (4:00 pm) is not traded: positions opened at 540 s are marked to the "
+                    "600 s WAP that the target uses."
+                ),
                 f"The holdout is {ctx.design.holdout[1] - ctx.design.holdout[0] + 1} days, so its Sharpe CI is wide.",
                 "The data is anonymized (no tickers), so no sector, event or corporate-action checks are possible.",
-                "Stocks that first trade after the index-weight window get zero index weight, a small error in the "
-                "index-relative features and in the neutralization on the days they trade.",
+                (
+                    "Stocks that first trade after the index-weight window get zero index weight, a small error in the "
+                    "index-relative features and in the neutralization on the days they trade."
+                ),
             ]
         ),
         "",

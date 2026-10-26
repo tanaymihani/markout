@@ -979,33 +979,37 @@ def text_summary(res: dict) -> list[str]:
     return [
         "# Arena: game theory under simulated competition",
         "",
-        "In short: competition takes away the market maker's rents, but not the cost of adverse selection. "
-        f"In a Glosten–Milgrom market with elastic noise demand, a lone Bayesian undercutter "
-        f"quotes a time-average spread of {_t(k1['quoted_spread']['mean'], tick)} ticks and earns "
-        f"{num(k1['maker_pnl']['mean'])} dollars per episode. One identical rival brings the spread "
-        f"down to {_t(k2['quoted_spread']['mean'], tick)} ticks, "
-        f"{_t(k2['excess_spread']['mean'], tick, 2)} ticks above the zero-profit spread at the same "
-        f"beliefs. Maker profit falls from {_t(k1['maker_pnl_per_trade']['mean'], tick)} to "
-        f"{_t(k2['maker_pnl_per_trade']['mean'], tick, 2)} ticks per trade, and noise-trader welfare "
-        f"rises from {num(k1['noise_welfare_per_period']['mean'])} to "
-        f"{num(k2['noise_welfare_per_period']['mean'])} dollars per period. "
-        f"A naive fixed tight quote loses {num(-mono_tight['mean'])} dollars per episode alone and "
-        f"{num(-ffa['tight']['pnl']['mean'])} in the free-for-all. There it wins "
-        f"{rp.num(first_block['share_tight'], pct=True)} of the fills in the first "
-        f"{first_block['hi']} periods, while V is still uncertain. Each of those fills carries "
-        f"{_t(first_block['adverse_tight'], tick)} ticks of adverse selection against its "
-        f"{_t(first_block['edge_tight'], tick)}-tick edge: the quote that wins the flow is the one "
-        "that was too cheap. "
-        f"The round-robin winner is the {LABELS[top]}.",
+        (
+            "In short: competition takes away the market maker's rents, but not the cost of adverse selection. "
+            f"In a Glosten–Milgrom market with elastic noise demand, a lone Bayesian undercutter "
+            f"quotes a time-average spread of {_t(k1['quoted_spread']['mean'], tick)} ticks and earns "
+            f"{num(k1['maker_pnl']['mean'])} dollars per episode. One identical rival brings the spread "
+            f"down to {_t(k2['quoted_spread']['mean'], tick)} ticks, "
+            f"{_t(k2['excess_spread']['mean'], tick, 2)} ticks above the zero-profit spread at the same "
+            f"beliefs. Maker profit falls from {_t(k1['maker_pnl_per_trade']['mean'], tick)} to "
+            f"{_t(k2['maker_pnl_per_trade']['mean'], tick, 2)} ticks per trade, and noise-trader welfare "
+            f"rises from {num(k1['noise_welfare_per_period']['mean'])} to "
+            f"{num(k2['noise_welfare_per_period']['mean'])} dollars per period. "
+            f"A naive fixed tight quote loses {num(-mono_tight['mean'])} dollars per episode alone and "
+            f"{num(-ffa['tight']['pnl']['mean'])} in the free-for-all. There it wins "
+            f"{rp.num(first_block['share_tight'], pct=True)} of the fills in the first "
+            f"{first_block['hi']} periods, while V is still uncertain. Each of those fills carries "
+            f"{_t(first_block['adverse_tight'], tick)} ticks of adverse selection against its "
+            f"{_t(first_block['edge_tight'], tick)}-tick edge: the quote that wins the flow is the one "
+            "that was too cheap. "
+            f"The round-robin winner is the {LABELS[top]}."
+        ),
         "",
-        "The textbook pieces check out against closed forms. The GM spread at π = ½ equals "
-        "μ(V_H − V_L) exactly in rational arithmetic, and the maker's mean profit over "
-        f"{g['params']['n_runs']:,} runs is {ci_text(g['maker'], 2)}. "
-        f"Kyle's best responses converge to λ* from all {len(k['iteration'])} starts, and the Monte "
-        f"Carlo insider profit peaks at β/β* = {num(k['mc']['argmax_rel'], 3)}. After "
-        f"{kd['iterations']:,} iterations CFR's average strategy is worth "
-        f"{num(kd['value'], 5)} to player 1 (−1/18 = {num(-1 / 18, 5)}), with exploitability "
-        f"{num(kd['exploitability'], 3)}.",
+        (
+            "The textbook pieces check out against closed forms. The GM spread at π = ½ equals "
+            "μ(V_H − V_L) exactly in rational arithmetic, and the maker's mean profit over "
+            f"{g['params']['n_runs']:,} runs is {ci_text(g['maker'], 2)}. "
+            f"Kyle's best responses converge to λ* from all {len(k['iteration'])} starts, and the Monte "
+            f"Carlo insider profit peaks at β/β* = {num(k['mc']['argmax_rel'], 3)}. After "
+            f"{kd['iterations']:,} iterations CFR's average strategy is worth "
+            f"{num(kd['value'], 5)} to player 1 (−1/18 = {num(-1 / 18, 5)}), with exploitability "
+            f"{num(kd['exploitability'], 3)}."
+        ),
         "",
     ]
 
@@ -1014,19 +1018,25 @@ def text_question() -> list[str]:
     return [
         "## 1. Question",
         "",
-        "SIG's research interns \"create strategies to execute on modelling ideas under simulated "
-        'competition". This module builds that competition and asks the question behind the '
-        "project's thesis: when makers compete for order flow that is partly informed, what does "
-        "winning the flow cost? The winner's-curse view predicts that the quote that trades is "
-        "disproportionately the one that was wrong. Three sub-questions:",
+        (
+            "SIG's research interns \"create strategies to execute on modelling ideas under simulated "
+            'competition". This module builds that competition and asks the question behind the '
+            "project's thesis: when makers compete for order flow that is partly informed, what does "
+            "winning the flow cost? The winner's-curse view predicts that the quote that trades is "
+            "disproportionately the one that was wrong. Three sub-questions:"
+        ),
         "",
         rp.bullets(
             [
-                "Are the textbook models implemented exactly? Glosten–Milgrom (1985), Kyle (1985) and "
-                "Kuhn poker are each checked against their closed forms.",
-                "Does a simulated dealer market reproduce the three textbook results? These are "
-                "monopoly rents, Bertrand compression of spreads to the zero-profit level, and losses "
-                "for naive tight quoting.",
+                (
+                    "Are the textbook models implemented exactly? Glosten–Milgrom (1985), Kyle (1985) and "
+                    "Kuhn poker are each checked against their closed forms."
+                ),
+                (
+                    "Does a simulated dealer market reproduce the three textbook results? These are "
+                    "monopoly rents, Bertrand compression of spreads to the zero-profit level, and losses "
+                    "for naive tight quoting."
+                ),
                 "How much is each fill adversely selected, and who ends up paying for it?",
             ]
         ),
@@ -1074,49 +1084,63 @@ def text_methods(res: dict) -> list[str]:
     return [
         "## 2. Models and method",
         "",
-        "Code: `src/markout/games/` (`glosten_milgrom.py`, `kyle.py`, `arena.py`, `kuhn_cfr.py`, "
-        "`cardgame.py`). Tests: `tests/test_games_*.py`. All randomness comes from fixed seeds, "
-        "and every interval below is a 95% CI across independent runs. Ratios such as PnL per "
-        "fill use the delta method on per-episode totals.",
+        (
+            "Code: `src/markout/games/` (`glosten_milgrom.py`, `kyle.py`, `arena.py`, `kuhn_cfr.py`, "
+            "`cardgame.py`). Tests: `tests/test_games_*.py`. All randomness comes from fixed seeds, "
+            "and every interval below is a 95% CI across independent runs. Ratios such as PnL per "
+            "fill use the delta method on per-episode totals."
+        ),
         "",
-        "**E1 Glosten–Milgrom (1985).** V ∈ {V_L, V_H} with belief π. Each trader is informed with "
-        "probability μ; otherwise it buys or sells with probability ½. The maker quotes "
-        "ask = E[V | buy] and bid = E[V | sell], which gives "
-        "ask − bid = (V_H − V_L)·4π(1 − π)μ / (1 − μ²(2π − 1)²). The belief updates by Bayes' rule "
-        "after each trade. The belief depends only on net order flow, so the expected spread and "
-        "belief paths are also computed exactly, by summing over the binomial distribution of buys.",
+        (
+            "**E1 Glosten–Milgrom (1985).** V ∈ {V_L, V_H} with belief π. Each trader is informed with "
+            "probability μ; otherwise it buys or sells with probability ½. The maker quotes "
+            "ask = E[V | buy] and bid = E[V | sell], which gives "
+            "ask − bid = (V_H − V_L)·4π(1 − π)μ / (1 − μ²(2π − 1)²). The belief updates by Bayes' rule "
+            "after each trade. The belief depends only on net order flow, so the expected spread and "
+            "belief paths are also computed exactly, by summing over the binomial distribution of buys."
+        ),
         "",
-        f"**E2 Kyle (1985).** v ~ N(p₀, Σ₀) with Σ₀ = {k['params']['sigma0_sq']:g}. Noise flow "
-        f"u ~ N(0, σ_u²) with σ_u = {k['params']['sigma_u']:g}. The insider trades x = β(v − p₀) and "
-        "the maker sets p = p₀ + λ(x + u). The closed form is β* = σ_u/√Σ₀ and λ* = √Σ₀/(2σ_u). "
-        "It is checked by iterating best responses, λ ← 2λΣ₀/(Σ₀ + 4λ²σ_u²), and by Monte Carlo "
-        "over β with λ held at λ*.",
+        (
+            f"**E2 Kyle (1985).** v ~ N(p₀, Σ₀) with Σ₀ = {k['params']['sigma0_sq']:g}. Noise flow "
+            f"u ~ N(0, σ_u²) with σ_u = {k['params']['sigma_u']:g}. The insider trades x = β(v − p₀) and "
+            "the maker sets p = p₀ + λ(x + u). The closed form is β* = σ_u/√Σ₀ and λ* = √Σ₀/(2σ_u). "
+            "It is checked by iterating best responses, λ ← 2λΣ₀/(Σ₀ + 4λ²σ_u²), and by Monte Carlo "
+            "over β with λ held at λ*."
+        ),
         "",
-        "**E3 The tournament.** Each episode draws a binary V as in GM. That keeps the Bayesian "
-        "benchmark exact: the zero-profit quote at every belief has a closed form, so "
-        '"did competition reach the zero-profit spread?" is checked against an exact number '
-        "each period. An episode is one information event, as in GM and the PIN model. Each "
-        "period one trader arrives:",
+        (
+            "**E3 The tournament.** Each episode draws a binary V as in GM. That keeps the Bayesian "
+            "benchmark exact: the zero-profit quote at every belief has a closed form, so "
+            '"did competition reach the zero-profit spread?" is checked against an exact number '
+            "each period. An episode is one information event, as in GM and the PIN model. Each "
+            "period one trader arrives:"
+        ),
         "",
         rp.bullets(
             [
                 "with probability μ it is informed: it knows V and trades one unit if the best quote is profitable;",
-                "otherwise it is a noise trader with a coin-flip direction and urgency c ~ U[0, c_max]. "
-                "It trades only if the half-spread it pays, measured from the public mid, is below c.",
+                (
+                    "otherwise it is a noise trader with a coin-flip direction and urgency c ~ U[0, c_max]. "
+                    "It trades only if the half-spread it pays, measured from the public mid, is below c."
+                ),
             ]
         ),
         "",
-        "Measuring each side from the mid follows Avellaneda–Stoikov's arrival intensities, and it "
-        "means a maker cannot tax one side for free by skewing. The elasticity gives a monopolist "
-        "a finite optimal spread. Makers quote on a tick grid and the trader hits the best price, "
-        "with ties split at random. All makers see the same tape and share one exact Bayesian "
-        "belief, so they differ only in quoting policy. PnL is marked to V at the episode end. "
-        "Each fill's PnL splits exactly into its edge over the pre-trade mid minus its adverse "
-        "selection, the move from that mid to V (the fill's markout).",
+        (
+            "Measuring each side from the mid follows Avellaneda–Stoikov's arrival intensities, and it "
+            "means a maker cannot tax one side for free by skewing. The elasticity gives a monopolist "
+            "a finite optimal spread. Makers quote on a tick grid and the trader hits the best price, "
+            "with ties split at random. All makers see the same tape and share one exact Bayesian "
+            "belief, so they differ only in quoting policy. PnL is marked to V at the episode end. "
+            "Each fill's PnL splits exactly into its edge over the pre-trade mid minus its adverse "
+            "selection, the move from that mid to V (the fill's markout)."
+        ),
         "",
-        "Quote revisions are much faster than arrivals. Before each arrival the reactive makers "
-        "revise until nobody moves; the rule is monotone with a unique fixed point, so this is the "
-        "Bertrand outcome on the tick grid.",
+        (
+            "Quote revisions are much faster than arrivals. Before each arrival the reactive makers "
+            "revise until nobody moves; the rule is monotone with a unique fixed point, so this is the "
+            "Bertrand outcome on the tick grid."
+        ),
         "",
         table(market_rows),
         "",
@@ -1133,20 +1157,24 @@ def text_methods(res: dict) -> list[str]:
             ]
         ),
         "",
-        f"**E4 Kuhn poker.** Vanilla CFR (Zinkevich et al. 2007; Neller & Lanctot 2013) runs with "
-        f"full-tree traversal of all six deals. The strategy is fixed within each iteration, and "
-        f"the run lasts {kd['iterations']:,} iterations. Exploitability is BR₁(σ₂) + BR₂(σ₁), from "
-        "an exact best-response routine; the tests check it against brute force over all 2⁶ pure "
-        f"strategies. CFR+ (Tammelin 2014) is run for {kd['plus']['iterations']:,} iterations only "
-        "as a comparison curve.",
+        (
+            f"**E4 Kuhn poker.** Vanilla CFR (Zinkevich et al. 2007; Neller & Lanctot 2013) runs with "
+            f"full-tree traversal of all six deals. The strategy is fixed within each iteration, and "
+            f"the run lasts {kd['iterations']:,} iterations. Exploitability is BR₁(σ₂) + BR₂(σ₁), from "
+            "an exact best-response routine; the tests check it against brute force over all 2⁶ pure "
+            f"strategies. CFR+ (Tammelin 2014) is run for {kd['plus']['iterations']:,} iterations only "
+            "as a comparison curve."
+        ),
         "",
-        f"**E5 Card game.** `python -m markout.games.cardgame`. You make markets, no wider than "
-        f"{c['config']['max_width']:g}, on the sum of {c['config']['n_cards']} face-down cards. "
-        f"{c['config']['bots_per_round']} bots trade each round, each informed with probability "
-        f"{c['config']['p_informed']:g}; an informed bot knows one face-down card and trades only "
-        "against a quote that is wrong relative to it. Then one card is turned up. The benchmark "
-        "is E[S | revealed cards, trades], computed by importance sampling and validated against "
-        "exact enumeration in the tests.",
+        (
+            f"**E5 Card game.** `python -m markout.games.cardgame`. You make markets, no wider than "
+            f"{c['config']['max_width']:g}, on the sum of {c['config']['n_cards']} face-down cards. "
+            f"{c['config']['bots_per_round']} bots trade each round, each informed with probability "
+            f"{c['config']['p_informed']:g}; an informed bot knows one face-down card and trades only "
+            "against a quote that is wrong relative to it. Then one card is turned up. The benchmark "
+            "is E[S | revealed cards, trades], computed by importance sampling and validated against "
+            "exact enumeration in the tests."
+        ),
         "",
     ]
 
@@ -1190,27 +1218,37 @@ def text_gm(res: dict) -> list[str]:
         "",
         rp.bullets(
             [
-                f"**Spread at π = ½.** In exact rational arithmetic the spread equals μ(V_H − V_L) "
-                f"for every case tested ({len(g['exact_half'])} cases: "
-                f"{'all equal' if exact_ok else 'NOT all equal'}). With V ∈ {{0, 1}}: {exact_list}.",
-                f"**Zero expected profit.** Over {g['params']['n_runs']:,} simulated markets of "
-                f"{g['params']['n_steps']} trades (μ = {g['params']['mu']:g}), the maker's mean PnL is "
-                f"{ci_text(g['maker'], 3)}, and the interval {maker_word} 0. As a check on the "
-                f"interval itself, across {cal['n_batches']} further independent batches of "
-                f"{cal['runs_per_batch']:,} runs it covered 0 in {rp.num(cal['coverage'], pct=True)} "
-                f"of batches (nominal 95%), and the pooled z-score is {num(cal['pooled_z'], 2)}.",
-                f"**Zero-sum accounting.** Insiders earn {ci_text(g['insider'], 3)} per market and noise "
-                f"traders lose {ci_text(g['noise'], 3, scale=-1)}. Maker + insiders + noise sum to zero "
-                f"in every run (largest error {num(g['zero_sum_max_error'], 2)}), so on average the "
-                "insiders' gain is the noise traders' loss.",
-                f"**Regret-free quotes.** Among first trades that were buys, the mean realized V is "
-                f"{ci_text(ft['v_given_buy'], 4)} against an ask of {num(ft['ask'], 4)}. For sells it is "
-                f"{ci_text(ft['v_given_sell'], 4)} against a bid of {num(ft['bid'], 4)}.",
-                f"**The spread shrinks as trades reveal V.** The exact expected spread falls at every "
-                f"trade ({'monotone' if g['spread_monotone'] else 'NOT monotone'}), to "
-                f"{rp.num(g['spread_end_ratio'], pct=True)} of its initial value after "
-                f"{g['params']['n_steps']} trades. The simulation matches the exact path at every "
-                "checkpoint (table below).",
+                (
+                    f"**Spread at π = ½.** In exact rational arithmetic the spread equals μ(V_H − V_L) "
+                    f"for every case tested ({len(g['exact_half'])} cases: "
+                    f"{'all equal' if exact_ok else 'NOT all equal'}). With V ∈ {{0, 1}}: {exact_list}."
+                ),
+                (
+                    f"**Zero expected profit.** Over {g['params']['n_runs']:,} simulated markets of "
+                    f"{g['params']['n_steps']} trades (μ = {g['params']['mu']:g}), the maker's mean PnL is "
+                    f"{ci_text(g['maker'], 3)}, and the interval {maker_word} 0. As a check on the "
+                    f"interval itself, across {cal['n_batches']} further independent batches of "
+                    f"{cal['runs_per_batch']:,} runs it covered 0 in {rp.num(cal['coverage'], pct=True)} "
+                    f"of batches (nominal 95%), and the pooled z-score is {num(cal['pooled_z'], 2)}."
+                ),
+                (
+                    f"**Zero-sum accounting.** Insiders earn {ci_text(g['insider'], 3)} per market and noise "
+                    f"traders lose {ci_text(g['noise'], 3, scale=-1)}. Maker + insiders + noise sum to zero "
+                    f"in every run (largest error {num(g['zero_sum_max_error'], 2)}), so on average the "
+                    "insiders' gain is the noise traders' loss."
+                ),
+                (
+                    f"**Regret-free quotes.** Among first trades that were buys, the mean realized V is "
+                    f"{ci_text(ft['v_given_buy'], 4)} against an ask of {num(ft['ask'], 4)}. For sells it is "
+                    f"{ci_text(ft['v_given_sell'], 4)} against a bid of {num(ft['bid'], 4)}."
+                ),
+                (
+                    f"**The spread shrinks as trades reveal V.** The exact expected spread falls at every "
+                    f"trade ({'monotone' if g['spread_monotone'] else 'NOT monotone'}), to "
+                    f"{rp.num(g['spread_end_ratio'], pct=True)} of its initial value after "
+                    f"{g['params']['n_steps']} trades. The simulation matches the exact path at every "
+                    "checkpoint (table below)."
+                ),
             ]
         ),
         "",
@@ -1221,10 +1259,12 @@ def text_gm(res: dict) -> list[str]:
         "",
         table(curve_rows),
         "",
-        "Elastic noise demand widens the zero-profit spread. A wider spread drives away noise "
-        "traders, which raises the informed share of the flow that remains. With the tournament's "
-        f"c_max = {g['elastic_c_max']:g} the zero-profit spread is wider than GM's μ(V_H − V_L) "
-        "at every μ in the chart.",
+        (
+            "Elastic noise demand widens the zero-profit spread. A wider spread drives away noise "
+            "traders, which raises the informed share of the flow that remains. With the tournament's "
+            f"c_max = {g['elastic_c_max']:g} the zero-profit spread is wider than GM's μ(V_H − V_L) "
+            "at every μ in the chart."
+        ),
         "",
         mp.picture(
             "e_gm_convergence",
@@ -1280,24 +1320,32 @@ def text_kyle(res: dict) -> list[str]:
     lines = [
         "### 3.2 Kyle",
         "",
-        f"With Σ₀ = {k['params']['sigma0_sq']:g} and σ_u = {k['params']['sigma_u']:g} the closed "
-        f"form gives β* = {num(eq['beta'], 4)}, λ* = {num(eq['lam'], 4)}, insider expected "
-        f"profit ½σ_u√Σ₀ = {num(eq['insider_profit'], 4)}, and posterior variance "
-        f"Σ₀/2 = {num(eq['posterior_var'], 4)}.",
+        (
+            f"With Σ₀ = {k['params']['sigma0_sq']:g} and σ_u = {k['params']['sigma_u']:g} the closed "
+            f"form gives β* = {num(eq['beta'], 4)}, λ* = {num(eq['lam'], 4)}, insider expected "
+            f"profit ½σ_u√Σ₀ = {num(eq['insider_profit'], 4)}, and posterior variance "
+            f"Σ₀/2 = {num(eq['posterior_var'], 4)}."
+        ),
         "",
         rp.bullets(
             [
-                f"**Best-response iteration.** From all {len(k['iteration'])} starts (0.01λ* to 100λ*) "
-                f"the map converges to λ*, within 1e-10 in at most "
-                f"{max(r['n_to_1e-10'] for r in k['iteration'])} rounds. After the first round λ never "
-                "exceeds λ*, and it rises monotonically from there; near λ* the convergence is "
-                "quadratic, because the map's slope at λ* is zero.",
-                f"**Monte Carlo over β.** With λ fixed at λ* and {mc['n']:,} draws of (v, u), the "
-                f"insider's mean profit peaks at β/β* = {num(mc['argmax_rel'], 3)} on a grid of step "
-                f"{num(mc['grid_step'], 2)}. {level}",
-                f"**The maker's side.** With the insider at β*, the OLS slope of v on order flow is "
-                f"{num(mm['lambda_hat'], 4)} (λ* = {num(mm['lambda_star'], 4)}) and the residual "
-                f"variance is {num(mm['posterior_var_hat'], 4)} (Σ₀/2 = {num(mm['posterior_var_star'], 4)}).",
+                (
+                    f"**Best-response iteration.** From all {len(k['iteration'])} starts (0.01λ* to 100λ*) "
+                    f"the map converges to λ*, within 1e-10 in at most "
+                    f"{max(r['n_to_1e-10'] for r in k['iteration'])} rounds. After the first round λ never "
+                    "exceeds λ*, and it rises monotonically from there; near λ* the convergence is "
+                    "quadratic, because the map's slope at λ* is zero."
+                ),
+                (
+                    f"**Monte Carlo over β.** With λ fixed at λ* and {mc['n']:,} draws of (v, u), the "
+                    f"insider's mean profit peaks at β/β* = {num(mc['argmax_rel'], 3)} on a grid of step "
+                    f"{num(mc['grid_step'], 2)}. {level}"
+                ),
+                (
+                    f"**The maker's side.** With the insider at β*, the OLS slope of v on order flow is "
+                    f"{num(mm['lambda_hat'], 4)} (λ* = {num(mm['lambda_star'], 4)}) and the residual "
+                    f"variance is {num(mm['posterior_var_hat'], 4)} (Σ₀/2 = {num(mm['posterior_var_star'], 4)})."
+                ),
             ]
         ),
         "",
@@ -1335,9 +1383,11 @@ def text_bridge(br: dict) -> list[str]:
             "",
             why,
             "",
-            f"The numerical comparison {br['note']}. Once module D's results exist, rerunning "
-            "this report fills in a per-stock table: CKS β, its R², the Kyle-style ratio "
-            "β/√R², and β × depth.",
+            (
+                f"The numerical comparison {br['note']}. Once module D's results exist, rerunning "
+                "this report fills in a per-stock table: CKS β, its R², the Kyle-style ratio "
+                "β/√R², and β × depth."
+            ),
             "",
         ]
     rows = []
@@ -1360,8 +1410,10 @@ def text_bridge(br: dict) -> list[str]:
         "",
         why,
         "",
-        f"Module D's full-day CKS slopes run from {num(min(betas), 3)} ({lo_t}) to "
-        f"{num(max(betas), 3)} ({hi_t}) ticks per 1,000 shares of OFI.",
+        (
+            f"Module D's full-day CKS slopes run from {num(min(betas), 3)} ({lo_t}) to "
+            f"{num(max(betas), 3)} ({hi_t}) ticks per 1,000 shares of OFI."
+        ),
     ]
     if any("r2" in r for r in br["rows"]):
         r2s = [r["r2"] for r in br["rows"] if "r2" in r]
@@ -1380,15 +1432,19 @@ def text_bridge(br: dict) -> list[str]:
     parts += ["", table(rows), ""]
     if br.get("has_kyle_lambda"):
         parts += [
-            "The Kyle λ column uses module D's dispersion of net traded volume, so it is the "
-            "trade-based λ that Kyle's model defines.",
+            (
+                "The Kyle λ column uses module D's dispersion of net traded volume, so it is the "
+                "trade-based λ that Kyle's model defines."
+            ),
             "",
         ]
     else:
         parts += [
-            f"A trade-based Kyle λ is not computed: {br['note']}. `kyle_bridge()` computes "
-            "it automatically if module D adds `sd_dmid_ticks` and `sd_trade_imbalance_k` "
-            "per stock.",
+            (
+                f"A trade-based Kyle λ is not computed: {br['note']}. `kyle_bridge()` computes "
+                "it automatically if module D adds `sd_dmid_ticks` and `sd_trade_imbalance_k` "
+                "per stock."
+            ),
             "",
         ]
     return parts
@@ -1433,18 +1489,20 @@ def text_arena(res: dict) -> list[str]:
     mono_lines = [
         "#### (a) Each agent alone",
         "",
-        f"Alone, the {PROSE[best_mono]} earns the most, {ci_text(mono[best_mono]['agent']['pnl'], 3)} "
-        f"dollars per episode, with a time-average quoted spread of "
-        f"{_t(mono[best_mono]['market']['quoted_spread']['mean'], tick)} ticks against a zero-profit "
-        f"spread of {_t(mono[best_mono]['market']['zero_profit_spread']['mean'], tick)} at the same "
-        f"beliefs. The fixed wide quote comes close, at "
-        f"{num(mono['wide']['agent']['pnl']['mean'], 3)}: a monopolist earns rents by quoting wide. "
-        f"The GM quoter posts its zero-profit quotes even as a monopolist and earns "
-        f"{ci_text(gm_m['pnl_per_fill'], 2, scale=1 / tick)} ticks per fill. That is the rent from "
-        "rounding quotes away from the mid to the tick grid, bounded by one tick. "
-        f"The fixed tight quote loses {ci_text(tight_m['pnl'], 3, scale=-1)} per episode. Its "
-        f"adverse selection per fill ({_t(tight_m['adverse_per_fill']['mean'], tick)} ticks) "
-        f"exceeds its edge ({_t(tight_m['edge_per_fill']['mean'], tick)} ticks).",
+        (
+            f"Alone, the {PROSE[best_mono]} earns the most, {ci_text(mono[best_mono]['agent']['pnl'], 3)} "
+            f"dollars per episode, with a time-average quoted spread of "
+            f"{_t(mono[best_mono]['market']['quoted_spread']['mean'], tick)} ticks against a zero-profit "
+            f"spread of {_t(mono[best_mono]['market']['zero_profit_spread']['mean'], tick)} at the same "
+            f"beliefs. The fixed wide quote comes close, at "
+            f"{num(mono['wide']['agent']['pnl']['mean'], 3)}: a monopolist earns rents by quoting wide. "
+            f"The GM quoter posts its zero-profit quotes even as a monopolist and earns "
+            f"{ci_text(gm_m['pnl_per_fill'], 2, scale=1 / tick)} ticks per fill. That is the rent from "
+            "rounding quotes away from the mid to the tick grid, bounded by one tick. "
+            f"The fixed tight quote loses {ci_text(tight_m['pnl'], 3, scale=-1)} per episode. Its "
+            f"adverse selection per fill ({_t(tight_m['adverse_per_fill']['mean'], tick)} ticks) "
+            f"exceeds its edge ({_t(tight_m['edge_per_fill']['mean'], tick)} ticks)."
+        ),
         "",
         _agent_table([mono[n]["agent"] for n in names], tick),
         "",
@@ -1542,19 +1600,21 @@ def text_arena(res: dict) -> list[str]:
     ]
     survivors = [names[i] for i in range(len(names)) if rep["boot_hi"][i] > 0.01]
     rep_lines = [
-        "**Replicator dynamics (stretch).** Treat the round-robin payoff matrix, diagonal "
-        "included, as a population game: strategies that beat the population average grow, "
-        "x_i ← x_i·exp(dt·(Ax)_i)/Z. Starting from equal shares, by replicator time "
-        f"{rep['horizon']:g} the loss-making and rent-seeking quoters are gone. Across "
-        f"{rep['n_boot']} bootstrap resamples of the episodes, the other three strategies "
-        f"together keep at most {share_text(1 - rep['competitive_share_min'])} of the population, "
-        "and the zero-profit trio (GM, undercutter, markout) holds the rest. How that share "
-        "splits among the trio is not identified. The payoff differences that decide it are "
-        "close to their Monte Carlo error, so the split varies widely across resamples (the 90% "
-        "intervals below; survivors with more than 1% in some resample: "
-        f"{', '.join(PROSE[x] for x in survivors)}). "
-        "The GM quoter is crowded out early because it takes no rent from the wide quoters while "
-        "they still exist.",
+        (
+            "**Replicator dynamics (stretch).** Treat the round-robin payoff matrix, diagonal "
+            "included, as a population game: strategies that beat the population average grow, "
+            "x_i ← x_i·exp(dt·(Ax)_i)/Z. Starting from equal shares, by replicator time "
+            f"{rep['horizon']:g} the loss-making and rent-seeking quoters are gone. Across "
+            f"{rep['n_boot']} bootstrap resamples of the episodes, the other three strategies "
+            f"together keep at most {share_text(1 - rep['competitive_share_min'])} of the population, "
+            "and the zero-profit trio (GM, undercutter, markout) holds the rest. How that share "
+            "splits among the trio is not identified. The payoff differences that decide it are "
+            "close to their Monte Carlo error, so the split varies widely across resamples (the 90% "
+            "intervals below; survivors with more than 1% in some resample: "
+            f"{', '.join(PROSE[x] for x in survivors)}). "
+            "The GM quoter is crowded out early because it takes no rent from the wide quoters while "
+            "they still exist."
+        ),
         "",
         mp.picture("e_arena_replicator", "Population shares under replicator dynamics"),
         "",
@@ -1581,27 +1641,31 @@ def text_arena(res: dict) -> list[str]:
     ffa_lines = [
         "#### (c) All six together",
         "",
-        f"The fixed tight quote takes {rp.num(ffa['tight']['fill_share']['mean'], pct=True)} of all "
-        f"fills and loses {ci_text(ffa['tight']['pnl'], 3, scale=-1)} dollars per episode. Its "
-        f"adverse selection per fill is {_t(ffa['tight']['adverse_per_fill']['mean'], tick)} ticks "
-        f"against an edge of {_t(ffa['tight']['edge_per_fill']['mean'], tick)}. When it wins is the "
-        f"point. In periods {blocks[0]['periods']} it takes "
-        f"{rp.num(blocks[0]['share_tight'], pct=True)} of the fills, and each carries "
-        f"{_t(blocks[0]['adverse_tight'], tick)} ticks of adverse selection against a "
-        f"{_t(blocks[0]['edge_tight'], tick)}-tick edge. By periods "
-        f"{blocks[-1]['periods']} the Bayesian quotes, whose spread falls as V is revealed, sit "
-        f"inside it, and its share is {rp.num(blocks[-1]['share_tight'], pct=True)}. It wins the "
-        "flow exactly when its quote is too cheap for the information in the flow. The wide and "
-        "inventory quoters never set the best price and do not trade.",
+        (
+            f"The fixed tight quote takes {rp.num(ffa['tight']['fill_share']['mean'], pct=True)} of all "
+            f"fills and loses {ci_text(ffa['tight']['pnl'], 3, scale=-1)} dollars per episode. Its "
+            f"adverse selection per fill is {_t(ffa['tight']['adverse_per_fill']['mean'], tick)} ticks "
+            f"against an edge of {_t(ffa['tight']['edge_per_fill']['mean'], tick)}. When it wins is the "
+            f"point. In periods {blocks[0]['periods']} it takes "
+            f"{rp.num(blocks[0]['share_tight'], pct=True)} of the fills, and each carries "
+            f"{_t(blocks[0]['adverse_tight'], tick)} ticks of adverse selection against a "
+            f"{_t(blocks[0]['edge_tight'], tick)}-tick edge. By periods "
+            f"{blocks[-1]['periods']} the Bayesian quotes, whose spread falls as V is revealed, sit "
+            f"inside it, and its share is {rp.num(blocks[-1]['share_tight'], pct=True)}. It wins the "
+            "flow exactly when its quote is too cheap for the information in the flow. The wide and "
+            "inventory quoters never set the best price and do not trade."
+        ),
         "",
         _agent_table(a["ffa"]["agents"], tick),
         "",
-        f"Market level: time-average quoted spread {_t(ms['quoted_spread']['mean'], tick)} ticks "
-        f"(zero-profit {_t(ms['zero_profit_spread']['mean'], tick)}), maker profit "
-        f"{_t(ms['maker_pnl_per_trade']['mean'], tick, 2)} ticks per trade, noise-trader welfare "
-        f"{num(ms['noise_welfare_per_period']['mean'], 3)} per period. The naive quoter subsidizes "
-        "everyone else: informed traders earn "
-        f"{num(ms['informed_pnl']['mean'], 3)} per episode.",
+        (
+            f"Market level: time-average quoted spread {_t(ms['quoted_spread']['mean'], tick)} ticks "
+            f"(zero-profit {_t(ms['zero_profit_spread']['mean'], tick)}), maker profit "
+            f"{_t(ms['maker_pnl_per_trade']['mean'], tick, 2)} ticks per trade, noise-trader welfare "
+            f"{num(ms['noise_welfare_per_period']['mean'], 3)} per period. The naive quoter subsidizes "
+            "everyone else: informed traders earn "
+            f"{num(ms['informed_pnl']['mean'], 3)} per episode."
+        ),
         "",
         mp.picture("e_arena_curse", "Fill share and informed share of fills over the episode in the free-for-all"),
         "",
@@ -1730,19 +1794,21 @@ def text_kuhn(res: dict) -> list[str]:
     return [
         "### 3.4 Kuhn poker",
         "",
-        f"After {kd['iterations']:,} iterations ({num(kd['seconds'], 2)} s), vanilla CFR's average "
-        f"strategy is worth {num(kd['value'], 6)} to player 1. The game value is −1/18 = "
-        f"{num(-1 / 18, 6)}, a gap of {num(abs(kd['value'] + 1 / 18), 2)}. Its exploitability is "
-        f"{num(kd['exploitability'], 3)}. Over the last two decades of iterations exploitability "
-        f"falls with slope {num(kd['slope_last_two_decades'], 3)} on log–log axes, the "
-        f"O(1/√T) rate of CFR's regret bound. CFR+ reaches {num(kd['plus']['exploitability'], 2)} in "
-        f"{kd['plus']['iterations']:,} iterations. The average strategy lands in Kuhn's equilibrium "
-        f"family. P1 bets the Jack with α = {num(fam['alpha'], 4)} (the family allows [0, 1/3]) and "
-        f"the King with {num(fam['king_bet'], 4)} (3α = {num(3 * fam['alpha'], 4)}). After "
-        f"check–bet it calls with the Queen at {num(fam['queen_call'], 4)} "
-        f"(α + 1/3 = {num(fam['alpha'] + 1 / 3, 4)}). P2 bluffs the Jack at "
-        f"{num(fam['p2_jack_bluff'], 4)} and calls with the Queen at {num(fam['p2_queen_call'], 4)} "
-        "(both 1/3 in theory).",
+        (
+            f"After {kd['iterations']:,} iterations ({num(kd['seconds'], 2)} s), vanilla CFR's average "
+            f"strategy is worth {num(kd['value'], 6)} to player 1. The game value is −1/18 = "
+            f"{num(-1 / 18, 6)}, a gap of {num(abs(kd['value'] + 1 / 18), 2)}. Its exploitability is "
+            f"{num(kd['exploitability'], 3)}. Over the last two decades of iterations exploitability "
+            f"falls with slope {num(kd['slope_last_two_decades'], 3)} on log–log axes, the "
+            f"O(1/√T) rate of CFR's regret bound. CFR+ reaches {num(kd['plus']['exploitability'], 2)} in "
+            f"{kd['plus']['iterations']:,} iterations. The average strategy lands in Kuhn's equilibrium "
+            f"family. P1 bets the Jack with α = {num(fam['alpha'], 4)} (the family allows [0, 1/3]) and "
+            f"the King with {num(fam['king_bet'], 4)} (3α = {num(3 * fam['alpha'], 4)}). After "
+            f"check–bet it calls with the Queen at {num(fam['queen_call'], 4)} "
+            f"(α + 1/3 = {num(fam['alpha'] + 1 / 3, 4)}). P2 bluffs the Jack at "
+            f"{num(fam['p2_jack_bluff'], 4)} and calls with the Queen at {num(fam['p2_queen_call'], 4)} "
+            "(both 1/3 in theory)."
+        ),
         "",
         mp.picture("e_cfr_exploitability", "Exploitability of the CFR average strategy against iterations, log-log"),
         "",
@@ -1750,16 +1816,18 @@ def text_kuhn(res: dict) -> list[str]:
         "",
         table(strat_rows),
         "",
-        "**Exploit versus protect.** Two leaky P2s are the equilibrium P2 with one information "
-        "set changed. P1's equilibrium strategy (Kuhn's family at CFR's α) earns exactly the game "
-        f"value against both: {num(s1['ev_eq'], 5)} and {num(s2['ev_eq'], 5)}. The leaks sit at "
-        "information sets where the equilibrium makes P2 indifferent, so equilibrium play neither "
-        "punishes nor suffers from them. A best response that departs from equilibrium only where "
-        f"the leak pays gains {num(s1['gain'], 4)} and {num(s2['gain'], 4)} per hand, respectively. "
-        "Once P2 adapts, the same strategies earn "
-        f"{num(s1['br_worst'], 4)} and {num(s2['br_worst'], 4)}, against −1/18 for equilibrium play. "
-        f"Each unit of EV gained is paid for with {num(ratio1, 3)} and {num(ratio2, 3)} units of "
-        "worst-case EV. Mixing the two strategies moves along a straight line between them (figure).",
+        (
+            "**Exploit versus protect.** Two leaky P2s are the equilibrium P2 with one information "
+            "set changed. P1's equilibrium strategy (Kuhn's family at CFR's α) earns exactly the game "
+            f"value against both: {num(s1['ev_eq'], 5)} and {num(s2['ev_eq'], 5)}. The leaks sit at "
+            "information sets where the equilibrium makes P2 indifferent, so equilibrium play neither "
+            "punishes nor suffers from them. A best response that departs from equilibrium only where "
+            f"the leak pays gains {num(s1['gain'], 4)} and {num(s2['gain'], 4)} per hand, respectively. "
+            "Once P2 adapts, the same strategies earn "
+            f"{num(s1['br_worst'], 4)} and {num(s2['br_worst'], 4)}, against −1/18 for equilibrium play. "
+            f"Each unit of EV gained is paid for with {num(ratio1, 3)} and {num(ratio2, 3)} units of "
+            "worst-case EV. Mixing the two strategies moves along a straight line between them (figure)."
+        ),
         "",
         mp.picture(
             "e_kuhn_exploit",
@@ -1814,8 +1882,10 @@ def text_card(res: dict) -> list[str]:
         "",
         table(err_rows),
         "",
-        "An example game played by `--auto` (the Bayes quoter), with the benchmark mid printed next "
-        "to the quote each round:",
+        (
+            "An example game played by `--auto` (the Bayes quoter), with the benchmark mid printed next "
+            "to the quote each round:"
+        ),
         "",
         "```",
         c["example"],
@@ -1841,33 +1911,43 @@ def text_curse(res: dict) -> list[str]:
         "",
         rp.bullets(
             [
-                "**The fill is the selection event.** A GM quote is unbiased before it trades. "
-                "Conditional on trading, the value moves against it: alone, the GM quoter's fills "
-                f"carry {_t(gm_m['adverse_per_fill']['mean'], tick)} ticks of adverse selection each, "
-                f"against an edge of {_t(gm_m['edge_per_fill']['mean'], tick)} ticks. The spread is "
-                "exactly the price of that selection, and nothing is left over beyond the rounding rent.",
-                "**The tightest quote is the winner, and it inherits the curse.** In the free-for-all "
-                f"the fixed tight quote wins {rp.num(b0['share_tight'], pct=True)} of the fills in the "
-                f"first {b0['hi']} periods, and each of those fills carries "
-                f"{_t(b0['adverse_tight'], tick)} ticks of adverse selection against a "
-                f"{_t(b0['edge_tight'], tick)}-tick edge. It stops "
-                "winning once the Bayesian quotes, whose spread falls as V is revealed, move inside "
-                "it. It wins only while it is wrong, and it loses "
-                f"{num(-ffa['tight']['pnl']['mean'], 3)} per episode. This is the dealer's winner's "
-                "curse: being the best price is informative, and the information is bad news.",
-                "**Competition removes rents, not adverse selection.** With two Bayesian undercutters "
-                f"the spread falls to within {_t(k2['excess_spread']['mean'], tick, 2)} ticks of the "
-                "zero-profit spread and stops there. Quoting tighter than that is quoting below the "
-                "adverse-selection cost, which is what the naive quoter does.",
-                "**Wider spreads select more toxic flow.** With elastic noise demand, a wider quote "
-                "drives away noise traders and leaves the informed. At π = ½ the informed share of "
-                f"trades is {rp.num(inf_zp, pct=True)} at the zero-profit spread and "
-                f"{rp.num(inf_mono, pct=True)} at the monopoly spread (μ = {mu:g} among arrivals). "
-                "This feedback is why the zero-profit spread with elastic noise exceeds GM's μ(V_H − V_L).",
-                "**Exploiting is selecting on a belief about your opponent.** In Kuhn poker the best "
-                f"response to a leaky player gains {num(kd['gain'], 3)} per hand, but it is worth "
-                f"{num(kd['br_worst'], 3)} if the belief is wrong and the opponent adapts. The "
-                "equilibrium strategy, which selects on nothing, cannot fall below −1/18.",
+                (
+                    "**The fill is the selection event.** A GM quote is unbiased before it trades. "
+                    "Conditional on trading, the value moves against it: alone, the GM quoter's fills "
+                    f"carry {_t(gm_m['adverse_per_fill']['mean'], tick)} ticks of adverse selection each, "
+                    f"against an edge of {_t(gm_m['edge_per_fill']['mean'], tick)} ticks. The spread is "
+                    "exactly the price of that selection, and nothing is left over beyond the rounding rent."
+                ),
+                (
+                    "**The tightest quote is the winner, and it inherits the curse.** In the free-for-all "
+                    f"the fixed tight quote wins {rp.num(b0['share_tight'], pct=True)} of the fills in the "
+                    f"first {b0['hi']} periods, and each of those fills carries "
+                    f"{_t(b0['adverse_tight'], tick)} ticks of adverse selection against a "
+                    f"{_t(b0['edge_tight'], tick)}-tick edge. It stops "
+                    "winning once the Bayesian quotes, whose spread falls as V is revealed, move inside "
+                    "it. It wins only while it is wrong, and it loses "
+                    f"{num(-ffa['tight']['pnl']['mean'], 3)} per episode. This is the dealer's winner's "
+                    "curse: being the best price is informative, and the information is bad news."
+                ),
+                (
+                    "**Competition removes rents, not adverse selection.** With two Bayesian undercutters "
+                    f"the spread falls to within {_t(k2['excess_spread']['mean'], tick, 2)} ticks of the "
+                    "zero-profit spread and stops there. Quoting tighter than that is quoting below the "
+                    "adverse-selection cost, which is what the naive quoter does."
+                ),
+                (
+                    "**Wider spreads select more toxic flow.** With elastic noise demand, a wider quote "
+                    "drives away noise traders and leaves the informed. At π = ½ the informed share of "
+                    f"trades is {rp.num(inf_zp, pct=True)} at the zero-profit spread and "
+                    f"{rp.num(inf_mono, pct=True)} at the monopoly spread (μ = {mu:g} among arrivals). "
+                    "This feedback is why the zero-profit spread with elastic noise exceeds GM's μ(V_H − V_L)."
+                ),
+                (
+                    "**Exploiting is selecting on a belief about your opponent.** In Kuhn poker the best "
+                    f"response to a leaky player gains {num(kd['gain'], 3)} per hand, but it is worth "
+                    f"{num(kd['br_worst'], 3)} if the belief is wrong and the opponent adapts. The "
+                    "equilibrium strategy, which selects on nothing, cannot fall below −1/18."
+                ),
             ]
         ),
         "",
@@ -1880,30 +1960,48 @@ def text_limitations(res: dict) -> list[str]:
         "",
         rp.bullets(
             [
-                "**One shared belief.** All makers see the same tape and hold the same exact posterior. "
-                "The common-value winner's curse, where the dealer with the most optimistic private "
-                "estimate quotes tightest, is absent by construction; with private signals the "
-                "tightest quote would also be the most mistaken.",
-                "**A stylized market.** V is binary, drawn once per episode, so adverse selection is "
-                "concentrated before V is learned. There is one unit-size trader per period and no "
-                "queue priority beyond random tie-breaks. There is no latency: quotes reach the "
-                "Bertrand fixed point before every arrival. The Avellaneda–Stoikov σ²(T − t) is a "
-                "heuristic here, since the binary value does not diffuse.",
-                "**Zero profit means within the tick.** Quotes are rounded away from the mid, so "
-                '"zero profit" is up to a rounding rent below one tick per fill.',
-                "**Rational expectations.** Every Bayesian agent knows μ and c_max. None has to learn "
-                "the parameters or detect a change in the informed share.",
-                "**Scoring on mean PnL.** Scoring is risk-neutral. Markout's design goal is lower "
-                "inventory risk, which this scoring rewards only indirectly (the s.d. columns).",
-                "**Replicator dynamics.** They run on pairwise payoffs, a caricature of a population "
-                "of market makers. The split among zero-profit strategies is not identified.",
-                "**Kuhn poker is tiny.** CFR's convergence here says little about large games. The "
-                "exploitation study uses the exact equilibrium at CFR's α, so indifference is "
-                "well defined.",
-                "**The Kyle bridge is not a measurement of λ.** OFI is not Kyle's order flow, and "
-                "module D's single 2012 day has its own limits.",
-                "**The card game's bots are simple.** They do not learn from each other, and the "
-                "benchmark is a Monte Carlo estimate.",
+                (
+                    "**One shared belief.** All makers see the same tape and hold the same exact posterior. "
+                    "The common-value winner's curse, where the dealer with the most optimistic private "
+                    "estimate quotes tightest, is absent by construction; with private signals the "
+                    "tightest quote would also be the most mistaken."
+                ),
+                (
+                    "**A stylized market.** V is binary, drawn once per episode, so adverse selection is "
+                    "concentrated before V is learned. There is one unit-size trader per period and no "
+                    "queue priority beyond random tie-breaks. There is no latency: quotes reach the "
+                    "Bertrand fixed point before every arrival. The Avellaneda–Stoikov σ²(T − t) is a "
+                    "heuristic here, since the binary value does not diffuse."
+                ),
+                (
+                    "**Zero profit means within the tick.** Quotes are rounded away from the mid, so "
+                    '"zero profit" is up to a rounding rent below one tick per fill.'
+                ),
+                (
+                    "**Rational expectations.** Every Bayesian agent knows μ and c_max. None has to learn "
+                    "the parameters or detect a change in the informed share."
+                ),
+                (
+                    "**Scoring on mean PnL.** Scoring is risk-neutral. Markout's design goal is lower "
+                    "inventory risk, which this scoring rewards only indirectly (the s.d. columns)."
+                ),
+                (
+                    "**Replicator dynamics.** They run on pairwise payoffs, a caricature of a population "
+                    "of market makers. The split among zero-profit strategies is not identified."
+                ),
+                (
+                    "**Kuhn poker is tiny.** CFR's convergence here says little about large games. The "
+                    "exploitation study uses the exact equilibrium at CFR's α, so indifference is "
+                    "well defined."
+                ),
+                (
+                    "**The Kyle bridge is not a measurement of λ.** OFI is not Kyle's order flow, and "
+                    "module D's single 2012 day has its own limits."
+                ),
+                (
+                    "**The card game's bots are simple.** They do not learn from each other, and the "
+                    "benchmark is a Monte Carlo estimate."
+                ),
             ]
         ),
         "",
@@ -1915,12 +2013,14 @@ def text_limitations(res: dict) -> list[str]:
         ".venv/bin/python -m markout.games.cardgame        # play the card game (add --auto to watch the Bayes quoter)",
         "```",
         "",
-        "References: Glosten & Milgrom (1985), *JFE* 14(1); Kyle (1985), *Econometrica* 53(6); "
-        "Avellaneda & Stoikov (2008), *Quantitative Finance* 8(3); Zinkevich, Johanson, Bowling & "
-        "Piccione (2007), *NIPS*; Neller & Lanctot (2013), *An Introduction to Counterfactual "
-        "Regret Minimization*; Tammelin (2014), arXiv:1407.5042; Kuhn (1950); Cont, Kukanov & "
-        "Stoikov (2014), *J. Financial Econometrics* 12(1); Easley, Kiefer, O'Hara & Paperman "
-        "(1996), *J. Finance* 51(4).",
+        (
+            "References: Glosten & Milgrom (1985), *JFE* 14(1); Kyle (1985), *Econometrica* 53(6); "
+            "Avellaneda & Stoikov (2008), *Quantitative Finance* 8(3); Zinkevich, Johanson, Bowling & "
+            "Piccione (2007), *NIPS*; Neller & Lanctot (2013), *An Introduction to Counterfactual "
+            "Regret Minimization*; Tammelin (2014), arXiv:1407.5042; Kuhn (1950); Cont, Kukanov & "
+            "Stoikov (2014), *J. Financial Econometrics* 12(1); Easley, Kiefer, O'Hara & Paperman "
+            "(1996), *J. Finance* 51(4)."
+        ),
     ]
 
 

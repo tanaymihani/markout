@@ -284,11 +284,13 @@ class Agent(Protocol):
 
 
 class QuotingAgent(Agent, Protocol):
-    def quote(self, c: Context) -> tuple[np.ndarray, np.ndarray]: ...
+    def quote(self, c: Context) -> tuple[np.ndarray, np.ndarray]:
+        """(ask, bid) in ticks for every seed."""
 
 
 class ReactiveAgent(Agent, Protocol):
-    def bounds(self, c: Context) -> tuple[np.ndarray, ...]: ...
+    def bounds(self, c: Context) -> tuple[np.ndarray, ...]:
+        """(ask floor, ask cap, bid cap, bid floor) in ticks; the engine undercuts within them."""
 
 
 @dataclass

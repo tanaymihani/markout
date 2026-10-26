@@ -30,10 +30,10 @@ session id instead of the id.
 from __future__ import annotations
 
 import base64
+import contextlib
 import hashlib
 import json
 import os
-import re
 import secrets
 import shutil
 import signal
@@ -46,6 +46,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from html.parser import HTMLParser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -102,9 +103,33 @@ NOTICE = (
 KILL_HELP = "Kill switch: the button at the top. It stops orders in this sandbox only."
 
 
+class _InlineScripts(HTMLParser):
+    """Collects the text of every inline <script> element, exactly as the browser hashes it."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self.blocks: list[str] = []
+        self._inside = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script" and not dict(attrs).get("src"):
+            self._inside = True
+            self.blocks.append("")
+
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self._inside = False
+
+    def handle_data(self, data):
+        if self._inside:
+            self.blocks[-1] += data
+
+
 def _csp_hashes(html: str) -> str:
-    blocks = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
-    return " ".join(f"'sha256-{base64.b64encode(hashlib.sha256(b.encode()).digest()).decode()}'" for b in blocks)
+    parser = _InlineScripts()
+    parser.feed(html)
+    parser.close()
+    return " ".join(f"'sha256-{base64.b64encode(hashlib.sha256(b.encode()).digest()).decode()}'" for b in parser.blocks)
 
 
 def public_page() -> tuple[str, str]:
@@ -473,9 +498,8 @@ def main(host: str | None = None, port: int | None = None, max_sessions: int = M
     signal.signal(signal.SIGTERM, lambda *_: threading.Thread(target=srv.shutdown, daemon=True).start())
     _log_json({"level": "info", "message": f"public desk on http://{host}:{port}", "max_sessions": max_sessions})
     try:
-        srv.serve_forever()
-    except KeyboardInterrupt:
-        pass
+        with contextlib.suppress(KeyboardInterrupt):  # Ctrl-C ends serve_forever; the cleanup still runs
+            srv.serve_forever()
     finally:
         stop.set()
         srv.server_close()

@@ -67,8 +67,10 @@ MUST_REJECT += [  # reversals: the same names, the opposite question
 MUST_REJECT += [  # a sibling market in the same event: same speech, a different word
     (
         "What will Donald Trump say during Hispanic Heritage Month Celebration? Rubio",
-        "What will Trump say during Hispanic Heritage Month Celebration? Donald Trump - Hispanic Heritage Month "
-        "Celebration ICE",
+        (
+            "What will Trump say during Hispanic Heritage Month Celebration? Donald Trump - Hispanic Heritage Month "
+            "Celebration ICE"
+        ),
         "entities",
     ),
 ]

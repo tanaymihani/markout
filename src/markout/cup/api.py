@@ -21,14 +21,29 @@ from markout.cup.types import Account, Book, Fill, Market, Order, Position
 class ContestAPI(Protocol):
     name: str
 
-    def markets(self) -> list[Market]: ...
-    def books(self, contract_ids: list[str]) -> dict[str, Book]: ...
-    def account(self) -> Account: ...
-    def positions(self) -> list[Position]: ...
-    def place_order(self, contract_id: str, side: str, price: float, qty: float, client_id: str = "") -> Order: ...
-    def cancel_order(self, order_id: str) -> None: ...
-    def open_orders(self) -> list[Order]: ...
-    def fills(self, since: datetime | None = None) -> list[Fill]: ...
+    def markets(self) -> list[Market]:
+        """Every open market, with its contracts."""
+
+    def books(self, contract_ids: list[str]) -> dict[str, Book]:
+        """The current order book of each contract."""
+
+    def account(self) -> Account:
+        """Cash, equity and the leaderboard rank."""
+
+    def positions(self) -> list[Position]:
+        """Open positions."""
+
+    def place_order(self, contract_id: str, side: str, price: float, qty: float, client_id: str = "") -> Order:
+        """A limit order ("buy" or "sell"); marketable quantity fills at once."""
+
+    def cancel_order(self, order_id: str) -> None:
+        """Cancel whatever is left of an order."""
+
+    def open_orders(self) -> list[Order]:
+        """Orders still resting on the book."""
+
+    def fills(self, since: datetime | None = None) -> list[Fill]:
+        """Fills, or only those after `since`."""
 
 
 class RateLimiter:

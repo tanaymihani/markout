@@ -215,26 +215,30 @@ def report_section(bench: dict) -> str:
     lines = [
         "## C++ core",
         "",
-        "The replay is sequential and keeps state (queues, ids behind us, timeouts), so it cannot "
-        "be vectorised, and it is the part worth porting; the NumPy analysis around it is not. "
-        f"cProfile on the Python reference ({prof['ticker']}, {prof['model']}) spends "
-        f"{rp.num(prof['total_s'])} s in {rp.num(prof['function_calls'])} function calls. The loop body "
-        f"itself is {100 * loop['share_of_total']:.0f}% of that; the rest is spread across millions "
-        "of tiny list, dict and set operations. `cpp/queue_sim.cpp` ports the loop step for step "
-        "(ordered maps of live orders by price, a min-heap of deadlines, a sorted id set for the "
-        "orders behind us), and `cpp/bindings.cpp` exposes it to NumPy through pybind11. "
-        f'`fills.simulate(engine="auto")` uses it when it is built. Its output is {same}. That '
-        "is checked here and in `tests/test_cpp_equivalence.py`: the five real days, seeded "
-        "streams with hundreds of concurrent orders, and random `hypothesis` event streams "
-        "(halts, crosses, timestamp ties, orders that cross the book or sit outside the visible "
-        "levels).",
+        (
+            "The replay is sequential and keeps state (queues, ids behind us, timeouts), so it cannot "
+            "be vectorised, and it is the part worth porting; the NumPy analysis around it is not. "
+            f"cProfile on the Python reference ({prof['ticker']}, {prof['model']}) spends "
+            f"{rp.num(prof['total_s'])} s in {rp.num(prof['function_calls'])} function calls. The loop body "
+            f"itself is {100 * loop['share_of_total']:.0f}% of that; the rest is spread across millions "
+            "of tiny list, dict and set operations. `cpp/queue_sim.cpp` ports the loop step for step "
+            "(ordered maps of live orders by price, a min-heap of deadlines, a sorted id set for the "
+            "orders behind us), and `cpp/bindings.cpp` exposes it to NumPy through pybind11. "
+            f'`fills.simulate(engine="auto")` uses it when it is built. Its output is {same}. That '
+            "is checked here and in `tests/test_cpp_equivalence.py`: the five real days, seeded "
+            "streams with hundreds of concurrent orders, and random `hypothesis` event streams "
+            "(halts, crosses, timestamp ties, orders that cross the book or sit outside the visible "
+            "levels)."
+        ),
         "",
-        f"Throughput on this machine ({bench['machine']['machine']}, {bench['machine']['platform']}), "
-        f"{bench['method']}. The C++ speed-up is {bench['speedup_min']:.0f}–{bench['speedup_max']:.0f}× "
-        f"(median {bench['fifo_speedup_median']:.0f}× for FIFO). Even the Python reference replays a "
-        f"whole day in at most {max(r['python_median_s'] for r in bench['rows']):.2f} s, so the port "
-        "matters when the same replay runs over many days, parameter grids or much larger order "
-        "sets.",
+        (
+            f"Throughput on this machine ({bench['machine']['machine']}, {bench['machine']['platform']}), "
+            f"{bench['method']}. The C++ speed-up is {bench['speedup_min']:.0f}–{bench['speedup_max']:.0f}× "
+            f"(median {bench['fifo_speedup_median']:.0f}× for FIFO). Even the Python reference replays a "
+            f"whole day in at most {max(r['python_median_s'] for r in bench['rows']):.2f} s, so the port "
+            "matters when the same replay runs over many days, parameter grids or much larger order "
+            "sets."
+        ),
         "",
         mp.picture("g_throughput", "Messages per second, Python versus C++, and C++ speed-up by fill model"),
         "",
@@ -264,8 +268,10 @@ def report_section(bench: dict) -> str:
         "",
         "</details>",
         "",
-        "Build: `make cpp` (CMake + pybind11; `-O3 -ffp-contract=off`, no fast-math, so float "
-        "results cannot drift). Rerun: `make bench`.",
+        (
+            "Build: `make cpp` (CMake + pybind11; `-O3 -ffp-contract=off`, no fast-math, so float "
+            "results cannot drift). Rerun: `make bench`."
+        ),
         "",
     ]
     return "\n".join(lines)

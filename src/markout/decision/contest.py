@@ -874,8 +874,10 @@ def part1_markdown(C: dict) -> str:
     # ---- the pre-registered policy, chosen from the results
     rp_ = pol[robust["policy"]]
     steps = [
-        "Log every trade before placing it (`python -m markout.decision.journal add ...`), with the reason. "
-        "Part 2 scores the beliefs, not the rank."
+        (
+            "Log every trade before placing it (`python -m markout.decision.journal add ...`), with the reason. "
+            "Part 2 scores the beliefs, not the rank."
+        )
     ]
     if rp_.late_share:
         n_late = late_rounds(rp_, R)

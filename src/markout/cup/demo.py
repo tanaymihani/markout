@@ -159,24 +159,32 @@ def run(
     lines = [
         "# Markout Desk: demo walkthrough",
         "",
-        "> Fictional markets and synthetic prices (`configs/cup_demo_scenario.json`), a simulated clock and a "
-        "scripted reviewer. It shows how the desk works end to end; it says nothing about real edge.",
+        (
+            "> Fictional markets and synthetic prices (`configs/cup_demo_scenario.json`), a simulated clock and a "
+            "scripted reviewer. It shows how the desk works end to end; it says nothing about real edge."
+        ),
         "",
         "## What the desk does",
         "",
         R.bullets(
             [
                 "Pulls every open contest market and its order book (here: a paper exchange; live: the Predictions Cup API).",
-                "Finds reference prices for each contract in free, public sources (Polymarket and Kalshi prices, "
-                "option-implied probabilities for price questions, earnings-beat history), and proposes a mapping "
-                "that a human must confirm.",
-                "Pools the references with the contest's own price in log-odds (explicit weights, printed on every "
-                "proposal), and proposes a trade only when the whole uncertainty band clears the ask by at least "
-                "3 points.",
+                (
+                    "Finds reference prices for each contract in free, public sources (Polymarket and Kalshi prices, "
+                    "option-implied probabilities for price questions, earnings-beat history), and proposes a mapping "
+                    "that a human must confirm."
+                ),
+                (
+                    "Pools the references with the contest's own price in log-odds (explicit weights, printed on every "
+                    "proposal), and proposes a trade only when the whole uncertainty band clears the ask by at least "
+                    "3 points."
+                ),
                 "Sizes it with Kelly: the pre-registered prize policy from report 05, or a steady 0.5x Kelly mode.",
                 "Trades only after an explicit click, with a last look at a fresh book; a kill switch stops everything.",
-                "Writes every decision, including forecasts it did not trade, to the decision journal, which scores "
-                "the beliefs against the market when markets resolve (Brier and log score, calibration).",
+                (
+                    "Writes every decision, including forecasts it did not trade, to the decision journal, which scores "
+                    "the beliefs against the market when markets resolve (Brier and log score, calibration)."
+                ),
             ]
         ),
         "",
@@ -227,9 +235,11 @@ def run(
         "python -m markout.cup serve --live               # the real contest, once the Oct 1 adapter exists",
         "```",
         "",
-        "The live adapter is written against the platform's API reference, which is only visible after "
-        "registering. The contest's rules allow bots (one account, individual participation, the platform's "
-        "rate and position limits).",
+        (
+            "The live adapter is written against the platform's API reference, which is only visible after "
+            "registering. The contest's rules allow bots (one account, individual participation, the platform's "
+            "rate and position limits)."
+        ),
     ]
     (out_dir / "DEMO.md").write_text("\n".join(lines) + "\n")
     return out_dir / "DEMO.md"

@@ -384,37 +384,51 @@ def section_data(res: dict) -> list[str]:
         "",
         rp.bullets(
             [
-                f"**Data.** {meta['data_source']}. {listing(tickers)} on {meta['date']}, {meta['levels']} "
-                "levels: every order-book event with its order id, and the book after it.",
-                f"**Trimmed session.** The first and last {meta['trim_seconds'] / 60:.0f} minutes are dropped "
-                f"from every analysis ({session}). Book statistics are time-weighted: each state counts for the "
-                "seconds it was in effect.",
-                f"**Train/test split.** Anything fitted or chosen uses data before {split} and is scored on "
-                f"data after it; labels that straddle {split} are dropped.",
-                "**Contemporaneous is not predictive.** The Cont–Kukanov–Stoikov (CKS, 2014) regression "
-                "explains the mid change over a 10 s bucket with the order-flow imbalance (OFI) of the *same* "
-                "bucket; you only know that OFI once the move has happened, so its R² says nothing about "
-                "forecasting. The predictive tests are separate: lagged OFI → next bucket's mid change, "
-                "and queue imbalance → direction of the next mid move (Gould & Bonart 2016), both scored "
-                "out of sample.",
-                f"**Hypothetical orders.** {meta['order_size']} shares at the best bid and at the best ask every "
-                f"{meta['order_every']:g} s, each cancelled after {meta['max_wait']:g} s or when its price leaves "
-                f"the {meta['levels']} visible levels (LOBSTER records nothing deeper). Each order is replayed "
-                "alone against the real messages, so it has no market impact.",
-                "**Fill models.** *Touch* (optimistic): filled by any print at our price. *FIFO queue* "
-                "(realistic): we join behind the displayed depth; later arrivals (tracked by order id) queue "
-                "behind us; cancels of anyone else shrink the queue ahead; visible executions consume the "
-                "queue ahead first and the rest fills us; hidden executions are ignored because displayed "
-                "orders have priority at the same price. *Trade-through* (pessimistic): we are last in line "
-                "behind everyone, so only a print strictly beyond our price reaches us. In all three a print "
-                "through our price or the opposite quote reaching it fills the order. An earlier version also "
-                'counted "the whole level is executed away" as a trade-through fill. That was dropped: when an '
-                "aggressor exactly clears the level, FIFO leaves us first in line but unfilled, so the rule made the "
-                "pessimistic model fill *more* often than FIFO for the small-tick stocks. Without it, "
-                "trade-through ⊆ FIFO ⊆ touch holds order by order, and a test checks it.",
-                f"**Decision rule.** Every {meta['order_every']:g} s, follow the sign of the queue imbalance I: "
-                f"either cross (take the opposite quote) or post at our best quote, marked to the mid "
-                f"{meta['post_cross_horizon']:g} s after the decision. Fees and rebates are excluded.",
+                (
+                    f"**Data.** {meta['data_source']}. {listing(tickers)} on {meta['date']}, {meta['levels']} "
+                    "levels: every order-book event with its order id, and the book after it."
+                ),
+                (
+                    f"**Trimmed session.** The first and last {meta['trim_seconds'] / 60:.0f} minutes are dropped "
+                    f"from every analysis ({session}). Book statistics are time-weighted: each state counts for the "
+                    "seconds it was in effect."
+                ),
+                (
+                    f"**Train/test split.** Anything fitted or chosen uses data before {split} and is scored on "
+                    f"data after it; labels that straddle {split} are dropped."
+                ),
+                (
+                    "**Contemporaneous is not predictive.** The Cont–Kukanov–Stoikov (CKS, 2014) regression "
+                    "explains the mid change over a 10 s bucket with the order-flow imbalance (OFI) of the *same* "
+                    "bucket; you only know that OFI once the move has happened, so its R² says nothing about "
+                    "forecasting. The predictive tests are separate: lagged OFI → next bucket's mid change, "
+                    "and queue imbalance → direction of the next mid move (Gould & Bonart 2016), both scored "
+                    "out of sample."
+                ),
+                (
+                    f"**Hypothetical orders.** {meta['order_size']} shares at the best bid and at the best ask every "
+                    f"{meta['order_every']:g} s, each cancelled after {meta['max_wait']:g} s or when its price leaves "
+                    f"the {meta['levels']} visible levels (LOBSTER records nothing deeper). Each order is replayed "
+                    "alone against the real messages, so it has no market impact."
+                ),
+                (
+                    "**Fill models.** *Touch* (optimistic): filled by any print at our price. *FIFO queue* "
+                    "(realistic): we join behind the displayed depth; later arrivals (tracked by order id) queue "
+                    "behind us; cancels of anyone else shrink the queue ahead; visible executions consume the "
+                    "queue ahead first and the rest fills us; hidden executions are ignored because displayed "
+                    "orders have priority at the same price. *Trade-through* (pessimistic): we are last in line "
+                    "behind everyone, so only a print strictly beyond our price reaches us. In all three a print "
+                    "through our price or the opposite quote reaching it fills the order. An earlier version also "
+                    'counted "the whole level is executed away" as a trade-through fill. That was dropped: when an '
+                    "aggressor exactly clears the level, FIFO leaves us first in line but unfilled, so the rule made the "
+                    "pessimistic model fill *more* often than FIFO for the small-tick stocks. Without it, "
+                    "trade-through ⊆ FIFO ⊆ touch holds order by order, and a test checks it."
+                ),
+                (
+                    f"**Decision rule.** Every {meta['order_every']:g} s, follow the sign of the queue imbalance I: "
+                    f"either cross (take the opposite quote) or post at our best quote, marked to the mid "
+                    f"{meta['post_cross_horizon']:g} s after the decision. Fees and rebates are excluded."
+                ),
             ]
         ),
         "",
@@ -442,10 +456,12 @@ def section_consistency(res: dict) -> list[str]:
     return [
         "### 1. The message and book files agree",
         "",
-        "For every submission, cancel, delete and visible execution whose price is in view before "
-        "and after it, the displayed size at that price must change by exactly ± the message size. "
-        f"{rate_text}, and {cover_text}. The first message of each file has no book before it and is "
-        f"skipped; hidden executions do not touch displayed depth.{fail_text}",
+        (
+            "For every submission, cancel, delete and visible execution whose price is in view before "
+            "and after it, the displayed size at that price must change by exactly ± the message size. "
+            f"{rate_text}, and {cover_text}. The first message of each file has no book before it and is "
+            f"skipped; hidden executions do not touch displayed depth.{fail_text}"
+        ),
         "",
         rp.table(
             [
@@ -926,11 +942,13 @@ def section_post_cross(res: dict) -> list[str]:
     out = [
         "### 7. Post or cross?",
         "",
-        f"At each decision the trader follows sign(I). EV(cross) = s·(mid(t+{H_s} s) − opposite quote) and "
-        "EV(post) = filled fraction × s·(mid(t+H) − our quote), in ticks per share, where s = +1 for a buy. "
-        "The heatmaps show EV(post) − EV(cross) by signal strength |I| and by queue ahead (in multiples of "
-        "the stock's median queue). Blue cells favour posting, red cells favour crossing, and empty cells "
-        "have fewer than 20 decisions.",
+        (
+            f"At each decision the trader follows sign(I). EV(cross) = s·(mid(t+{H_s} s) − opposite quote) and "
+            "EV(post) = filled fraction × s·(mid(t+H) − our quote), in ticks per share, where s = +1 for a buy. "
+            "The heatmaps show EV(post) − EV(cross) by signal strength |I| and by queue ahead (in multiples of "
+            "the stock's median queue). Blue cells favour posting, red cells favour crossing, and empty cells "
+            "have fewer than 20 decisions."
+        ),
         "",
     ]
 
@@ -967,11 +985,13 @@ def section_post_cross(res: dict) -> list[str]:
         )
         spread_l = each(large, lambda t: mean(t, "fifo", "spread", "{:.2f}"))
         out += [
-            f"**Large-tick ({listing(large)}).** Crossing pays half the spread ({spread_l} ticks on "
-            f"average), and the signal's average move over {H_s} s is {move} ticks, so EV(cross) "
-            f"averages {cross} ticks. Under FIFO, "
-            f"posting averages {post_f} ticks against {post_t} under touch. Crossing wins in {neg_f} of the "
-            f"{n_cells} FIFO cells, against {neg_t} under touch. {where}",
+            (
+                f"**Large-tick ({listing(large)}).** Crossing pays half the spread ({spread_l} ticks on "
+                f"average), and the signal's average move over {H_s} s is {move} ticks, so EV(cross) "
+                f"averages {cross} ticks. Under FIFO, "
+                f"posting averages {post_f} ticks against {post_t} under touch. Crossing wins in {neg_f} of the "
+                f"{n_cells} FIFO cells, against {neg_t} under touch. {where}"
+            ),
             "",
             mp.picture(
                 "d_post_vs_cross", "Heatmaps of EV(post) minus EV(cross) for large-tick stocks under three fill models"
@@ -1072,18 +1092,22 @@ def section_post_cross(res: dict) -> list[str]:
         "",
         "</details>",
         "",
-        "**The rule, scored honestly.** Picking the best action (post, cross or stay out) cell by "
-        "cell and scoring it on the same decisions is the optimizer's curse. So the rule is chosen "
-        f"on decisions before {split} and scored after:",
+        (
+            "**The rule, scored honestly.** Picking the best action (post, cross or stay out) cell by "
+            "cell and scoring it on the same decisions is the optimizer's curse. So the rule is chosen "
+            f"on decisions before {split} and scored after:"
+        ),
         "",
         mp.picture("d_rule_oos", "In-sample versus out-of-sample EV of the cell-by-cell rule per stock and fill model"),
         "",
         rp.table([rule(t, m) for t in tickers for m in MODELS]),
         "",
-        f"The in-sample EV exceeds the out-of-sample EV in {sum(g > 0 for g in gaps)} of {len(gaps)} "
-        f"ticker × model cases, by {np.mean(gaps):+.3f} ticks per decision on average. EV is per "
-        "share, the CIs come from a block bootstrap over 5-minute blocks, and the bps figures use "
-        "each decision's own mid.",
+        (
+            f"The in-sample EV exceeds the out-of-sample EV in {sum(g > 0 for g in gaps)} of {len(gaps)} "
+            f"ticker × model cases, by {np.mean(gaps):+.3f} ticks per decision on average. EV is per "
+            "share, the CIs come from a block bootstrap over 5-minute blocks, and the bps figures use "
+            "each decision's own mid."
+        ),
         "",
     ]
     return out
@@ -1103,19 +1127,27 @@ def section_answer(res: dict) -> list[str]:
         "",
         rp.bullets(
             [
-                f"**One day, 2012.** Five stocks on {meta['date']}. Queue dynamics, fees and the tick-size "
-                "regime of these names have changed since, and one day is a small sample for anything intraday.",
-                "**No impact of our own orders.** Each hypothetical order is replayed alone. Nobody reacts to "
-                "it, and it takes no liquidity away from anyone else. Real queue position also depends on "
-                "latency, which is zero here.",
-                "**Queue-model assumptions.** The queue ahead is an aggregate share count, not a list of "
-                "orders. Any cancel of an id not seen joining after us is assumed to be ahead of us. Every "
-                "visible execution at our price consumes the queue ahead first, whichever order it hit. A "
-                "print through our price, or the opposite quote reaching it, fills the whole order. Orders "
-                f"are cancelled when their price leaves the {meta['levels']} visible levels, because LOBSTER "
-                "records nothing deeper.",
-                "**Fees, rebates and hidden liquidity.** Exchange fees and maker rebates are excluded. Hidden "
-                "executions are ignored by FIFO, and nearly all of them print inside the spread (midpoint orders).",
+                (
+                    f"**One day, 2012.** Five stocks on {meta['date']}. Queue dynamics, fees and the tick-size "
+                    "regime of these names have changed since, and one day is a small sample for anything intraday."
+                ),
+                (
+                    "**No impact of our own orders.** Each hypothetical order is replayed alone. Nobody reacts to "
+                    "it, and it takes no liquidity away from anyone else. Real queue position also depends on "
+                    "latency, which is zero here."
+                ),
+                (
+                    "**Queue-model assumptions.** The queue ahead is an aggregate share count, not a list of "
+                    "orders. Any cancel of an id not seen joining after us is assumed to be ahead of us. Every "
+                    "visible execution at our price consumes the queue ahead first, whichever order it hit. A "
+                    "print through our price, or the opposite quote reaching it, fills the whole order. Orders "
+                    f"are cancelled when their price leaves the {meta['levels']} visible levels, because LOBSTER "
+                    "records nothing deeper."
+                ),
+                (
+                    "**Fees, rebates and hidden liquidity.** Exchange fees and maker rebates are excluded. Hidden "
+                    "executions are ignored by FIFO, and nearly all of them print inside the spread (midpoint orders)."
+                ),
                 "**Level-1 OFI.** Changes behind the best are invisible to e_n, as the flickering-quote window shows.",
             ]
         ),
@@ -1127,10 +1159,12 @@ def build_text(res: dict) -> str:
     head = [
         "# 02 · Microstructure lab: does a short-horizon signal survive realistic fills?",
         "",
-        "**Question.** Queue imbalance at the best quotes predicts the next mid-price move, most "
-        "strongly in large-tick stocks. Can a trader monetise that prediction once fills are simulated "
-        "from order-level queue positions, instead of assuming a fill whenever the price touches the "
-        "order?",
+        (
+            "**Question.** Queue imbalance at the best quotes predicts the next mid-price move, most "
+            "strongly in large-tick stocks. Can a trader monetise that prediction once fills are simulated "
+            "from order-level queue positions, instead of assuming a fill whenever the price touches the "
+            "order?"
+        ),
         "",
         "**Answer.** " + one_line_answer(res),
         "",

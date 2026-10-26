@@ -97,7 +97,7 @@ A hosted version (`python -m markout.cup public`, or the Docker image) gives eve
 
 ## How I tried to keep it honest
 
-- 403 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 404 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).

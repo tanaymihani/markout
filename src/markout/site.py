@@ -191,11 +191,13 @@ def findings() -> list[tuple[str, str, str]]:
             (
                 "Closing auction",
                 "01_auction",
-                f"LightGBM beats a per-stock baseline on every walk-forward day. Traded net of costs it earns an "
-                f"annualized Sharpe of <span class=num>{s['sharpe_annualized']:.1f}</span>, and "
-                f"<span class=num>{h.get('sharpe_annualized', float('nan')):.1f}</span> on a holdout scored once. "
-                f"At twice the assumed costs it drops to <span class=num>{two:.1f}</span>: the edge is about one "
-                "spread wide.",
+                (
+                    f"LightGBM beats a per-stock baseline on every walk-forward day. Traded net of costs it earns an "
+                    f"annualized Sharpe of <span class=num>{s['sharpe_annualized']:.1f}</span>, and "
+                    f"<span class=num>{h.get('sharpe_annualized', float('nan')):.1f}</span> on a holdout scored once. "
+                    f"At twice the assumed costs it drops to <span class=num>{two:.1f}</span>: the edge is about one "
+                    "spread wide."
+                ),
             )
         )
     m = results.load("microstructure")
@@ -205,10 +207,12 @@ def findings() -> list[tuple[str, str, str]]:
             (
                 "Realistic fills",
                 "02_microstructure",
-                f"Resting orders in INTC look profitable if any trade at your price fills you "
-                f"(<span class=num>{intc['touch']['mk_10_bps']:+.2f}</span> bps ten seconds later). Tracking queue "
-                f"position order by order turns that into <span class=num>{intc['fifo']['mk_10_bps']:+.2f}</span> bps: "
-                "the fills you actually get are the ones the market was about to run over.",
+                (
+                    f"Resting orders in INTC look profitable if any trade at your price fills you "
+                    f"(<span class=num>{intc['touch']['mk_10_bps']:+.2f}</span> bps ten seconds later). Tracking queue "
+                    f"position order by order turns that into <span class=num>{intc['fifo']['mk_10_bps']:+.2f}</span> bps: "
+                    "the fills you actually get are the ones the market was about to run over."
+                ),
             )
         )
     ar = results.load("arena")
@@ -218,10 +222,12 @@ def findings() -> list[tuple[str, str, str]]:
             (
                 "Competition",
                 "03_arena",
-                f"A lone market maker quotes a <span class=num>{100 * k[1]['quoted_spread']['mean']:.0f}</span>-tick "
-                f"spread; one identical rival brings it to <span class=num>{100 * k[2]['quoted_spread']['mean']:.1f}</span>, "
-                f"next to the zero-profit level of <span class=num>{100 * k[2]['zero_profit_spread']['mean']:.1f}</span>. "
-                "Competition removes the rent, not the cost of informed traders.",
+                (
+                    f"A lone market maker quotes a <span class=num>{100 * k[1]['quoted_spread']['mean']:.0f}</span>-tick "
+                    f"spread; one identical rival brings it to <span class=num>{100 * k[2]['quoted_spread']['mean']:.1f}</span>, "
+                    f"next to the zero-profit level of <span class=num>{100 * k[2]['zero_profit_spread']['mean']:.1f}</span>. "
+                    "Competition removes the rent, not the cost of informed traders."
+                ),
             )
         )
     v = results.load("vol_premium")
@@ -231,10 +237,12 @@ def findings() -> list[tuple[str, str, str]]:
             (
                 "Volatility premium",
                 "06_vol_premium",
-                f"VIX sat above the volatility that followed <span class=num>{100 * v['share_implied_above']:.0f}%</span> "
-                f"of the time since 1990. But the mean/variance Kelly formula asks for "
-                f"<span class=num>{kf['v_continuous'] / kf['v_star']:.1f}x</span> the growth-optimal size, and every "
-                "Kelly fraction fitted on 1993–2007 was wiped out after 2008.",
+                (
+                    f"VIX sat above the volatility that followed <span class=num>{100 * v['share_implied_above']:.0f}%</span> "
+                    f"of the time since 1990. But the mean/variance Kelly formula asks for "
+                    f"<span class=num>{kf['v_continuous'] / kf['v_star']:.1f}x</span> the growth-optimal size, and every "
+                    "Kelly fraction fitted on 1993–2007 was wiped out after 2008."
+                ),
             )
         )
     b = results.load("cpp_bench")
@@ -243,8 +251,10 @@ def findings() -> list[tuple[str, str, str]]:
             (
                 "C++ core",
                 "02_microstructure",
-                f"The order-book replay was ported to C++17: <span class=num>{b['speedup_min']:.0f}–"
-                f"{b['speedup_max']:.0f}x</span> faster than Python, with identical fills on every test.",
+                (
+                    f"The order-book replay was ported to C++17: <span class=num>{b['speedup_min']:.0f}–"
+                    f"{b['speedup_max']:.0f}x</span> faster than Python, with identical fills on every test."
+                ),
             )
         )
     return out

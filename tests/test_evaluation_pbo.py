@@ -5,6 +5,7 @@ a hand-computed case, agreement with a naive loop-over-combinations reference, a
 two limiting behaviours (pure noise -> ~0.5, one real edge -> ~0).
 """
 
+import functools
 import itertools
 import math
 import time
@@ -98,7 +99,7 @@ def test_vectorized_matches_naive_reference(S, metric):
 def test_generic_callable_path_matches_fast_path():
     X = _messy_matrix(seed=11)
     fast = pbo(X, n_blocks=4)  # dsr.sharpe -> fast path
-    slow = pbo(X, n_blocks=4, metric=lambda v: sharpe(v))  # opaque callable
+    slow = pbo(X, n_blocks=4, metric=functools.partial(sharpe))  # not `sharpe` itself: the generic path
     np.testing.assert_allclose(slow["oos_rank"], fast["oos_rank"], atol=1e-12)
     np.testing.assert_allclose(slow["is_metric"], fast["is_metric"], rtol=1e-9)
     assert slow["pbo"] == fast["pbo"]

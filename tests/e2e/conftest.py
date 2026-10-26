@@ -15,13 +15,15 @@ sync_api = pytest.importorskip("playwright.sync_api", reason="needs playwright (
 @pytest.fixture(scope="session")
 def browser():
     with sync_api.sync_playwright() as p:
-        try:
-            b = p.chromium.launch(channel="chrome", headless=True)
-        except Exception:  # noqa: BLE001 - no system Chrome: use the bundled one
+        b, errors = None, []
+        for options in ({"channel": "chrome"}, {}):  # the installed Chrome, else the bundled Chromium
             try:
-                b = p.chromium.launch(headless=True)
+                b = p.chromium.launch(headless=True, **options)
+                break
             except Exception as e:  # noqa: BLE001
-                pytest.skip(f"no browser available: {e}")
+                errors.append(str(e).splitlines()[0])
+        if b is None:
+            pytest.skip(f"no browser available: {errors}")
         yield b
         b.close()
 
