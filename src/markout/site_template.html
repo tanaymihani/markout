@@ -19,6 +19,7 @@
   <a class="brand" href="#top">Markout</a>
   <div class="navlinks">
     <a href="#lab-queue">Lab</a>
+    <a href="#desk">Desk</a>
     <a href="#results">Results</a>
     <a href="#about">About</a>
     <a href="{{repo}}">GitHub</a>
@@ -34,6 +35,7 @@
   trying many ideas, on real NASDAQ and S&amp;P&nbsp;500 data. Every lab on this page runs in your browser.</p>
   <div class="cta">
     <a class="btn primary" href="#lab-queue">Try the lab</a>
+    <a class="btn" href="desk/">Try the trading desk</a>
     {{video_button}}
     <a class="btn" href="{{repo}}">Code on GitHub</a>
     <a class="btn" href="{{paper_href}}">{{paper_label}}</a>
@@ -180,10 +182,12 @@
   <h2>The Predictions Cup desk</h2>
   <p>SIG's student prediction-market contest allows bots, so I built one that runs on a laptop. It pools free
   reference prices (Polymarket, Kalshi, option-implied probabilities, earnings history) with the contest's own price,
-  proposes trades sized by Kelly and by what the order book can fill, and never trades without a click.</p>
-  <a class="shot" href="demo/desk.html"><img src="demo/desk.png" alt="The approval desk showing proposed trades, their
+  proposes trades sized by Kelly and by what the order book can fill, and never trades without a click. The live
+  version runs that same Python code in your browser, on fictional markets and paper money.</p>
+  <div class="cta"><a class="btn primary" href="desk/">Try the live desk</a></div>
+  <a class="shot" href="desk/"><img src="demo/desk.png" alt="The approval desk showing proposed trades, their
   probabilities, edges and stakes"></a>
-  <p class="small">{{desk_link}}<a href="demo/desk.html">Open a read-only snapshot</a> ·
+  <p class="small"><a href="demo/desk.html">Open a read-only snapshot</a> ·
   <a href="{{repo}}/blob/main/docs/demo/DEMO.md">read the walkthrough</a></p>
 </section>
 
@@ -205,9 +209,10 @@
     <div><h3>How I built it</h3><p>The research is in Python, with walk-forward validation, a log of every variant
     tried, deflated Sharpe ratios and a holdout that can only be opened once. The order-book replay is written in
     C++17 with pybind11 bindings and is bit-identical to the Python reference. This site is plain HTML, CSS and
-    JavaScript; the browser versions of the simulations are tested against the Python code. The desk also runs as a
-    hosted service in Docker, with a private paper-trading sandbox for every visitor, and CI checks types, coverage,
-    a real browser and the container on every push.</p></div>
+    JavaScript; the browser versions of the simulations are tested against the Python code. The desk also runs live in
+    your browser: Pyodide (Python compiled to WebAssembly) runs its own Python code in the tab, with a private
+    paper-trading sandbox for every visitor, and a Docker version serves the same sandboxes from one server. CI checks
+    types, coverage, a real browser and the container on every push.</p></div>
     <div><h3>Challenges</h3><p>Getting fills right. An early pessimistic fill model filled more orders than the
     realistic one, which forced a rewrite and a test that the three models nest order by order. Keeping evaluation
     honest was the other: because every variant is logged, the final numbers account for the whole search.</p></div>

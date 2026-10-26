@@ -84,7 +84,9 @@ flowchart LR
     BOT --> RISK[risk: last look,<br/>kill switch]
     BOT --> J[(decision journal)]
     BOT --> WEB[web: local desk]
-    BOT --> PUB[public: hosted desk]
+    BOT --> SBX[sandbox: one per visitor]
+    SBX --> PUB[public: HTTP server]
+    SBX --> BRW[browser: Pyodide in the tab]
 ```
 
 Everything talks to the `ContestAPI` protocol (`cup/api.py`). The paper exchange
@@ -103,18 +105,29 @@ Three rules shape the bot:
 3. **Everything is on record.** Every decision, including forecasts logged without a
    trade, goes to the journal, which scores the beliefs once markets resolve.
 
-### Hosted desk
+### Public desks: one sandbox per visitor
 
-`cup/public.py` serves the same desk to anyone, one private sandbox per visitor. It uses
-only the standard library, like the local desk:
+`cup/sandbox.py` is the shared core: a sandbox owns a paper exchange with a random seed,
+its own SQLite store, journal, kill switch and a manual clock, all under one temporary
+directory, and `sandbox.routes` maps the page's requests onto the bot. Nothing in it
+touches the network (references are the scenario's bundled quotes), so the same code is
+served two ways.
 
-- **Isolation.** A session owns a paper exchange with a random seed, its own SQLite
-  store, journal, kill switch and a manual clock, all under one temporary directory.
-  Nothing is shared between sessions, and the hosted desk makes no outbound network calls
-  (references are the scenario's bundled quotes).
+**In the browser** (`cup/browser.py`, `docs/desk/`). The live demo on the site needs no
+server at all. `docs/desk/loader.js` loads Pyodide (CPython compiled to WebAssembly) from
+its CDN, unpacks `markout-desk.zip` (the 27 modules the desk imports, found by importing
+it in a fresh interpreter, plus `configs/`) into Pyodide's in-memory file system, and
+creates one `BrowserDesk`. It then answers every `/api/` request the desk's page makes by
+calling `BrowserDesk.handle` instead of the network. Each visitor's sandbox lives and dies
+with their tab, nothing they do leaves the device, and GitHub Pages serves it for free. It
+starts in about six seconds on a first visit (Python, numpy and pandas download once).
+
+**On a server** (`cup/public.py`). The HTTP version serves many visitors from one process,
+using only the standard library, like the local desk:
+
 - **Session id in a header, not a cookie.** Browsers never attach a custom header on
   their own, so there is no cross-site request forgery surface, and the page keeps
-  working inside the Hugging Face iframe, where third-party cookies are blocked.
+  working inside another site's iframe, where third-party cookies are blocked.
 - **Limits.** Least-recently-used eviction past the session cap, idle expiry swept by a
   janitor thread, token buckets per session and per client, a cap on request bodies and
   on concurrent requests, and a bounded clock step.
@@ -126,7 +139,7 @@ only the standard library, like the local desk:
   socketserver's default of 5, which reset bursts of parallel browser connections.
 
 The image (`Dockerfile`) installs only numpy and pandas, pinned with hashes, and runs as
-uid 1000. `.github/workflows/desk-space.yml` publishes it to a Hugging Face Space.
+uid 1000; `deploy/README.md` covers where to run it.
 
 ## The site
 
@@ -148,7 +161,8 @@ Python's.
 | JavaScript vs Python | the browser labs against the Python implementation | `tests/test_site_labs.py` |
 | Docs | the site matches its generator; every Python block in USAGE.md runs | `tests/test_docs.py`, `tests/test_usage.py` |
 | Hosted desk | isolation, eviction, expiry, limits, CSP, logs | `tests/test_cup_public.py` |
-| Browser | the site's labs and the hosted desk in Chrome | `tests/e2e/` (`pytest -m e2e`) |
+| In-browser desk | the same routes and answers; the bundle runs on its own | `tests/test_cup_browser.py` |
+| Browser | the site's labs, the in-browser desk on Pyodide, the hosted desk, in Chrome | `tests/e2e/` (`pytest -m e2e`) |
 | Container | build, `/healthz`, a session, a clock step, clean stop | CI job `container` |
 
 Tests that need the downloaded datasets skip themselves, so CI runs everything else. CI
@@ -164,7 +178,7 @@ src/markout/        the package (research packages above, plus cli.py, site.py, 
 cpp/                C++17 fill simulator and pybind11 bindings
 tests/              pytest suite; tests/e2e/ drives a browser; tests/js/ runs the labs in Node
 reports/            generated reports, figures (light and dark) and results/*.json
-docs/               the site (GitHub Pages) and the desk demo
+docs/               the site (GitHub Pages), the desk in the browser (docs/desk/), the API reference
 configs/            the paper contest scenario and the decision-journal template
 scripts/            data downloads and the demo video recorder
 deploy/             the hosted desk's pinned requirements and Hugging Face Space card

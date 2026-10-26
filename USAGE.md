@@ -245,8 +245,10 @@ assert spread[0] < spread[1] < spread[2]  # hedging less often costs less and ri
 
 ## The desk
 
-`python -m markout.cup serve --paper` runs the Predictions Cup desk on a paper contest at
-http://127.0.0.1:8765, and `python -m markout.cup public` (or `docker run -p 7860:7860
-markout-desk`) serves the hosted version, which gives every visitor a private sandbox.
+[tanaymihani.github.io/markout/desk](https://tanaymihani.github.io/markout/desk/) runs the
+Predictions Cup desk in your browser, on fictional markets and paper money. Locally,
+`python -m markout.cup serve --paper` runs it on a paper contest at http://127.0.0.1:8765, and
+`python -m markout.cup public` (or `docker run -p 7860:7860 markout-desk`) serves the
+server version, which gives every visitor a private sandbox.
 [ARCHITECTURE.md](ARCHITECTURE.md) explains how both are put together, and
 [deploy/README.md](deploy/README.md) how the hosted one is deployed.

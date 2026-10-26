@@ -6,14 +6,22 @@ a Kelly-sizing lab on the S&P 500 volatility premium, plus the market-making gam
 Predictions Cup desk. Every number on it is read from saved results here and embedded in
 the page as JSON; only derived results are published, never raw market data. The browser
 code lives in docs/js/ and docs/game.js and is tested against the Python code.
+
+docs/desk/ is the desk itself, running in the visitor's browser: the page, the loader
+(docs/desk/loader.js, which starts Pyodide) and markout-desk.zip, the desk's own modules.
 """
 
 from __future__ import annotations
 
 import html
+import io
 import json
 import math
+import os
 import shutil
+import subprocess
+import sys
+import zipfile
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -26,7 +34,8 @@ TEMPLATE = Path(__file__).with_name("site_template.html")
 REPO = "https://github.com/tanaymihani/markout"
 SITE = "https://tanaymihani.github.io/markout/"
 PAPER_URL: str | None = None  # SSRN link, once the paper is public
-DESK_URL: str | None = None  # the hosted desk on Hugging Face, once deployed (deploy/README.md)
+DESK = DOCS / "desk"  # the desk, running in the visitor's browser on Pyodide
+DESK_URL = SITE + "desk/"
 VIDEO = DOCS / "media" / "markout-demo.mp4"
 DESCRIPTION = (
     "A reality check for trading backtests: how much of an edge survives the spread, a real order queue, "
@@ -50,6 +59,8 @@ BUILT_WITH = (
     "pybind11",
     "JavaScript",
     "SVG",
+    "Pyodide",
+    "WebAssembly",
     "Docker",
     "Playwright",
     "GitHub Actions",
@@ -313,7 +324,6 @@ def render() -> str:
         "repo": REPO,
         "paper_href": PAPER_URL or f"{REPO}/blob/main/reports/02_microstructure.md",
         "paper_label": "Read the paper" if PAPER_URL else "Read the study",
-        "desk_link": f'<a href="{DESK_URL}">Try the live desk</a> · ' if DESK_URL else "",
         "video_button": '<a class="btn" href="#video">Watch the demo</a>' if has_video else "",
         "hero_tiles": hero_tiles(),
         "findings_cards": cards,
@@ -330,8 +340,63 @@ def render() -> str:
     return page
 
 
+DESK_NOTICE = (
+    '<div style="padding:8px 20px;font-size:13px;background:var(--warn-bg);color:var(--warn-ink)">'
+    "<b>Live demo, running in your browser.</b> Fictional markets and paper money. The desk's own Python code runs "
+    "in this tab, so nothing you do is sent anywhere. Move the clock with <b>+2 h</b> / <b>+1 day</b>: prices drift, "
+    'markets resolve and the journal scores your calls. <a href="../">Back to Markout</a>. <span id="sbx"></span></div>'
+)
+
+
+def desk_modules() -> list[Path]:
+    """The package files the in-browser desk imports, found by importing it in a fresh interpreter."""
+    probe = (
+        "import sys, markout.cup.browser\n"
+        "for m in list(sys.modules.values()):\n"
+        "    if getattr(m, '__name__', '').split('.')[0] == 'markout' and getattr(m, '__file__', None):\n"
+        "        print(m.__file__)"
+    )
+    env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+    out = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, check=True, env=env).stdout
+    return sorted(Path(f).resolve() for f in out.split())
+
+
+def desk_bundle() -> bytes:
+    """markout-desk.zip: those modules plus the scenario and the journal template, laid out as
+    in the repository (Pyodide unpacks it to /app, so markout.paths.ROOT is /app)."""
+    from markout.cup.paper import SCENARIO
+    from markout.decision.journal import TEMPLATE
+
+    files = [p.relative_to(ROOT) for p in desk_modules()] + [SCENARIO.relative_to(ROOT), TEMPLATE.relative_to(ROOT)]
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        for rel in sorted(files):
+            info = zipfile.ZipInfo(rel.as_posix(), date_time=(1980, 1, 1, 0, 0, 0))  # no timestamps: reproducible
+            info.compress_type, info.external_attr = zipfile.ZIP_DEFLATED, 0o644 << 16
+            z.writestr(info, (ROOT / rel).read_bytes())
+    return buf.getvalue()
+
+
+def desk_page() -> str:
+    """docs/desk/index.html: the desk's own page, with the time controls and the Pyodide loader."""
+    from markout.cup.public import CONTROLS, KILL_HELP
+    from markout.cup.web import page
+
+    html_page = page("in-browser", controls=CONTROLS, notice=DESK_NOTICE, kill_help=KILL_HELP, icon=ICON)
+    description = (
+        '<meta name="description" content="The Markout trading desk, running in your browser: '
+        'fictional markets, paper money and the real decision loop.">'
+    )
+    return html_page.replace("</title>", "</title>" + description, 1).replace(
+        "<script>", '<script src="loader.js"></script><script>', 1
+    )
+
+
 def build() -> str:
     DOCS.mkdir(parents=True, exist_ok=True)
+    DESK.mkdir(exist_ok=True)
+    (DESK / "index.html").write_text(desk_page())
+    (DESK / "markout-desk.zip").write_bytes(desk_bundle())
     (DOCS / "img").mkdir(exist_ok=True)
     for suffix in ("", "_dark"):  # fallback link-preview image
         src = FIGURES / f"h_kelly{suffix}.png"

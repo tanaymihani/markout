@@ -9,6 +9,7 @@ def test_site_loads_without_errors_and_the_labs_respond(page, site_url):
     page.goto(site_url, wait_until="domcontentloaded")
     page.wait_for_selector("#q-results:not([hidden])")
     assert page.locator("svg").count() >= 4  # the labs' charts are drawn
+    assert page.locator(".hero a[href='desk/']").count() == 1 and page.locator("#desk a[href='desk/']").count() >= 1
 
     before = page.inner_text("#q-fifo-mk")
     page.fill("#q-ahead", "2000")  # a short queue: fills are less adversely selected

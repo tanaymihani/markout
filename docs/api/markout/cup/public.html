@@ -30,25 +30,10 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
-                    <a class="variable" href="#START">START</a>
-            </li>
-            <li>
-                    <a class="variable" href="#START_CASH">START_CASH</a>
-            </li>
-            <li>
-                    <a class="variable" href="#MAX_SESSIONS">MAX_SESSIONS</a>
-            </li>
-            <li>
-                    <a class="variable" href="#TTL">TTL</a>
-            </li>
-            <li>
                     <a class="variable" href="#MAX_BODY">MAX_BODY</a>
             </li>
             <li>
                     <a class="variable" href="#MAX_CONCURRENT">MAX_CONCURRENT</a>
-            </li>
-            <li>
-                    <a class="variable" href="#MAX_ADVANCE_HOURS">MAX_ADVANCE_HOURS</a>
             </li>
             <li>
                     <a class="variable" href="#HEADER">HEADER</a>
@@ -72,63 +57,6 @@
                     <a class="function" href="#public_page">public_page</a>
             </li>
             <li>
-                    <a class="class" href="#Session">Session</a>
-                            <ul class="memberlist">
-                        <li>
-                                <a class="function" href="#Session.__init__">Session</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.id">id</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.dir">dir</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.bot">bot</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.clock">clock</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.seed">seed</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.limiter">limiter</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Session.seen">seen</a>
-                        </li>
-                </ul>
-
-            </li>
-            <li>
-                    <a class="class" href="#Sessions">Sessions</a>
-                            <ul class="memberlist">
-                        <li>
-                                <a class="function" href="#Sessions.__init__">Sessions</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Sessions.lock">lock</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Sessions.create">create</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Sessions.get">get</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Sessions.reset">reset</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Sessions.sweep">sweep</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Sessions.close">close</a>
-                        </li>
-                </ul>
-
-            </li>
-            <li>
                     <a class="class" href="#PublicDesk">PublicDesk</a>
                             <ul class="memberlist">
                         <li>
@@ -142,15 +70,6 @@
                         </li>
                         <li>
                                 <a class="function" href="#PublicDesk.allow_create">allow_create</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#PublicDesk.session_routes">session_routes</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#PublicDesk.advance">advance</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#PublicDesk.reset">reset</a>
                         </li>
                         <li>
                                 <a class="function" href="#PublicDesk.handler">handler</a>
@@ -170,7 +89,7 @@
     </ul>
 
 
-            <footer>Markout 1.0.0 · MIT licence</footer>
+            <footer>Markout 1.1.0 · MIT licence</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -192,11 +111,12 @@ HOST=0.0.0.0 TRUST_PROXY=1 python -m <a href="../cup.html">markout.cup</a> publi
 </code></pre>
 
 <p>The page asks for a session (POST /api/session) and sends its id back in the
-X-Markout-Session header on every call. A session owns a paper exchange with a random
-seed, its own store, journal and kill switch (all in one temporary directory), and a
-manual clock that the visitor moves forward. Nothing is shared between sessions and
-nothing leaves the process: references are the scenario's bundled quotes, so the hosted
-desk makes no outbound network calls.</p>
+X-Markout-Session header on every call. A session is a sandbox from <code>cup.sandbox</code>: a
+paper exchange with a random seed, its own store, journal and kill switch (all in one
+temporary directory), and a manual clock that the visitor moves forward. Nothing is
+shared between sessions and nothing leaves the process: references are the scenario's
+bundled quotes, so the hosted desk makes no outbound network calls. (<code>cup.browser</code> runs
+the same sandbox inside a visitor's browser tab instead.)</p>
 
 <p>The session id travels in a header rather than a cookie. Browsers never attach it on
 their own, so another site cannot make requests on a visitor's behalf (no CSRF), and the
@@ -222,54 +142,6 @@ session id instead of the id.</li>
                 
                 
             </section>
-                <section id="START">
-                    <div class="attr variable">
-            <span class="name">START</span>        =
-<span class="default_value">datetime.datetime(2026, 10, 1, 16, 0, tzinfo=datetime.timezone.utc)</span>
-
-        
-    </div>
-    <a class="headerlink" href="#START"></a>
-    
-    
-
-                </section>
-                <section id="START_CASH">
-                    <div class="attr variable">
-            <span class="name">START_CASH</span>        =
-<span class="default_value">10000.0</span>
-
-        
-    </div>
-    <a class="headerlink" href="#START_CASH"></a>
-    
-    
-
-                </section>
-                <section id="MAX_SESSIONS">
-                    <div class="attr variable">
-            <span class="name">MAX_SESSIONS</span>        =
-<span class="default_value">200</span>
-
-        
-    </div>
-    <a class="headerlink" href="#MAX_SESSIONS"></a>
-    
-    
-
-                </section>
-                <section id="TTL">
-                    <div class="attr variable">
-            <span class="name">TTL</span>        =
-<span class="default_value">1800.0</span>
-
-        
-    </div>
-    <a class="headerlink" href="#TTL"></a>
-    
-    
-
-                </section>
                 <section id="MAX_BODY">
                     <div class="attr variable">
             <span class="name">MAX_BODY</span>        =
@@ -290,18 +162,6 @@ session id instead of the id.</li>
         
     </div>
     <a class="headerlink" href="#MAX_CONCURRENT"></a>
-    
-    
-
-                </section>
-                <section id="MAX_ADVANCE_HOURS">
-                    <div class="attr variable">
-            <span class="name">MAX_ADVANCE_HOURS</span>        =
-<span class="default_value">72.0</span>
-
-        
-    </div>
-    <a class="headerlink" href="#MAX_ADVANCE_HOURS"></a>
     
     
 
@@ -396,214 +256,6 @@ session id instead of the id.</li>
 
 
                 </section>
-                <section id="Session">
-                    <div class="attr class">
-                    <div class="decorator decorator-dataclass">@dataclass</div>
-
-    <span class="def">class</span>
-    <span class="name">Session</span>:
-
-        
-    </div>
-    <a class="headerlink" href="#Session"></a>
-    
-    
-
-                            <div id="Session.__init__" class="classattr">
-                                <div class="attr function">
-            
-        <span class="name">Session</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="nb">dir</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>,</span><span class="param">	<span class="n">bot</span><span class="p">:</span> <span class="n"><a href="service.html#Bot">markout.cup.service.Bot</a></span>,</span><span class="param">	<span class="n">clock</span><span class="p">:</span> <span class="n"><a href="clock.html#ManualClock">markout.cup.clock.ManualClock</a></span>,</span><span class="param">	<span class="n">seed</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">limiter</span><span class="p">:</span> <span class="n"><a href="api.html#RateLimiter">markout.cup.api.RateLimiter</a></span>,</span><span class="param">	<span class="n">seen</span><span class="p">:</span> <span class="nb">float</span></span>)</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.__init__"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.id" class="classattr">
-                                <div class="attr variable">
-            <span class="name">id</span><span class="annotation">: str</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.id"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.dir" class="classattr">
-                                <div class="attr variable">
-            <span class="name">dir</span><span class="annotation">: pathlib.Path</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.dir"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.bot" class="classattr">
-                                <div class="attr variable">
-            <span class="name">bot</span><span class="annotation">: <a href="service.html#Bot">markout.cup.service.Bot</a></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.bot"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.clock" class="classattr">
-                                <div class="attr variable">
-            <span class="name">clock</span><span class="annotation">: <a href="clock.html#ManualClock">markout.cup.clock.ManualClock</a></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.clock"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.seed" class="classattr">
-                                <div class="attr variable">
-            <span class="name">seed</span><span class="annotation">: int</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.seed"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.limiter" class="classattr">
-                                <div class="attr variable">
-            <span class="name">limiter</span><span class="annotation">: <a href="api.html#RateLimiter">markout.cup.api.RateLimiter</a></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.limiter"></a>
-    
-    
-
-                            </div>
-                            <div id="Session.seen" class="classattr">
-                                <div class="attr variable">
-            <span class="name">seen</span><span class="annotation">: float</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Session.seen"></a>
-    
-    
-
-                            </div>
-                </section>
-                <section id="Sessions">
-                    <div class="attr class">
-            
-    <span class="def">class</span>
-    <span class="name">Sessions</span>:
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions"></a>
-    
-            <div class="docstring"><p>The live sandboxes, least recently used first. Safe to call from any thread.</p>
-</div>
-
-
-                            <div id="Sessions.__init__" class="classattr">
-                                <div class="attr function">
-            
-        <span class="name">Sessions</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">root</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>,</span><span class="param">	<span class="n">max_sessions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span>,</span><span class="param">	<span class="n">ttl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1800.0</span>,</span><span class="param">	<span class="n">rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>,</span><span class="param">	<span class="n">burst</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>,</span><span class="param">	<span class="n">scenario</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span> <span class="o">=</span> <span class="n">PosixPath</span><span class="p">(</span><span class="s1">'./configs/cup_demo_scenario.json'</span><span class="p">)</span>,</span><span class="param">	<span class="n">now</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">built</span><span class="o">-</span><span class="ow">in</span> <span class="n">function</span> <span class="n">monotonic</span><span class="o">&gt;</span></span>)</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.__init__"></a>
-    
-    
-
-                            </div>
-                            <div id="Sessions.lock" class="classattr">
-                                <div class="attr variable">
-            <span class="name">lock</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.lock"></a>
-    
-    
-
-                            </div>
-                            <div id="Sessions.create" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">create</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="#Session">Session</a></span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.create"></a>
-    
-    
-
-                            </div>
-                            <div id="Sessions.get" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">get</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="#Session">Session</a></span> <span class="o">|</span> <span class="kc">None</span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.get"></a>
-    
-    
-
-                            </div>
-                            <div id="Sessions.reset" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">reset</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">s</span><span class="p">:</span> <span class="n"><a href="#Session">Session</a></span></span><span class="return-annotation">) -> <span class="n"><a href="#Session">Session</a></span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.reset"></a>
-    
-            <div class="docstring"><p>Same id, a fresh sandbox with a new seed.</p>
-</div>
-
-
-                            </div>
-                            <div id="Sessions.sweep" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">sweep</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="nb">int</span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.sweep"></a>
-    
-    
-
-                            </div>
-                            <div id="Sessions.close" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">close</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#Sessions.close"></a>
-    
-    
-
-                            </div>
-                </section>
                 <section id="PublicDesk">
                     <div class="attr class">
             
@@ -619,7 +271,7 @@ session id instead of the id.</li>
                             <div id="PublicDesk.__init__" class="classattr">
                                 <div class="attr function">
             
-        <span class="name">PublicDesk</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">sessions</span><span class="p">:</span> <span class="n"><a href="#Sessions">Sessions</a></span>,</span><span class="param">	<span class="n">trust_proxy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>,</span><span class="param">	<span class="n">create_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span>,</span><span class="param">	<span class="n">create_burst</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>,</span><span class="param">	<span class="n">log</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">_log_json</span><span class="o">&gt;</span></span>)</span>
+        <span class="name">PublicDesk</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">sessions</span><span class="p">:</span> <span class="n"><a href="sandbox.html#Sessions">markout.cup.sandbox.Sessions</a></span>,</span><span class="param">	<span class="n">trust_proxy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>,</span><span class="param">	<span class="n">create_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span>,</span><span class="param">	<span class="n">create_burst</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>,</span><span class="param">	<span class="n">log</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">_log_json</span><span class="o">&gt;</span></span>)</span>
 
         
     </div>
@@ -663,45 +315,6 @@ session id instead of the id.</li>
     
 
                             </div>
-                            <div id="PublicDesk.session_routes" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">session_routes</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">s</span><span class="p">:</span> <span class="n"><a href="#Session">Session</a></span>,</span><span class="param">	<span class="n">body</span><span class="p">:</span> <span class="nb">dict</span></span><span class="return-annotation">) -> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">]]</span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#PublicDesk.session_routes"></a>
-    
-    
-
-                            </div>
-                            <div id="PublicDesk.advance" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">advance</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">s</span><span class="p">:</span> <span class="n"><a href="#Session">Session</a></span>, </span><span class="param"><span class="n">hours</span><span class="p">:</span> <span class="n">Any</span></span><span class="return-annotation">) -> <span class="nb">dict</span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#PublicDesk.advance"></a>
-    
-    
-
-                            </div>
-                            <div id="PublicDesk.reset" class="classattr">
-                                <div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">reset</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">s</span><span class="p">:</span> <span class="n"><a href="#Session">Session</a></span></span><span class="return-annotation">) -> <span class="nb">dict</span>:</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#PublicDesk.reset"></a>
-    
-    
-
-                            </div>
                             <div id="PublicDesk.handler" class="classattr">
                                 <div class="attr function">
             
@@ -733,7 +346,7 @@ session id instead of the id.</li>
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">janitor</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">sessions</span><span class="p">:</span> <span class="n"><a href="#Sessions">Sessions</a></span>,</span><span class="param">	<span class="n">stop</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span>,</span><span class="param">	<span class="n">every</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">janitor</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">sessions</span><span class="p">:</span> <span class="n"><a href="sandbox.html#Sessions">markout.cup.sandbox.Sessions</a></span>,</span><span class="param">	<span class="n">stop</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span>,</span><span class="param">	<span class="n">every</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
         
     </div>

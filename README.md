@@ -4,7 +4,7 @@
 
 Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias that comes from trying many strategies? This repo is my attempt to find out, step by step, on real market data where I could get it.
 
-**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four interactive labs and a market-making game, all running in the browser.
+**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four interactive labs, a market-making game and the [trading desk](https://tanaymihani.github.io/markout/desk/), all running in the browser.
 
 [![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted it as filled](docs/media/markout-demo.gif)](https://tanaymihani.github.io/markout/)
 
@@ -93,11 +93,11 @@ SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), a
 
 The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`make demo`); `make desk` starts it on a paper contest at http://127.0.0.1:8765. The [matcher dry run](docs/demo/DRYRUN.md) tests the matching against live Polymarket and Kalshi questions. Its first version mostly suggested look-alikes (the other team, another stat line, a different threshold); those cases are now tests.
 
-A hosted version (`python -m markout.cup public`, or the Docker image) gives every visitor a private paper-trading sandbox with its own exchange, journal and clock. Sessions travel in a header rather than a cookie, are evicted and expired, rate-limited and served under a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and [deploy/README.md](deploy/README.md) the deployment.
+**[Try the live desk](https://tanaymihani.github.io/markout/desk/).** It runs in your browser: Pyodide (Python compiled to WebAssembly) executes the desk's own Python in the tab, so every visitor gets a private paper-trading sandbox, with its own exchange, journal and clock, and nothing is sent anywhere. `python -m markout.cup public` (or the Docker image) serves the same sandboxes from one server, with header sessions, eviction and expiry, rate limits and a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and [deploy/README.md](deploy/README.md) the deployment.
 
 ## How I tried to keep it honest
 
-- 404 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 410 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).
@@ -162,7 +162,7 @@ src/markout/cup/         Predictions Cup desk: sources, matcher, estimates, sizi
 src/markout/cli.py       the markout command
 cpp/                     C++17 queue simulator and pybind11 bindings
 reports/                 generated reports, figures (light and dark) and results
-docs/                    the site (GitHub Pages)
+docs/                    the site (GitHub Pages), the desk in the browser (docs/desk/), the API reference
 deploy/                  the hosted desk's pinned requirements and Hugging Face Space card
 tests/                   pytest suite; tests/e2e/ drives a browser, tests/js/ runs the site's labs in Node
 ```

@@ -180,11 +180,12 @@ def desk_section() -> list[str]:
             "look-alikes (the other team, another stat line, a different threshold); those cases are now tests."
         ),
         "",
-        (f"A [hosted version]({DESK_URL}) " if DESK_URL else "A hosted version ")
-        + "(`python -m markout.cup public`, or the Docker image) gives every visitor a private paper-trading "
-        "sandbox with its own exchange, journal and clock. Sessions travel in a header rather than a cookie, are "
-        "evicted and expired, rate-limited and served under a strict Content-Security-Policy; "
-        "[ARCHITECTURE.md](ARCHITECTURE.md) has the details and [deploy/README.md](deploy/README.md) the deployment.",
+        f"**[Try the live desk]({DESK_URL}).** It runs in your browser: Pyodide (Python compiled to WebAssembly) "
+        "executes the desk's own Python in the tab, so every visitor gets a private paper-trading sandbox, with its "
+        "own exchange, journal and clock, and nothing is sent anywhere. `python -m markout.cup public` (or the Docker "
+        "image) serves the same sandboxes from one server, with header sessions, eviction and expiry, rate limits and "
+        "a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and "
+        "[deploy/README.md](deploy/README.md) the deployment.",
         "",
     ]
     return out
@@ -280,8 +281,7 @@ def build() -> str:
         ),
         "",
         "**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four "
-        "interactive labs and a market-making game, all running in the browser."
-        + (f" **Hosted desk:** [try it]({DESK_URL}), with a private paper-trading sandbox." if DESK_URL else ""),
+        f"interactive labs, a market-making game and the [trading desk]({DESK_URL}), all running in the browser.",
         "",
         (
             "[![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted "
@@ -434,7 +434,7 @@ def build() -> str:
         "src/markout/cli.py       the markout command",
         "cpp/                     C++17 queue simulator and pybind11 bindings",
         "reports/                 generated reports, figures (light and dark) and results",
-        "docs/                    the site (GitHub Pages)",
+        "docs/                    the site (GitHub Pages), the desk in the browser (docs/desk/), the API reference",
         "deploy/                  the hosted desk's pinned requirements and Hugging Face Space card",
         "tests/                   pytest suite; tests/e2e/ drives a browser, tests/js/ runs the site's labs in Node",
         "```",

@@ -118,13 +118,18 @@ load();markets();setInterval(load,5000);setInterval(markets,30000);
 KILL_HELP = "Kill switch: <code>touch data/cup/STOP</code>."
 
 
-def page(token: str, controls: str = "", notice: str = "", kill_help: str = KILL_HELP) -> str:
-    """The desk page with its per-run token; the hosted desk adds time controls and a notice."""
-    return (
+def page(token: str, controls: str = "", notice: str = "", kill_help: str = KILL_HELP, icon: str = "") -> str:
+    """The desk page with its per-run token; the public versions add time controls, a notice and an icon."""
+    html = (
         PAGE.replace("__TOKEN__", token)
         .replace("<!--controls-->", controls)
         .replace("<!--notice-->", notice)
         .replace("<!--kill-help-->", kill_help)
+    )
+    return (
+        html.replace("<title>Markout Desk</title>", f'<title>Markout Desk</title><link rel="icon" href="{icon}">')
+        if icon
+        else html
     )
 
 
