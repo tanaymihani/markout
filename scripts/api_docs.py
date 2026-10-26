@@ -15,6 +15,7 @@ import sys
 
 from markout import __version__
 from markout.paths import ROOT
+from markout.site import ICON
 
 OUT = ROOT / "docs" / "api"
 # markout.evaluation's __all__ lists functions, which hides its submodules; name them so
@@ -50,6 +51,8 @@ def main() -> int:
             "markdown",
             "--edit-url",
             "markout=https://github.com/tanaymihani/markout/blob/main/src/markout/",
+            "--favicon",
+            ICON,  # the site's icon; without one, browsers ask the domain root for /favicon.ico (a 404)
             "--footer-text",
             f"Markout {__version__} · MIT licence",
             "-o",
