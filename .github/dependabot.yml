@@ -13,3 +13,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # the lock pins wheels for Python 3.11; moving Python is a deliberate change, not a bump
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
