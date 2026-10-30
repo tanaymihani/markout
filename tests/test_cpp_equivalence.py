@@ -15,7 +15,7 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from markout.lob.fills import MODELS, Fills, Orders, cpp_available, simulate
+from markout.lob.fills import ALL_MODELS, Fills, Orders, cpp_available, simulate
 from markout.lob.lobster import TICKERS, available, load_day
 from markout.lob.markouts import sample_orders
 from markout.lob.synthetic import KINDS, SIZES, apply_action, random_stream, seeded_exchange
@@ -65,7 +65,7 @@ def orders_for(data, messages, book, k_max: int = 25) -> Orders:
 
 
 def assert_identical(messages, book, orders) -> None:
-    for model in MODELS:
+    for model in ALL_MODELS:
         ref = simulate(messages, book, orders, model, engine="python")
         got = simulate(messages, book, orders, model, engine="cpp")
         for field in Fills.FIELDS:
@@ -109,7 +109,7 @@ def test_real_days_match_python(ticker):
 def test_empty_orders_and_bad_input():
     messages, book = random_stream(np.random.default_rng(0), n_events=50)
     none = Orders.make(np.array([], dtype=np.int64), 1, 0)
-    for model in MODELS:
+    for model in ALL_MODELS:
         assert len(simulate(messages, book, none, model, engine="cpp")) == 0
     from markout.lob import _queue_sim
 
@@ -137,7 +137,7 @@ def test_empty_orders_and_bad_input():
     with pytest.raises(ValueError):
         _queue_sim.simulate(**{**good, "size": messages.size[:-1]})
     with pytest.raises(ValueError):
-        _queue_sim.simulate(**{**good, "model": 3})
+        _queue_sim.simulate(**{**good, "model": 4})  # 0-3: touch, fifo, through, l2
 
 
 def test_auto_engine_uses_cpp():

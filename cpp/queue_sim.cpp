@@ -3,6 +3,7 @@
 #include "queue_sim.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -70,8 +71,9 @@ class Simulator {
   public:
     Simulator(const Messages& msg, const Book& book, const Orders& ord, Model model)
         : msg_(msg), book_(book), ord_(ord), fifo_(model == Model::Fifo),
-          touch_(model == Model::Touch), remaining_(ord.size, ord.size + ord.k),
-          ahead_(ord.k, 0), behind_(fifo_ ? ord.k : 0) {
+          touch_(model == Model::Touch), l2_(model == Model::L2), remaining_(ord.size, ord.size + ord.k),
+          ahead_(ord.k, 0), behind_(fifo_ ? ord.k : 0), ahead2_(l2_ ? ord.k : 0, 0.0),
+          behind2_(l2_ ? ord.k : 0, 0.0) {
         const std::size_t k = ord.k;
         out_.filled_qty.assign(k, 0);
         out_.fill_idx.assign(k, -1);
@@ -120,6 +122,8 @@ class Simulator {
                 if (ty == kSubmit) {
                     if (fifo_ && at)
                         for (std::size_t j : *at) behind_[j].insert(msg_.order_id[n]);
+                    else if (l2_ && at)
+                        for (std::size_t j : *at) behind2_[j] += static_cast<double>(msg_.size[n]);
                 } else if (ty == kCancel || ty == kDelete) {
                     if (fifo_ && at) {
                         const std::int64_t oid = msg_.order_id[n], s = msg_.size[n];
@@ -128,6 +132,17 @@ class Simulator {
                                 if (ty == kDelete) behind_[j].erase(oid);
                             } else {
                                 ahead_[j] = std::max<std::int64_t>(0, ahead_[j] - s);
+                            }
+                        }
+                    } else if (l2_ && at) {
+                        // L2: the cancel could be anywhere in the queue, so ahead and behind
+                        // shrink in proportion to their sizes (same arithmetic order as Python)
+                        const double c = static_cast<double>(msg_.size[n]);
+                        for (std::size_t j : *at) {
+                            const double a = ahead2_[j], b = behind2_[j], tot = a + b;
+                            if (tot > 0) {
+                                ahead2_[j] = std::max(0.0, a - c * a / tot);
+                                behind2_[j] = std::max(0.0, b - c * b / tot);
                             }
                         }
                     }
@@ -143,6 +158,15 @@ class Simulator {
                             const std::int64_t take = std::min(ahead_[j], x);
                             ahead_[j] -= take;
                             if (x - take > 0) fill(j, x - take, n);
+                        }
+                    } else if (l2_ && at && ty == kExecute) {
+                        const Level copy = *at;
+                        for (std::size_t j : copy) {
+                            const double x = static_cast<double>(msg_.size[n]);
+                            const double took = std::min(ahead2_[j], x);
+                            ahead2_[j] -= took;
+                            const auto q = static_cast<std::int64_t>(std::floor(x - took));
+                            if (q > 0) fill(j, q, n);
                         }
                     }
                     // trades strictly through our price: every model
@@ -261,6 +285,10 @@ class Simulator {
             return;
         }
         ahead_[j] = out_.queue_ahead[j];
+        if (l2_) {
+            ahead2_[j] = static_cast<double>(out_.queue_ahead[j]);
+            behind2_[j] = 0.0;
+        }
         const double deadline = tn + ord_.max_wait[j];
         side_book(j)[q].push_back(j);
         heap_.emplace(deadline, j);
@@ -271,10 +299,12 @@ class Simulator {
     const Orders& ord_;
     const bool fifo_;
     const bool touch_;
+    const bool l2_;
     Fills out_;
     std::vector<std::int64_t> remaining_;
     std::vector<std::int64_t> ahead_;                          // FIFO: shares still ahead of us
     std::vector<IdSet> behind_;                                // FIFO: ids that joined after us
+    std::vector<double> ahead2_, behind2_;                     // L2: estimated shares ahead / behind
     SideBook bids_, asks_;
     using HeapItem = std::pair<double, std::size_t>;           // (deadline, order)
     std::priority_queue<HeapItem, std::vector<HeapItem>, std::greater<HeapItem>> heap_;

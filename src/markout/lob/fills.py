@@ -6,7 +6,7 @@ every later message. Our orders never enter the real book: each one is evaluated
 it were the only extra order, independently of the others, and it has no impact on
 anyone else's behaviour (the main limitation of any replay).
 
-Three fill models, from optimistic to pessimistic:
+Three fill models, from optimistic to pessimistic, and an L2-only one:
 
 * ``touch``: filled as soon as any trade (visible or hidden) prints at our price.
 * ``fifo``: price-time priority, rebuilt from order ids.
@@ -28,6 +28,14 @@ Three fill models, from optimistic to pessimistic:
   "pessimistic" model fill more often than FIFO (it did, for the three small-tick
   stocks, in a first version). Without it, fills nest by construction:
   through <= fifo <= touch (tested).
+* ``l2``: what a backtester sees with aggregated depth only (L2: the size at each price,
+  and the trades), as most must. It never reads order ids. We start behind the displayed
+  depth; new orders at our price join behind us; a visible execution at our price takes
+  the queue ahead first (price-time priority is public). A cancel or delete at our price
+  could be anywhere in the queue, so it shrinks the shares ahead and behind in proportion
+  to their sizes (the pro-rata assumption). Fills are whole shares (rounded down). How
+  far this lands from ``fifo``, which knows where every cancel was, is what an L2
+  backtest gets wrong.
 
 Rules shared by all three models:
 
@@ -66,8 +74,9 @@ import pandas as pd
 
 from markout.lob.lobster import Book, Day, Messages, MsgType
 
-MODELS: tuple[str, ...] = ("touch", "fifo", "through")
-MODEL_CODE = {name: k for k, name in enumerate(MODELS)}
+MODELS: tuple[str, ...] = ("touch", "fifo", "through")  # the three nested models of report 02
+ALL_MODELS: tuple[str, ...] = (*MODELS, "l2")
+MODEL_CODE = {name: k for k, name in enumerate(ALL_MODELS)}
 
 
 class End(IntEnum):
@@ -146,7 +155,7 @@ class Fills:
 
 def _validate(messages: Messages, book: Book, orders: Orders, model: str) -> None:
     if model not in MODEL_CODE:
-        raise ValueError(f"model must be one of {MODELS}")
+        raise ValueError(f"model must be one of {ALL_MODELS}")
     if len(book) != len(messages):
         raise ValueError("book and messages must be row-aligned")
     if len(orders) and (orders.place_idx.min() < 0 or orders.place_idx.max() >= len(messages)):
@@ -167,7 +176,7 @@ def _depth(prices: np.ndarray, sizes: np.ndarray, n: int, price: int) -> int:
 def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) -> Fills:
     """Reference implementation: one sequential pass over the messages."""
     _validate(messages, book, orders, model)
-    fifo, touch = model == "fifo", model == "touch"
+    fifo, touch, l2 = model == "fifo", model == "touch", model == "l2"
     n_msg, k_ord = len(messages), len(orders)
 
     # Python lists index much faster than NumPy scalars inside a loop.
@@ -197,6 +206,8 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
     queue0 = [0] * k_ord
     ahead = [0] * k_ord  # FIFO: displayed shares still ahead of us
     behind: list[set[int]] = [set() for _ in range(k_ord)]  # FIFO: ids that joined our level after us
+    ahead2 = [0.0] * k_ord  # L2: estimated shares ahead of us
+    behind2 = [0.0] * k_ord  # L2: estimated shares behind us
     deadline = [0.0] * k_ord
 
     # live orders by side and price: {price: [order indices]}
@@ -251,6 +262,9 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
                 if fifo and at:
                     for j in at:
                         behind[j].add(OID[n])
+                elif l2 and at:
+                    for j in at:
+                        behind2[j] += float(SZ[n])
             elif ty == MsgType.CANCEL or ty == MsgType.DELETE:
                 if fifo and at:
                     oid, s = OID[n], SZ[n]
@@ -260,6 +274,14 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
                                 behind[j].discard(oid)
                         else:
                             ahead[j] = max(0, ahead[j] - s)
+                elif l2 and at:
+                    c = float(SZ[n])
+                    for j in at:
+                        a, b = ahead2[j], behind2[j]
+                        tot = a + b
+                        if tot > 0:
+                            ahead2[j] = max(0.0, a - c * a / tot)
+                            behind2[j] = max(0.0, b - c * b / tot)
             elif ty == MsgType.EXECUTE or ty == MsgType.HIDDEN:
                 # trades at our price (the through model ignores them)
                 if touch:
@@ -273,6 +295,14 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
                         ahead[j] -= take
                         if x - take > 0:
                             fill(j, x - take, n)
+                elif l2 and at and ty == MsgType.EXECUTE:
+                    for j in list(at):
+                        xf = float(SZ[n])
+                        took = min(ahead2[j], xf)
+                        ahead2[j] -= took
+                        q_fill = math.floor(xf - took)
+                        if q_fill > 0:
+                            fill(j, q_fill, n)
                 # trades strictly through our price: every model
                 for q in [q for q in live[1] if q > p]:
                     fill_all(list(live[1][q]), n)
@@ -310,6 +340,7 @@ def simulate_python(messages: Messages, book: Book, orders: Orders, model: str) 
                 reason[j], end_idx[j], end_time[j] = int(End.REJECTED), n, tn
                 continue
             ahead[j] = queue0[j]
+            ahead2[j], behind2[j] = float(queue0[j]), 0.0
             deadline[j] = tn + max_wait[j]
             live[s].setdefault(q, []).append(j)
             heapq.heappush(heap, (deadline[j], j))

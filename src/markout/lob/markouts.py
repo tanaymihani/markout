@@ -54,18 +54,25 @@ def sample_orders(
     size: int = SIZE,
     horizon: float = max(HORIZONS),
     session: tuple[float, float] = SESSION,
+    latency: float = 0.0,
 ) -> Sample:
     """Both sides at the best quotes on a regular grid. The last decision leaves room
     for the longest wait plus the longest markout inside the session. `max_wait` is
-    counted from the decision time: the order rests until t + max_wait."""
+    counted from the decision time: the order rests until t + max_wait.
+
+    `latency` (seconds) delays the order and its cancel: the price is set from the book at
+    the decision time t, the order joins the queue at t + latency (behind whatever arrived
+    meanwhile, or rejected if the market has moved through its price) and rests until
+    t + latency + max_wait."""
     m, b = day.messages, day.book
-    t = np.arange(session[0], session[1] - max_wait - horizon + 1e-9, every)
+    t = np.arange(session[0], session[1] - max_wait - horizon - latency + 1e-9, every)
     i = state_index(m.time, t)
     t2, i2 = np.concatenate([t, t]), np.concatenate([i, i])
     side = np.repeat(np.array([1, -1], dtype=np.int8), len(t))
     price = np.where(side > 0, b.bid_price[i2, 0], b.ask_price[i2, 0])
-    wait = t2 + max_wait - m.time[i2]
-    return Sample(Orders.make(i2, side, price, size, wait), t2)
+    j2 = state_index(m.time, t2 + latency) if latency > 0 else i2
+    wait = t2 + latency + max_wait - m.time[j2]
+    return Sample(Orders.make(j2, side, price, size, wait), t2)
 
 
 def queue_buckets(queue: np.ndarray, median: float) -> np.ndarray:

@@ -52,7 +52,8 @@ py::dict simulate(const Array<double>& time, const Array<std::int8_t>& type,
                   const Array<std::int64_t>& place_idx, const Array<std::int8_t>& side,
                   const Array<std::int64_t>& order_price, const Array<std::int64_t>& order_size,
                   const Array<double>& max_wait, int model) {
-    if (model < 0 || model > 2) throw std::invalid_argument("model must be 0 (touch), 1 (fifo) or 2 (through)");
+    if (model < 0 || model > 3)
+        throw std::invalid_argument("model must be 0 (touch), 1 (fifo), 2 (through) or 3 (l2)");
     if (time.ndim() != 1) throw std::invalid_argument("time: expected a 1-D array");
     if (bid_price.ndim() != 2) throw std::invalid_argument("bid_price: expected a 2-D array");
     const py::ssize_t n = time.shape(0), levels = bid_price.shape(1), k = place_idx.shape(0);
@@ -97,6 +98,6 @@ PYBIND11_MODULE(_queue_sim, m) {
           py::arg("side"), py::arg("order_price"), py::arg("order_size"), py::arg("max_wait"),
           py::arg("model"),
           "Replay hypothetical orders against a LOBSTER day under one fill model "
-          "(0 touch, 1 fifo, 2 through). Returns a dict of NumPy arrays, one entry per order.");
-    m.attr("MODELS") = py::make_tuple("touch", "fifo", "through");
+          "(0 touch, 1 fifo, 2 through, 3 l2). Returns a dict of NumPy arrays, one entry per order.");
+    m.attr("MODELS") = py::make_tuple("touch", "fifo", "through", "l2");
 }

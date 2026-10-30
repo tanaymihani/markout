@@ -12,7 +12,7 @@ import math
 import numpy as np
 import pytest
 
-from markout.lob.fills import MODELS, End, Fills, Orders, simulate
+from markout.lob.fills import ALL_MODELS, MODELS, End, Fills, Orders, simulate
 from markout.lob.lobster import check_consistency
 from markout.lob.synthetic import SyntheticExchange, random_stream
 
@@ -38,7 +38,7 @@ def run(
     m, b = ex.build()
     assert check_consistency(m, b).pass_rate == 1.0  # the scenario itself is valid
     orders = Orders.make([place], side, price, size, max_wait)
-    return {model: simulate(m, b, orders, model, engine="python") for model in MODELS}
+    return {model: simulate(m, b, orders, model, engine="python") for model in ALL_MODELS}
 
 
 def one(f: Fills) -> dict:
@@ -100,6 +100,45 @@ def test_cancels_behind_us_do_not_shrink_queue_ahead():
     fifo = one(run(ex, place, BUY, P)["fifo"])
     assert fifo["filled_qty"] == 0  # counting B's cancels would have filled us here
     assert fifo["end_reason"] == End.TIMEOUT
+
+
+def test_l2_fills_when_the_cancels_were_behind_us():
+    """An L2 backtest cannot see where a cancel was; pro-rata it credits us with part of it."""
+    ex = base()
+    ex.submit(1.0, BUY, P, 300)  # A, ahead of us
+    place = here(ex)
+    b = ex.submit(2.0, BUY, P, 100)  # B, behind us
+    ex.delete(3.0, b)  # FIFO: ahead stays 300. L2: ahead 300 - 100 * 300/400 = 225
+    ex.market(4.0, SELL, 260)  # executes 260 of A
+    far_message(ex, 100.0)
+    r = run(ex, place, BUY, P)
+    assert one(r["fifo"])["filled_qty"] == 0  # 40 of A still ahead
+    l2 = one(r["l2"])
+    assert (l2["filled_qty"], l2["fill_time"]) == (35, 4.0)  # 260 - 225, whole shares
+    assert l2["queue_ahead"] == one(r["fifo"])["queue_ahead"] == 300
+
+
+def test_l2_misses_fills_when_the_cancels_were_ahead():
+    ex = base()
+    a = ex.submit(1.0, BUY, P, 200)  # A, ahead
+    place = here(ex)
+    ex.submit(2.0, BUY, P, 200)  # B, behind
+    ex.cancel(3.0, a, 150)  # FIFO: ahead 200 -> 50. L2: ahead 200 - 150 * 200/400 = 125
+    ex.market(4.0, SELL, 100)  # A's last 50, then 50 of B: FIFO puts us before B
+    far_message(ex, 100.0)
+    r = run(ex, place, BUY, P)
+    assert one(r["fifo"])["filled_qty"] == 50
+    assert one(r["l2"])["filled_qty"] == 0  # 125 - 100 = 25 still "ahead"
+
+
+def test_l2_shares_trade_through_and_quote_rules():
+    ex = base()
+    ex.submit(1.0, BUY, P, 500)
+    place = here(ex)
+    ex.market(2.0, SELL, 1100)  # through P: every model fills us
+    far_message(ex, 100.0)
+    r = run(ex, place, BUY, P)
+    assert {m: one(r[m])["filled_qty"] for m in ALL_MODELS} == dict.fromkeys(ALL_MODELS, 100)
 
 
 def test_hidden_executions_are_ignored_by_fifo_and_through():
@@ -237,3 +276,25 @@ def test_bad_inputs_raise():
         simulate(m, b, Orders.make([len(m)], BUY, P - TICK), "fifo", engine="python")
     with pytest.raises(ValueError):
         simulate(m, b, Orders.make([0], BUY, P - TICK), "queue", engine="python")
+
+
+def test_latency_delays_the_order_but_keeps_the_decision_price():
+    from markout.lob.lobster import Day, state_index
+    from markout.lob.markouts import sample_orders
+
+    m, b = random_stream(np.random.default_rng(4), n_events=3000, levels=5)
+    day = Day("TEST", m, b)
+    window = (float(m.time[0]), float(m.time[-1]))
+    now = sample_orders(day, every=2.0, max_wait=10.0, session=window)
+    late = sample_orders(day, every=2.0, max_wait=10.0, session=window, latency=0.5)
+    k = len(late.orders)
+    assert 0 < k <= len(now.orders)
+    t = late.decision_time
+    assert np.array_equal(late.orders.place_idx, state_index(m.time, t + 0.5))
+    assert np.allclose(m.time[late.orders.place_idx] + late.orders.max_wait, t + 0.5 + 10.0)
+    decided = state_index(m.time, t)
+    assert np.array_equal(
+        late.orders.price, np.where(late.orders.side > 0, b.bid_price[decided, 0], b.ask_price[decided, 0])
+    )
+    zero = sample_orders(day, every=2.0, max_wait=10.0, session=window, latency=0.0)
+    assert np.array_equal(zero.orders.place_idx, now.orders.place_idx)  # no latency: as before

@@ -3,7 +3,7 @@
 import numpy as np
 from numpy.typing import ArrayLike
 
-MODELS: tuple[str, str, str]
+MODELS: tuple[str, str, str, str]
 
 def simulate(
     time: ArrayLike,

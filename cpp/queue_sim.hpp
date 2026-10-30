@@ -19,7 +19,7 @@
 
 namespace markout {
 
-enum class Model : int { Touch = 0, Fifo = 1, Through = 2 };
+enum class Model : int { Touch = 0, Fifo = 1, Through = 2, L2 = 3 };
 
 enum End : std::int8_t {
     kActive = 0,
