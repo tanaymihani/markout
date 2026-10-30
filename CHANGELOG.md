@@ -8,7 +8,7 @@ All notable changes to this project are listed here. Versions follow
 
 ### Added
 
-- The desk runs live on the site, in the visitor's browser:
+- The desk runs on the site, in the visitor's browser, on a fictional 8-market scenario:
   [tanaymihani.github.io/markout/desk](https://tanaymihani.github.io/markout/desk/).
   Pyodide (CPython on WebAssembly) runs the desk's own Python in the tab, so every visitor
   gets a private paper-trading sandbox, nothing is sent anywhere, and nothing needs hosting.

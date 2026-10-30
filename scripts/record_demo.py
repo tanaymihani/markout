@@ -1,4 +1,4 @@
-"""Record the site's demo video: `python scripts/record_demo.py`.
+"""Record the site's demo video: `python scripts/record_demo.py` (`--card` redoes only the preview image).
 
 Serves docs/ locally, drives the page in Chrome with Playwright (a scripted walkthrough of
 every lab), and writes docs/media/markout-demo.mp4, a poster frame, and a short GIF for the
@@ -42,7 +42,10 @@ def serve() -> tuple[socketserver.TCPServer, str]:
         def log_message(self, *args):  # keep the console clean
             pass
 
-    httpd = socketserver.TCPServer(("127.0.0.1", 0), functools.partial(Quiet, directory=str(DOCS)))
+    class Server(http.server.ThreadingHTTPServer):
+        request_queue_size = 128  # the default backlog of 5 resets some of Chrome's parallel connections
+
+    httpd = Server(("127.0.0.1", 0), functools.partial(Quiet, directory=str(DOCS)))
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd, f"http://127.0.0.1:{httpd.server_address[1]}/index.html"
 
@@ -144,6 +147,18 @@ def card(browser, url: str) -> Path:
     return out
 
 
+def card_only() -> None:
+    httpd, url = serve()
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(channel="chrome", headless=True)
+        except Exception:  # noqa: BLE001 - fall back to Playwright's Chromium
+            browser = p.chromium.launch(headless=True)
+        print(f"wrote {card(browser, url).relative_to(ROOT)}")
+        browser.close()
+    httpd.shutdown()
+
+
 def main() -> None:
     MEDIA.mkdir(parents=True, exist_ok=True)
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
@@ -201,4 +216,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    card_only() if "--card" in sys.argv[1:] else main()

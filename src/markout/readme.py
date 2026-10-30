@@ -145,8 +145,8 @@ def desk_section() -> list[str]:
         "",
         (
             "SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), and its rules allow "
-            "bots as long as each person keeps one account and stays within the platform's limits. The desk is my "
-            "bot for it. It runs on a laptop, uses only free public data, and never trades without a click."
+            "bots as long as each person keeps one account and stays within the platform's limits. I built this "
+            "desk for it. It runs on a laptop, uses only free public data, and never trades without a click."
         ),
         "",
         (
@@ -180,8 +180,9 @@ def desk_section() -> list[str]:
             "look-alikes (the other team, another stat line, a different threshold); those cases are now tests."
         ),
         "",
-        f"**[Try the live desk]({DESK_URL}).** It runs in your browser: Pyodide (Python compiled to WebAssembly) "
-        "executes the desk's own Python in the tab, so every visitor gets a private paper-trading sandbox, with its "
+        f"**[Open the desk in your browser]({DESK_URL}).** It runs on a fictional 8-market scenario: Pyodide "
+        "(Python compiled to WebAssembly) executes the desk's own Python in the tab, so every visitor gets a private "
+        "paper-trading sandbox, with its "
         "own exchange, journal and clock, and nothing is sent anywhere. `python -m markout.cup public` (or the Docker "
         "image) serves the same sandboxes from one server, with header sessions, eviction and expiry, rate limits and "
         "a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and "
@@ -201,11 +202,13 @@ def brief() -> list[str]:
         share = a["diebold_mariano"]["share_days_better"]
         days = "every out-of-sample day" if share == 1 else f"{100 * share:.0f}% of out-of-sample days"
         out.append(
-            f"**Closing auction.** A LightGBM model beats a per-stock baseline on {days}. Traded net of costs, "
-            f"it earns an annualized Sharpe of {s['sharpe_annualized']:.1f}, and "
-            f"{h.get('sharpe_annualized', float('nan')):.1f} on a holdout I opened once. At twice the assumed "
-            f"costs it drops to {two:.1f}, and at a size the order book can absorb it makes "
-            f"${s['total_pnl_usd']:,.0f} in {s['days']} days: real, but thin."
+            f"**Closing auction.** A LightGBM model beats a per-stock baseline on {days}. Over {s['days']} "
+            f"walk-forward days, traded net of costs at a size the order book can absorb, it has an annualized "
+            f"Sharpe of {s['sharpe_annualized']:.1f} but nets only ${s['total_pnl_usd']:,.0f}, because costs take "
+            f"{s['cost_usd'] / s['gross_usd']:.0%} of the gross; at twice the assumed costs the Sharpe is {two:.1f}. "
+            f"On a {h.get('days', 0)}-day holdout I opened once, the frozen model scored "
+            f"{h.get('sharpe_annualized', float('nan')):.1f} (${h.get('total_pnl_usd', float('nan')):,.0f}): "
+            "real, but thin."
         )
     m = results.load("microstructure")
     if m:
@@ -280,7 +283,7 @@ def build() -> str:
             "market data where I could get it."
         ),
         "",
-        "**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four "
+        "**Live labs:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four "
         f"interactive labs, a market-making game and the [trading desk]({DESK_URL}), all running in the browser.",
         "",
         (
@@ -345,8 +348,9 @@ def build() -> str:
             "`src/markout/auction/cv.py` explains why."
         ),
         (
-            "- Every variant I tried is logged with its git commit and config, including the losers, so the Deflated "
-            "Sharpe and PBO count all of the searching."
+            "- Every variant I tried is logged with its config, daily PnL and git commit, including the losers, so "
+            "the Deflated Sharpe and PBO count all of the searching. (The 32 auction trials were logged from a working "
+            "copy whose commit predates this repository's public history, so their SHAs don't resolve on GitHub.)"
         ),
         "- The auction holdout sits behind a guard that refuses a second look"
         + (f" (it has been opened {times} time{'s' if times != 1 else ''})." if times else "."),

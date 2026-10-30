@@ -203,11 +203,12 @@ def findings() -> list[tuple[str, str, str]]:
                 "Closing auction",
                 "01_auction",
                 (
-                    f"LightGBM beats a per-stock baseline on every walk-forward day. Traded net of costs it earns an "
-                    f"annualized Sharpe of <span class=num>{s['sharpe_annualized']:.1f}</span>, and "
-                    f"<span class=num>{h.get('sharpe_annualized', float('nan')):.1f}</span> on a holdout scored once. "
-                    f"At twice the assumed costs it drops to <span class=num>{two:.1f}</span>: the edge is about one "
-                    "spread wide."
+                    f"LightGBM beats a per-stock baseline on every walk-forward day. Over {s['days']} walk-forward "
+                    f"days, traded net of costs, it has an annualized Sharpe of "
+                    f"<span class=num>{s['sharpe_annualized']:.1f}</span> but nets only "
+                    f"<span class=num>${s['total_pnl_usd']:,.0f}</span>, and at twice the assumed costs the Sharpe is "
+                    f"<span class=num>{two:.1f}</span>. A {h.get('days', 0)}-day holdout, scored once, gave "
+                    f"<span class=num>{h.get('sharpe_annualized', float('nan')):.1f}</span>."
                 ),
             )
         )
@@ -282,10 +283,15 @@ def hero_tiles() -> str:
                 "INTC resting orders ten seconds after the fill: touch-fill backtest vs a real queue",
             )
         )
-    if a:
-        one = a["selected"]["summary"]["sharpe_annualized"]
-        two = next(r for r in a["robustness"]["cost_rows"] if r["cost_mult"] == 2.0)["adapted"]["sharpe_annualized"]
-        tiles.append((f"{one:.1f} → {two:.1f}", "Closing-auction Sharpe ratio when trading costs double"))
+    if a:  # one period throughout: the 240 walk-forward days
+        s = a["selected"]["summary"]
+        tiles.append(
+            (
+                f"${s['total_pnl_usd']:,.0f}",
+                f"What the Sharpe-{s['sharpe_annualized']:.1f} closing-auction model nets in {s['days']} walk-forward "
+                f"days: costs take {s['cost_usd'] / s['gross_usd']:.0%} of the gross",
+            )
+        )
     if v:
         kf = v["kelly_full"]
         tiles.append(
@@ -342,7 +348,7 @@ def render() -> str:
 
 DESK_NOTICE = (
     '<div style="padding:8px 20px;font-size:13px;background:var(--warn-bg);color:var(--warn-ink)">'
-    "<b>Live demo, running in your browser.</b> Fictional markets and paper money. The desk's own Python code runs "
+    "<b>A demo that runs in your browser,</b> on a fictional 8-market scenario with paper money. The desk's own Python runs "
     "in this tab, so nothing you do is sent anywhere. Move the clock with <b>+2 h</b> / <b>+1 day</b>: prices drift, "
     'markets resolve and the journal scores your calls. <a href="../">Back to Markout</a>. <span id="sbx"></span></div>'
 )

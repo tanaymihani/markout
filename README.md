@@ -4,7 +4,7 @@
 
 Does a short-horizon trading edge survive the spread, realistic fills, competing traders, and the bias that comes from trying many strategies? This repo is my attempt to find out, step by step, on real market data where I could get it.
 
-**Live demo:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four interactive labs, a market-making game and the [trading desk](https://tanaymihani.github.io/markout/desk/), all running in the browser.
+**Live labs:** [tanaymihani.github.io/markout](https://tanaymihani.github.io/markout/) has four interactive labs, a market-making game and the [trading desk](https://tanaymihani.github.io/markout/desk/), all running in the browser.
 
 [![The Markout lab: a simulated order waits in the queue while a touch-fill backtest has already counted it as filled](docs/media/markout-demo.gif)](https://tanaymihani.github.io/markout/)
 
@@ -12,7 +12,7 @@ The name comes from the *markout*, the price move right after a trade, which mar
 
 ## In brief
 
-- **Closing auction.** A LightGBM model beats a per-stock baseline on every out-of-sample day. Traded net of costs, it earns an annualized Sharpe of 4.8, and 4.7 on a holdout I opened once. At twice the assumed costs it drops to -0.2, and at a size the order book can absorb it makes $2,041 in 240 days: real, but thin.
+- **Closing auction.** A LightGBM model beats a per-stock baseline on every out-of-sample day. Over 240 walk-forward days, traded net of costs at a size the order book can absorb, it has an annualized Sharpe of 4.8 but nets only $2,041, because costs take 61% of the gross; at twice the assumed costs the Sharpe is -0.2. On a 60-day holdout I opened once, the frozen model scored 4.7 ($1,101): real, but thin.
 - **Fills.** Resting orders in INTC look profitable if any trade at your price fills you (+0.33 bps ten seconds later). Simulating queue position order by order turns that into -1.64 bps: the fills you actually get are the ones you didn't want.
 - **Competition.** A lone market maker quotes a 124-tick spread; one identical rival brings it to 13.8, next to the zero-profit 13.0. Competition removes the rent, not the cost of trading against informed flow.
 - **Volatility premium.** VIX sat above the volatility that followed 86% of the time since 1990, but the textbook Kelly formula asks for 3.0x the growth-optimal size, and every Kelly fraction fitted on 1993–2007 was wiped out after 2008. Selling delta-hedged straddles instead of variance cuts the worst month from 79 to 41 per $1 of vega, though at-the-money options carry less of the premium.
@@ -82,7 +82,7 @@ The paragraphs below are copied from the reports.
 
 ## The Predictions Cup desk
 
-SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), and its rules allow bots as long as each person keeps one account and stays within the platform's limits. The desk is my bot for it. It runs on a laptop, uses only free public data, and never trades without a click.
+SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), and its rules allow bots as long as each person keeps one account and stays within the platform's limits. I built this desk for it. It runs on a laptop, uses only free public data, and never trades without a click.
 
 - It looks up reference prices for each contest market: real-money prices from Polymarket and Kalshi, option-implied probabilities for stock-price questions, and earnings-beat history. Every suggested match between a contest market and a reference has to be confirmed by hand, because matching is where things quietly go wrong.
 - It pools those references with the contest's own price in log-odds, so it never treats a single reference as the truth.
@@ -93,13 +93,13 @@ SIG runs a free prediction-market contest for students (Oct 1 to Nov 4, 2026), a
 
 The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`make demo`); `make desk` starts it on a paper contest at http://127.0.0.1:8765. The [matcher dry run](docs/demo/DRYRUN.md) tests the matching against live Polymarket and Kalshi questions. Its first version mostly suggested look-alikes (the other team, another stat line, a different threshold); those cases are now tests.
 
-**[Try the live desk](https://tanaymihani.github.io/markout/desk/).** It runs in your browser: Pyodide (Python compiled to WebAssembly) executes the desk's own Python in the tab, so every visitor gets a private paper-trading sandbox, with its own exchange, journal and clock, and nothing is sent anywhere. `python -m markout.cup public` (or the Docker image) serves the same sandboxes from one server, with header sessions, eviction and expiry, rate limits and a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and [deploy/README.md](deploy/README.md) the deployment.
+**[Open the desk in your browser](https://tanaymihani.github.io/markout/desk/).** It runs on a fictional 8-market scenario: Pyodide (Python compiled to WebAssembly) executes the desk's own Python in the tab, so every visitor gets a private paper-trading sandbox, with its own exchange, journal and clock, and nothing is sent anywhere. `python -m markout.cup public` (or the Docker image) serves the same sandboxes from one server, with header sessions, eviction and expiry, rate limits and a strict Content-Security-Policy; [ARCHITECTURE.md](ARCHITECTURE.md) has the details and [deploy/README.md](deploy/README.md) the deployment.
 
 ## How I tried to keep it honest
 
 - 410 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
-- Every variant I tried is logged with its git commit and config, including the losers, so the Deflated Sharpe and PBO count all of the searching.
+- Every variant I tried is logged with its config, daily PnL and git commit, including the losers, so the Deflated Sharpe and PBO count all of the searching. (The 32 auction trials were logged from a working copy whose commit predates this repository's public history, so their SHAs don't resolve on GitHub.)
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).
 - Replications are checked against known answers: the worked example in the Deflated Sharpe paper, the Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks.
 - `make report` regenerates every report and figure from fixed seeds, so the numbers in the text are never typed by hand.

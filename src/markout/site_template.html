@@ -182,9 +182,9 @@
   <h2>The Predictions Cup desk</h2>
   <p>SIG's student prediction-market contest allows bots, so I built one that runs on a laptop. It pools free
   reference prices (Polymarket, Kalshi, option-implied probabilities, earnings history) with the contest's own price,
-  proposes trades sized by Kelly and by what the order book can fill, and never trades without a click. The live
-  version runs that same Python code in your browser, on fictional markets and paper money.</p>
-  <div class="cta"><a class="btn primary" href="desk/">Try the live desk</a></div>
+  proposes trades sized by Kelly and by what the order book can fill, and never trades without a click. A demo
+  runs that same Python code in your browser, on a fictional 8-market scenario with paper money.</p>
+  <div class="cta"><a class="btn primary" href="desk/">Open the desk in your browser</a></div>
   <a class="shot" href="desk/"><img src="demo/desk.png" alt="The approval desk showing proposed trades, their
   probabilities, edges and stakes"></a>
   <p class="small"><a href="demo/desk.html">Open a read-only snapshot</a> ·
@@ -209,7 +209,7 @@
     <div><h3>How I built it</h3><p>The research is in Python, with walk-forward validation, a log of every variant
     tried, deflated Sharpe ratios and a holdout that can only be opened once. The order-book replay is written in
     C++17 with pybind11 bindings and is bit-identical to the Python reference. This site is plain HTML, CSS and
-    JavaScript; the browser versions of the simulations are tested against the Python code. The desk also runs live in
+    JavaScript; the browser versions of the simulations are tested against the Python code. The desk also runs in
     your browser: Pyodide (Python compiled to WebAssembly) runs its own Python code in the tab, with a private
     paper-trading sandbox for every visitor, and a Docker version serves the same sandboxes from one server. CI checks
     types, coverage, a real browser and the container on every push.</p></div>
