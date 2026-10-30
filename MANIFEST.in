@@ -1,0 +1,2 @@
+include LICENSE README.md CITATION.cff
+include cpp/*.hpp cpp/*.cpp cpp/CMakeLists.txt

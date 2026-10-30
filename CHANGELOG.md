@@ -30,9 +30,20 @@ All notable changes to this project are listed here. Versions follow
 - Slurm array scripts for running the ITCH days on a cluster (`scripts/explorer/`), and
   `scripts/traffic_log.py` to keep the repository's traffic beyond GitHub's 14 days.
 - `CITATION.cff`.
+- `.github/workflows/wheels.yml`: wheels for Linux (x86-64 and arm64), macOS (arm64) and
+  Windows, Python 3.11-3.14, each tested against the C++/Python equivalence tests, built on
+  version tags. Publishing to PyPI goes through a trusted publisher and stays off until the
+  repository variable `PYPI_PUBLISH` is set.
 
 ### Changed
 
+- The package is slim: the toolkit (evaluation, the LOBSTER and ITCH readers, the fill
+  simulator, the CLI) needs only numpy, pandas, polars, pyarrow, scipy and arch, and the
+  studies' dependencies moved to the `research` extra. The distribution is called
+  `markout-lob`, because `markout` on PyPI is an unrelated package; the import name is still
+  `markout`. `pip install .` compiles the C++ engine when a compiler is available (`setup.py`)
+  and uses the Python engine otherwise. Outside a clone, data and results go to
+  `$MARKOUT_HOME` or the current directory.
 - Every auction number now carries its period (walk-forward or holdout), and the hero tile
   and preview card show what the Sharpe-4.8 model actually nets: $2,041 in 240 days.
 - The desk is described as a demo that runs in the browser on a fictional 8-market scenario.

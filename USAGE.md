@@ -13,12 +13,18 @@ module is at [tanaymihani.github.io/markout/api](https://tanaymihani.github.io/m
 
 ```bash
 git clone https://github.com/tanaymihani/markout && cd markout
-python3.11 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+python3.11 -m venv .venv && .venv/bin/pip install -e ".[dev,research]"
 make cpp          # optional: the C++ fill engine, bit-identical to Python and much faster
 .venv/bin/markout status
 ```
 
 Python 3.11 or newer. Without `make cpp` everything runs on the pure-Python engine.
+
+The toolkit on its own (the evaluation tools, the LOBSTER and ITCH readers, the fill simulator
+and this command line) needs only numpy, pandas, polars, pyarrow, scipy and arch. `pip install .`
+installs just that, and compiles the C++ engine if a C++17 compiler is around; the `research`
+extra adds what the studies need (LightGBM, scikit-learn, statsmodels, matplotlib). Outside a
+clone, data and results go to `$MARKOUT_HOME`, or the current directory.
 `make install-locked` installs the exact versions CI uses (`requirements.lock`).
 
 ## From the shell

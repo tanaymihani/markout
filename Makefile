@@ -6,7 +6,7 @@ PYBIND11_DIR := $(shell $(PY) -m pybind11 --cmakedir 2>/dev/null)
         all clean
 
 install:
-	.venv/bin/pip install -e ".[dev,data,cpp]"
+	.venv/bin/pip install -e ".[dev,data,cpp,research]"
 
 install-locked:  # the exact versions CI uses
 	uv pip install --python $(PY) -r requirements.lock
@@ -44,7 +44,7 @@ api-docs:  # docs/api/, the API reference on the site
 # Re-resolve requirements.lock and the image's pins. Existing pins are kept unless they
 # must change; add --upgrade to the commands to move everything, then run `make check`.
 lock:
-	uv pip compile pyproject.toml --extra dev --extra cpp --extra demo --universal --python-version 3.11 \
+	uv pip compile pyproject.toml --extra dev --extra cpp --extra demo --extra research --universal --python-version 3.11 \
 	    -o requirements.lock --custom-compile-command "make lock"
 	uv pip compile deploy/requirements-desk.in --python-version 3.11 --python-platform linux --generate-hashes \
 	    -o deploy/requirements-desk.txt --custom-compile-command "make lock"
