@@ -88,6 +88,7 @@
 <pre><code>markout status                               what is on disk: data, the C++ extension, results
 markout fills MESSAGES.csv BOOK.csv          queue-position fills and markouts for any LOBSTER day
 markout fills --ticker INTC                  ... or one of the bundled sample days (make lobster)
+markout fills --ticker INTC --date 2019-01-30   ... or a NASDAQ ITCH day (python -m <a href="lob/itch.html">markout.lob.itch</a>)
 markout sharpe pnl.csv --trials 40 --sr-var 0.0004
                                              Sharpe with a bootstrap CI, PSR and the Deflated Sharpe
 markout pbo trials.csv                       probability of backtest overfitting (CSCV)
@@ -108,7 +109,7 @@ markout desk serve --paper                   the Predictions Cup desk (same as p
                     <div class="attr variable">
             <span class="name">REPORTS</span>        =
 <input id="REPORTS-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-            <label class="view-value-button pdoc-button" for="REPORTS-view-value"></label><span class="default_value">{&#39;auction&#39;: &#39;markout.auction.report&#39;, &#39;microstructure&#39;: &#39;markout.lob.report&#39;, &#39;arena&#39;: &#39;markout.games.report&#39;, &#39;options&#39;: &#39;markout.options.report&#39;, &#39;contest&#39;: &#39;<a href="decision/contest.html">markout.decision.contest</a>&#39;, &#39;vol&#39;: &#39;markout.vol.report&#39;}</span>
+            <label class="view-value-button pdoc-button" for="REPORTS-view-value"></label><span class="default_value">{&#39;auction&#39;: &#39;markout.auction.report&#39;, &#39;microstructure&#39;: &#39;markout.lob.report&#39;, &#39;arena&#39;: &#39;markout.games.report&#39;, &#39;options&#39;: &#39;markout.options.report&#39;, &#39;contest&#39;: &#39;<a href="decision/contest.html">markout.decision.contest</a>&#39;, &#39;vol&#39;: &#39;markout.vol.report&#39;, &#39;many-days&#39;: &#39;<a href="lob/multiday.html">markout.lob.multiday</a>&#39;}</span>
 
         
     </div>

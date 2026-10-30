@@ -282,7 +282,7 @@ effective spread = realized spread + price impact, at 5 s and 60 s.</li>
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">sample_orders</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">day</span><span class="p">:</span> <span class="n"><a href="lobster.html#Day">markout.lob.lobster.Day</a></span>,</span><span class="param">	<span class="n">every</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>,</span><span class="param">	<span class="n">max_wait</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>,</span><span class="param">	<span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>,</span><span class="param">	<span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>,</span><span class="param">	<span class="n">session</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">34500.0</span><span class="p">,</span> <span class="mf">57300.0</span><span class="p">)</span></span><span class="return-annotation">) -> <span class="n"><a href="#Sample">Sample</a></span>:</span></span>
+        <span class="name">sample_orders</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">day</span><span class="p">:</span> <span class="n"><a href="lobster.html#Day">markout.lob.lobster.Day</a></span>,</span><span class="param">	<span class="n">every</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>,</span><span class="param">	<span class="n">max_wait</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>,</span><span class="param">	<span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>,</span><span class="param">	<span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>,</span><span class="param">	<span class="n">session</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">34500.0</span><span class="p">,</span> <span class="mf">57300.0</span><span class="p">)</span>,</span><span class="param">	<span class="n">latency</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></span><span class="return-annotation">) -> <span class="n"><a href="#Sample">Sample</a></span>:</span></span>
 
         
     </div>
@@ -291,6 +291,11 @@ effective spread = realized spread + price impact, at 5 s and 60 s.</li>
             <div class="docstring"><p>Both sides at the best quotes on a regular grid. The last decision leaves room
 for the longest wait plus the longest markout inside the session. <code>max_wait</code> is
 counted from the decision time: the order rests until t + max_wait.</p>
+
+<p><code>latency</code> (seconds) delays the order and its cancel: the price is set from the book at
+the decision time t, the order joins the queue at t + latency (behind whatever arrived
+meanwhile, or rejected if the market has moved through its price) and rests until
+t + latency + max_wait.</p>
 </div>
 
 

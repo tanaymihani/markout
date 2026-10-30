@@ -353,6 +353,72 @@ def _event(buf, at, books, watch, wanted, by_name, levels, out_dir, emit_all) ->
         b.action(ts, ACTION.unpack_from(buf, at)[6])
 
 
+# -------------------------------------------------------------------------------- whole-feed audit
+REF_SHARES = struct.Struct(">QI")  # E, C, X: order ref, shares (at byte 11 of the message)
+ADD_TAIL = struct.Struct(">QcI")  # A, F: order ref, side, shares
+REPL_TAIL = struct.Struct(">QQI")  # U: old ref, new ref, shares
+REF = struct.Struct(">Q")  # D
+
+
+def audit(chunks) -> dict:
+    """Track every order of every stock through a whole feed and count references to unknown orders.
+
+    The conversion above checks the stocks it converts; this checks the file: every execution
+    (E, C), cancel (X), delete (D) and replace (U) of the day, for all symbols, must name an
+    order that was added (A, F, or a replace) earlier and still has shares left.
+    """
+    live: dict[int, int] = {}  # order ref -> shares left
+    unmatched = dict.fromkeys(("E", "C", "X", "D", "U"), 0)
+    by_type = [0] * 256
+    peak, t0, tail = 0, time.perf_counter(), b""
+    for chunk in chunks:
+        buf = tail + chunk if tail else chunk
+        n, pos = len(buf), 0
+        while pos + 2 <= n:
+            end = pos + 2 + ((buf[pos] << 8) | buf[pos + 1])
+            if end > n:
+                break
+            at = pos + 13  # first byte after the 11-byte header
+            t = buf[pos + 2]
+            by_type[t] += 1
+            if t == 65 or t == 70:  # A, F
+                ref, _, shares = ADD_TAIL.unpack_from(buf, at)
+                live[ref] = shares
+            elif t == 69 or t == 67 or t == 88:  # E, C, X
+                ref, shares = REF_SHARES.unpack_from(buf, at)
+                left = live.get(ref)
+                if left is None:
+                    unmatched[chr(t)] += 1
+                elif left > shares:
+                    live[ref] = left - shares
+                else:
+                    del live[ref]
+            elif t == 68:  # D
+                if live.pop(REF.unpack_from(buf, at)[0], None) is None:
+                    unmatched["D"] += 1
+            elif t == 85:  # U
+                old, new, shares = REPL_TAIL.unpack_from(buf, at)
+                if live.pop(old, None) is None:
+                    unmatched["U"] += 1
+                live[new] = shares
+            pos = end
+        peak = max(peak, len(live))
+        tail = buf[pos:]
+    if tail:
+        raise ValueError(f"feed ends inside a message ({len(tail)} bytes left over)")
+    total = sum(by_type)
+    seconds = time.perf_counter() - t0
+    return {
+        "itch_messages": total,
+        "by_type": {chr(i): c for i, c in enumerate(by_type) if c},
+        "unmatched": unmatched,
+        "orders_left_at_end": len(live),
+        "peak_live_orders": peak,
+        "seconds": seconds,
+        "messages_per_s": total / max(seconds, 1e-9),
+    }
+
+
 # -------------------------------------------------------------------------------- files
 def file_date(path: Path) -> date:
     """The trading day in NASDAQ's file names: 01302019.NASDAQ_ITCH50.gz or S101819-v50.txt.gz."""
@@ -366,6 +432,11 @@ def file_date(path: Path) -> date:
 
 def day_dir(day: date | str) -> Path:
     return ITCH_DIR / str(day)
+
+
+def audit_path(day: date | str) -> Path:
+    """Next to the day's folder, so re-converting a day keeps its audit."""
+    return ITCH_DIR / f"{day}.audit.json"
 
 
 def convert(path: Path, tickers: list[str], levels: int = LEVELS, out_root: Path = ITCH_DIR) -> dict:
@@ -393,9 +464,29 @@ def convert(path: Path, tickers: list[str], levels: int = LEVELS, out_root: Path
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m markout.lob.itch", description=__doc__.split("\n\n")[0])
     ap.add_argument("files", nargs="+", type=Path, help="ITCH 5.0 day files (.gz)")
-    ap.add_argument("--tickers", required=True, help="comma-separated symbols, e.g. AAPL,MSFT,INTC")
+    ap.add_argument("--tickers", help="comma-separated symbols, e.g. AAPL,MSFT,INTC")
     ap.add_argument("--levels", type=int, default=LEVELS)
+    ap.add_argument("--audit", action="store_true", help="check every order reference of the whole file instead")
     a = ap.parse_args(argv)
+    if a.audit:
+        for f in a.files:
+            r = {"date": str(file_date(f)), "source": f.name, **audit(feed(f))}
+            ITCH_DIR.mkdir(parents=True, exist_ok=True)
+            audit_path(r["date"]).write_text(json.dumps(r, indent=2) + "\n")
+            bad = sum(r["unmatched"].values())
+            print(
+                f"{r['date']}: {r['itch_messages']:,} messages, every stock, in {r['seconds']:.0f} s; "
+                + (
+                    "zero unmatched executions, cancels, deletes and replaces"
+                    if not bad
+                    else f"UNMATCHED {r['unmatched']}"
+                )
+                + f"; peak {r['peak_live_orders']:,} live orders",
+                flush=True,
+            )
+        return 0
+    if not a.tickers:
+        ap.error("--tickers is required unless --audit")
     for f in a.files:
         r = convert(f, [t.strip() for t in a.tickers.split(",") if t.strip()], a.levels)
         bad = {t: s["unmatched"] for t, s in r["tickers"].items() if any(s["unmatched"].values())}

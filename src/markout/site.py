@@ -227,6 +227,24 @@ def findings() -> list[tuple[str, str, str]]:
                 ),
             )
         )
+    md = results.load("many_days")
+    if md and md.get("cells"):
+        pool, l2p = md["pooled"], md["l2"]["pooled"]
+        out.append(
+            (
+                "Many days, and L2 backtests",
+                "07_many_days",
+                (
+                    f"On {len(md['meta']['days'])} NASDAQ ITCH sample days of 2019–2021 and {len(md['by_ticker'])} "
+                    f"stocks, the real queue makes the markout worse than a touch-fill backtest on "
+                    f"<span class=num>{100 * pool['share_cells_gap_positive']:.0f}%</span> of stock-days, by "
+                    f"<span class=num>{pool['median_stock_gap_bps']:.2f}</span> bps for the median stock. A backtest "
+                    f"that only sees aggregated depth "
+                    f"{'overstates' if l2p['dp_fill_pp']['mean'] > 0 else 'understates'} the fill rate by "
+                    f"<span class=num>{abs(l2p['dp_fill_pp']['mean']):.1f}</span> points."
+                ),
+            )
+        )
     ar = results.load("arena")
     if ar:
         k = {r["K"]: r for r in ar["arena"]["k_sweep"]}
@@ -280,7 +298,7 @@ def hero_tiles() -> str:
         tiles.append(
             (
                 f"{intc['touch']['mk_10_bps']:+.2f} → {intc['fifo']['mk_10_bps']:+.2f} bps",
-                "INTC resting orders ten seconds after the fill: touch-fill backtest vs a real queue",
+                "INTC resting orders in June 2012, ten seconds after the fill: touch-fill backtest vs a real queue",
             )
         )
     if a:  # one period throughout: the 240 walk-forward days

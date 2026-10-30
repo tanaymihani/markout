@@ -1,0 +1,120 @@
+{
+  "published": {
+    "dsr": {
+      "cite": "Bailey & L\u00f3pez de Prado (2014), *J. Portfolio Management* 40(5), the numerical example",
+      "url": "https://www.davidhbailey.com/dhbpapers/deflated-sharpe.pdf",
+      "sr0": 0.1132,
+      "dsr_100": 0.9004,
+      "dsr_46": 0.9505,
+      "dsr_88_normal": 0.9505
+    },
+    "cks": {
+      "cite": "Cont, Kukanov & Stoikov (2014), *J. Financial Econometrics* 12(1), Tables 2 and 3",
+      "url": "https://arxiv.org/abs/1011.6402",
+      "mean_r2": 0.65,
+      "lam": 0.98,
+      "lam_ci": [
+        0.88,
+        1.08
+      ],
+      "data": "50 NYSE stocks, TAQ quotes and trades, April 2010"
+    },
+    "gb": {
+      "cite": "Gould & Bonart (2016), *Market Microstructure and Liquidity* 2(2), Tables 2 and 4",
+      "url": "https://arxiv.org/abs/1512.03492",
+      "auc_large": [
+        0.752,
+        0.805
+      ],
+      "auc_small": [
+        0.581,
+        0.642
+      ],
+      "slope_large": [
+        2.03,
+        2.73
+      ],
+      "slope_small": [
+        0.5,
+        0.85
+      ],
+      "data": "10 Nasdaq stocks, LOBSTER, all of 2014"
+    },
+    "optiver": {
+      "cite": "a public repository",
+      "url": "https://github.com/andrew-somerset/optiver-trading-at-the-close",
+      "median": 5.815,
+      "gbm": 5.708
+    },
+    "carr_wu": {
+      "cite": "Carr & Wu, *Variance Risk Premia*, May 2004 working paper (published in *RFS* 22(3), 2009), Tables 4 and 5, SPX row",
+      "url": "https://econwpa.ub.uni-muenchen.de/econ-wp/fin/papers/0409/0409015.pdf",
+      "period": [
+        "1996-01-04",
+        "2003-02-28"
+      ],
+      "rv_vol": 18.82,
+      "sw_vol": 24.41,
+      "rp": -2.279,
+      "rp_t": -7.194,
+      "lrp": -0.594,
+      "lrp_t": -9.484
+    }
+  },
+  "here": {
+    "dsr": {
+      "sr0": 0.113172001865,
+      "dsr_100": 0.900396834449,
+      "dsr_46": 0.950501706876,
+      "dsr_88_normal": 0.950490816676
+    },
+    "cks": {
+      "mean_r2": 0.633431420789,
+      "r2_range": [
+        0.407161912423,
+        0.866563719322
+      ],
+      "lam_within": 0.903778091668,
+      "lam_within_ci": [
+        0.445776927981,
+        1.36177925535
+      ],
+      "lam_pooled": 1.2739108997,
+      "lam_pooled_ci": [
+        1.20381366525,
+        1.34400813414
+      ]
+    },
+    "gb": {
+      "auc_large": [
+        0.652221415446,
+        0.660995470142
+      ],
+      "auc_small": [
+        0.53068847164,
+        0.568945374278
+      ],
+      "slope_large": [
+        1.11717119785,
+        1.33496678058
+      ],
+      "slope_small": [
+        0.225590372031,
+        0.350904117853
+      ]
+    },
+    "optiver": {
+      "median": 5.81848812103,
+      "model": 5.69306135178
+    },
+    "carr_wu": {
+      "days": 1801,
+      "rv_vol": 18.9589189032,
+      "sw_vol": 23.7283731367,
+      "rp": -1.85712590636,
+      "rp_t": -6.4189925906,
+      "lrp": -0.524906412481,
+      "lrp_t": -9.61092052602
+    }
+  }
+}

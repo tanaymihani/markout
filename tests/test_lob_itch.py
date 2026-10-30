@@ -284,3 +284,16 @@ def test_convert_writes_a_lobster_day_the_loader_reads(tmp_path, monkeypatch):
     assert np.array_equal(day.messages.time, cols["time"] / NS) and np.array_equal(day.messages.price, cols["price"])
     assert np.array_equal(day.book.bid_size, book[:, 3::4]) and day.book.levels == 10
     assert not (tmp_path / "itch" / ".2019-01-30.partial").exists()
+
+
+def test_the_audit_checks_every_stock_in_the_feed():
+    f = random_feed(5)
+    r = itch.audit(chunks(bytes(f.out), np.random.default_rng(5)))
+    assert r["unmatched"] == {"E": 0, "C": 0, "X": 0, "D": 0, "U": 0}
+    assert r["itch_messages"] == sum(r["by_type"].values()) and r["by_type"]["A"] > 0
+    g = Feed(np.random.default_rng(0))
+    g.add(itch.OPEN_NS, 2, 10, 1, 100, MID)  # the noise stock: the audit covers it too
+    g.execute(itch.OPEN_NS + 1, 2, 10, 100)
+    g.execute(itch.OPEN_NS + 2, 2, 10, 1)  # already fully executed
+    g.delete(itch.OPEN_NS + 3, 7, 11)
+    assert itch.audit([bytes(g.out)])["unmatched"] == {"E": 1, "C": 0, "X": 0, "D": 1, "U": 0}

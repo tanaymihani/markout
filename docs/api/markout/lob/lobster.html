@@ -63,6 +63,9 @@
                     <a class="variable" href="#LOBSTER_DIR">LOBSTER_DIR</a>
             </li>
             <li>
+                    <a class="variable" href="#ITCH_DIR">ITCH_DIR</a>
+            </li>
+            <li>
                     <a class="class" href="#MsgType">MsgType</a>
                             <ul class="memberlist">
                         <li>
@@ -103,6 +106,9 @@
             </li>
             <li>
                     <a class="function" href="#available">available</a>
+            </li>
+            <li>
+                    <a class="function" href="#itch_days">itch_days</a>
             </li>
             <li>
                     <a class="class" href="#Messages">Messages</a>
@@ -269,7 +275,11 @@
                     <h1 class="modulename">
 <a href="./../../markout.html">markout</a><wbr>.<a href="./../lob.html">lob</a><wbr>.lobster    </h1>
 
-                        <div class="docstring"><p>LOBSTER sample files: constants, loaders and the message/book consistency check.</p>
+                        <div class="docstring"><p>LOBSTER-format days: constants, loaders and the message/book consistency check.</p>
+
+<p>Two sources share the format. The LOBSTER sample (five stocks on 2012-06-21, <code>make lobster</code>) is
+the default day; NASDAQ ITCH sample days converted by <code><a href="itch.html">markout.lob.itch</a></code> are loaded by date:
+<code>load_day("INTC")</code> and <code>load_day("INTC", "2019-01-30")</code>.</p>
 
 <p>LOBSTER (Huang &amp; Polak 2011) rebuilds the Nasdaq book from TotalView-ITCH. Each sample
 has two row-aligned files:</p>
@@ -423,6 +433,18 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
     
 
                 </section>
+                <section id="ITCH_DIR">
+                    <div class="attr variable">
+            <span class="name">ITCH_DIR</span>        =
+<span class="default_value">PosixPath(&#39;./data/processed/itch&#39;)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ITCH_DIR"></a>
+    
+    
+
+                </section>
                 <section id="MsgType">
                     <div class="attr class">
             
@@ -549,7 +571,7 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">message_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>:</span></span>
+        <span class="name">message_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">day</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>:</span></span>
 
         
     </div>
@@ -562,7 +584,7 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">book_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>:</span></span>
+        <span class="name">book_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">day</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>:</span></span>
 
         
     </div>
@@ -575,13 +597,28 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">available</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">tickers</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'AAPL'</span><span class="p">,</span> <span class="s1">'AMZN'</span><span class="p">,</span> <span class="s1">'GOOG'</span><span class="p">,</span> <span class="s1">'INTC'</span><span class="p">,</span> <span class="s1">'MSFT'</span><span class="p">)</span></span><span class="return-annotation">) -> <span class="nb">bool</span>:</span></span>
+        <span class="name">available</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">tickers</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'AAPL'</span><span class="p">,</span> <span class="s1">'AMZN'</span><span class="p">,</span> <span class="s1">'GOOG'</span><span class="p">,</span> <span class="s1">'INTC'</span><span class="p">,</span> <span class="s1">'MSFT'</span><span class="p">)</span>,</span><span class="param">	<span class="n">day</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="nb">bool</span>:</span></span>
 
         
     </div>
     <a class="headerlink" href="#available"></a>
     
-            <div class="docstring"><p>True when the Parquet files for every ticker are on disk.</p>
+            <div class="docstring"><p>True when the Parquet files for every ticker are on disk (day None: the 2012 LOBSTER sample).</p>
+</div>
+
+
+                </section>
+                <section id="itch_days">
+                    <div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">itch_days</span><span class="signature pdoc-code condensed">(<span class="return-annotation">) -> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>:</span></span>
+
+        
+    </div>
+    <a class="headerlink" href="#itch_days"></a>
+    
+            <div class="docstring"><p>The converted ITCH days on disk, oldest first.</p>
 </div>
 
 
@@ -891,7 +928,7 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">load_messages</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n"><a href="#Messages">Messages</a></span>:</span></span>
+        <span class="name">load_messages</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">day</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="#Messages">Messages</a></span>:</span></span>
 
         
     </div>
@@ -904,7 +941,7 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">load_book</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span></span><span class="return-annotation">) -> <span class="n"><a href="#Book">Book</a></span>:</span></span>
+        <span class="name">load_book</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>,</span><span class="param">	<span class="n">day</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="#Book">Book</a></span>:</span></span>
 
         
     </div>
@@ -919,13 +956,15 @@ invisible, so an order whose price drifts beyond level 10 can no longer be track
                     <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">load_day</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span></span><span class="return-annotation">) -> <span class="n"><a href="#Day">Day</a></span>:</span></span>
+        <span class="name">load_day</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">day</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span></span><span class="return-annotation">) -> <span class="n"><a href="#Day">Day</a></span>:</span></span>
 
         
     </div>
     <a class="headerlink" href="#load_day"></a>
     
-    
+            <div class="docstring"><p>A stock's day: the 2012 LOBSTER sample by default, or a converted ITCH day ("2019-01-30").</p>
+</div>
+
 
                 </section>
                 <section id="read_csv">

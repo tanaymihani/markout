@@ -12,9 +12,11 @@ flowchart LR
     subgraph inputs [Data, never committed]
         K[Kaggle: Optiver auction]
         L[LOBSTER sample days]
+        N[NASDAQ ITCH 5.0 sample days]
         Y[Yahoo: S&P 500, VIX]
     end
     K & L & Y -->|scripts/, make data| P[data/processed/*.parquet]
+    N -->|markout.lob.itch| P
     P --> R[research packages<br/>auction, lob, options, vol, games, decision]
     R -->|results.save| J[reports/results/*.json]
     R --> F[reports/figures/*.png]
@@ -40,17 +42,37 @@ the last bits from run to run and committed files should only change when a resu
 |---|---|
 | `markout.auction` | Optiver closing-auction data: audit, leakage-safe features, walk-forward models (report 01) |
 | `markout.backtest` | Costs, the trading rule, sizing and daily PnL for the auction strategy |
-| `markout.lob` | LOBSTER loader, order-flow imbalance, the queue-position fill simulator, markouts, post-or-cross (report 02) |
+| `markout.lob` | LOBSTER loader and ITCH 5.0 converter, order-flow imbalance, the queue-position fill simulator, markouts, post-or-cross (report 02), many days, L2 and latency (reports 07-08) |
 | `markout.games` | Glosten–Milgrom, Kyle, a market-making tournament, Kuhn poker CFR, a card game (report 03) |
 | `markout.options` | Black–Scholes, delta-hedging simulation, the SPY smile (report 04) |
 | `markout.decision` | Calibration, value of information, Kelly, the contest study, the decision journal (report 05) |
 | `markout.vol` | Variance risk premium, HAR forecast, sizing with ruin, hedged straddles (report 06) |
 | `markout.evaluation` | Trial registry, Deflated Sharpe, PBO, block bootstrap, holdout guard, Diebold–Mariano |
+| `markout.replications` | Published results next to the numbers this code gets (the README's replications table) |
 
 `markout.evaluation` is the part every study leans on. The registry logs every variant
 tried (config, metrics, daily PnL, git commit), so the Deflated Sharpe and PBO count the
 whole search, and `HoldoutGuard` lets the sealed test period be opened exactly once,
 atomically, with an audit trail.
+
+## From the NASDAQ feed to a LOBSTER day
+
+The LOBSTER sample is one day of 2012. For more, `markout.lob.itch` reads NASDAQ's own
+TotalView-ITCH 5.0 sample days: every message the exchange sent that day, for every stock
+(about 300-420 million a day). It streams the gzipped file once (gzip decompresses in its own
+process; the parser walks the length-prefixed messages and unpacks only the ones for the
+stocks asked for), rebuilds each book from the first add of the day, and writes what LOBSTER
+would: one row per regular-session event that changes the ten visible levels or prints a
+trade, with the book after it. Memory stays near 450 MB because rows go to Parquet in
+batches. A day takes two to three and a half minutes on a laptop.
+
+Two checks make it trustworthy. Every execution, cancel, delete and replace must name an
+order added earlier that day (books start empty every morning), and the count of those that
+don't is part of each day's stats; `--audit` runs the same check over every stock in the
+file. And the books it writes go through the same replay check as the LOBSTER sample: each
+displayed size must change by exactly the size of each message. The tests write random
+feeds as real ITCH bytes and require the converter to reproduce, row for row and level for
+level, what the synthetic exchange shows for the same events, whatever the chunk boundaries.
 
 ## The fill simulator: a Python reference and a C++ port
 
@@ -70,6 +92,13 @@ simulator is the code that most needs to be right. It exists twice:
 `simulate(engine="auto")` uses the C++ engine when it is built and falls back to Python,
 so nothing depends on a compiler being present. A full LOBSTER day (600k messages, 9,000
 orders, three models) takes about a second in C++.
+
+There are four models: touch, FIFO and trade-through nest (each fills no more than the one
+before), and `l2` sees only what an aggregated-depth backtest sees. It never reads order
+ids, so a cancel at our price shrinks the queue ahead and behind pro rata; comparing it with
+FIFO, which knows where every cancel was, is report 08. Latency is not an engine feature: it
+moves each order's placement index and deadline (`sample_orders(latency=...)`), so both
+engines handle it unchanged.
 
 ## The desk
 
@@ -156,8 +185,10 @@ Python's.
 |---|---|---|
 | Unit and property tests | pytest, Hypothesis | `tests/` |
 | Known answers | worked examples from the Deflated Sharpe paper, the Glosten–Milgrom spread, Kyle's λ, Kuhn poker's value, put–call parity | `tests/test_*` |
+| Published results | the README's replications table, rebuilt from saved results (`python -m markout.replications`) | `tests/test_replications.py` |
 | Leakage | corrupt every future row of the auction data; no past feature may change | `tests/test_auction_features.py` |
-| C++ vs Python | bit-identical fills on randomized streams | `tests/test_cpp_equivalence.py` |
+| C++ vs Python | bit-identical fills on randomized streams, all four models | `tests/test_cpp_equivalence.py` |
+| ITCH converter | random feeds written as ITCH bytes must reproduce the synthetic exchange exactly; unknown references are counted | `tests/test_lob_itch.py` |
 | JavaScript vs Python | the browser labs against the Python implementation | `tests/test_site_labs.py` |
 | Docs | the site matches its generator; every Python block in USAGE.md runs | `tests/test_docs.py`, `tests/test_usage.py` |
 | Hosted desk | isolation, eviction, expiry, limits, CSP, logs | `tests/test_cup_public.py` |

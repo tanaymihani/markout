@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 from markout import plotting as mp
-from markout import results
+from markout import replications, results
 from markout.paths import FIGURES, REPORTS, ROOT
 from markout.site import DESK_URL
 
@@ -122,6 +122,22 @@ def results_section() -> list[str]:
             _fig("h_kelly", "Kelly sizing chosen before 2008, lived through it"),
             "",
         ]
+    many = _read("07_many_days")
+    if many:
+        out += [
+            "**07 · Many days.** Does the gap from 02 survive ten more days and ten stocks? " + _answer(many),
+            "",
+            _fig("g_gap_heatmap", "Touch-minus-FIFO markout gap for every day and stock"),
+            "",
+        ]
+    l2 = _read("08_l2_and_latency")
+    if l2:
+        out += [
+            "**08 · L2 backtests and latency.** " + _answer(l2),
+            "",
+            _fig("i_l2_error", "Fill-probability and markout errors of an L2-only backtest, by stock"),
+            "",
+        ]
     b = results.load("cpp_bench")
     if b:
         out += [
@@ -219,6 +235,21 @@ def brief() -> list[str]:
             f"order turns that into {intc['fifo']['mk_10_bps']:+.2f} bps: the fills you actually get are the "
             "ones you didn't want."
         )
+    md = results.load("many_days")
+    if md and md.get("cells"):
+        pool, l2p = md["pooled"], md["l2"]["pooled"]
+        n_days, n_stocks = len(md["meta"]["days"]), len(md["by_ticker"])
+        bt = md["by_ticker"]
+        losing = sum(b["mk10_bps"]["touch"]["mean"] < 0 for b in bt.values())
+        out.append(
+            f"**Fills across days.** On {n_days} NASDAQ ITCH sample days of 2019–2021 and {n_stocks} stocks "
+            f"({md['throughput']['itch_messages_read'] / 1e9:.1f} billion messages), the real queue makes the markout "
+            f"worse than a touch-fill backtest on {100 * pool['share_cells_gap_positive']:.0f}% of stock-days, by "
+            f"{pool['median_stock_gap_bps']:.2f} bps for the median stock. The 2012 sign flip is not general: on "
+            f"these days touch fills already show a loss for {losing} of the {n_stocks} stocks. A backtest that only "
+            f"sees aggregated depth {'overstates' if l2p['dp_fill_pp']['mean'] > 0 else 'understates'} the fill "
+            f"rate by {abs(l2p['dp_fill_pp']['mean']):.1f} points on average."
+        )
     ar = results.load("arena")
     if ar:
         k = {r["K"]: r for r in ar["arena"]["k_sweep"]}
@@ -261,6 +292,35 @@ def brief() -> list[str]:
             f"{100 * best['p_bust']:.0f}% of runs."
         )
     return (["## In brief", ""] + [f"- {b}" for b in out] + [""]) if out else []
+
+
+def _itch_audit() -> str:
+    """The all-symbol check of the ITCH days, when report 07's results carry it."""
+    aud = (results.load("many_days") or {}).get("audit") or {}
+    if not aud:
+        return ""
+    refs, bad = sum(a["references"] for a in aud.values()), sum(a["unmatched"] for a in aud.values())
+    return (
+        f" (checked for every symbol in the files too: {refs / 1e9:.1f} billion references, "
+        f"{'none' if bad == 0 else f'{bad:,}'} unmatched)"
+    )
+
+
+def replications_section() -> list[str]:
+    rep = results.load("replications")
+    body = replications.table(rep) if rep else ""
+    if not body:
+        return []
+    return [
+        "### Replications",
+        "",
+        (
+            "Published numbers next to the ones this code gets on its own data (`python -m markout.replications`). "
+            "Where the setups differ, the last column says how."
+        ),
+        "",
+        body,
+    ]
 
 
 def build() -> str:
@@ -327,6 +387,14 @@ def build() -> str:
             "| [06 Volatility premium](reports/06_vol_premium.md) | How big is the premium in S&P options, when does "
             "selling it blow up, and how much should you sell? | S&P 500, VIX and VIX3M daily closes, 1990 onward |"
         ),
+        (
+            "| [07 Many days](reports/07_many_days.md) | Does the fill gap from 02 hold across days and stocks? | "
+            "NASDAQ TotalView-ITCH 5.0 sample days, 2019–2021: ten days, ten stocks |"
+        ),
+        (
+            "| [08 L2 and latency](reports/08_l2_and_latency.md) | How wrong is a backtest that only sees aggregated "
+            "depth, and what does latency cost? | The days of 07 |"
+        ),
         "",
         (
             "There is also a trading desk for SIG's Predictions Cup, and a C++ version of the order-book replay "
@@ -355,14 +423,15 @@ def build() -> str:
         "- The auction holdout sits behind a guard that refuses a second look"
         + (f" (it has been opened {times} time{'s' if times != 1 else ''})." if times else "."),
         (
-            "- Replications are checked against known answers: the worked example in the Deflated Sharpe paper, the "
-            "Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks."
+            "- The tests check known answers from theory: the Glosten–Milgrom spread, Kyle's λ, the value of Kuhn "
+            "poker, put–call parity and the Greeks. Published empirical results are in the table below."
         ),
         (
             "- `make report` regenerates every report and figure from fixed seeds, so the numbers in the text are "
             "never typed by hand."
         ),
         "",
+        *replications_section(),
         "## Use it on your own data",
         "",
         (
@@ -391,6 +460,7 @@ def build() -> str:
         "make lobster     # LOBSTER sample day (5 stocks, 10 levels)",
         "make optiver     # Optiver data (needs a Kaggle login and the competition rules accepted)",
         "make vol         # S&P 500 and VIX history for report 06",
+        "make itch        # ten NASDAQ ITCH sample days (about 45 GB) for reports 07 and 08",
         "make cpp         # C++ extension (optional; there is a pure-Python fallback)",
         "make test",
         "make report      # regenerate every report, figure and results file",
@@ -457,13 +527,18 @@ def build() -> str:
         ),
         "- **One SPY option chain**, saved with yfinance on 2026-09-29 after the close.",
         "- **S&P 500, VIX and VIX3M daily closes** from Yahoo Finance (`make vol`). Not committed.",
+        (
+            "- **NASDAQ TotalView-ITCH 5.0 sample days** from emi.nasdaq.com: ten full days of 2019–2021 "
+            "(`make itch`, about 45 GB), converted to LOBSTER format for ten stocks by `markout.lob.itch`, with every "
+            "execution, cancel, delete and replace matched to an earlier order" + _itch_audit() + ". Not committed."
+        ),
         "",
         "## Limitations",
         "",
         (
             "Each report ends with its own. The main ones: the auction target is measured against a synthetic index, "
-            "so the PnL assumes a hedge I can't observe; the microstructure study is a single day from 2012 and my "
-            "own orders have no market impact; the arena is a stylized dealer market where everyone shares one "
+            "so the PnL assumes a hedge I can't observe; report 02 is a single day from 2012 (07 adds ten NASDAQ "
+            "sample days of 2019–2021, on NASDAQ's book only) and my own orders have no market impact; the arena is a stylized dealer market where everyone shares one "
             "belief; and the contest study has to assume the field size and the number of markets."
         ),
         "",

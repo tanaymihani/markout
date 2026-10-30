@@ -14,6 +14,7 @@ The name comes from the *markout*, the price move right after a trade, which mar
 
 - **Closing auction.** A LightGBM model beats a per-stock baseline on every out-of-sample day. Over 240 walk-forward days, traded net of costs at a size the order book can absorb, it has an annualized Sharpe of 4.8 but nets only $2,041, because costs take 61% of the gross; at twice the assumed costs the Sharpe is -0.2. On a 60-day holdout I opened once, the frozen model scored 4.7 ($1,101): real, but thin.
 - **Fills.** Resting orders in INTC look profitable if any trade at your price fills you (+0.33 bps ten seconds later). Simulating queue position order by order turns that into -1.64 bps: the fills you actually get are the ones you didn't want.
+- **Fills across days.** On 10 NASDAQ ITCH sample days of 2019–2021 and 10 stocks (3.5 billion messages), the real queue makes the markout worse than a touch-fill backtest on 100% of stock-days, by 0.34 bps for the median stock. The 2012 sign flip is not general: on these days touch fills already show a loss for 8 of the 10 stocks. A backtest that only sees aggregated depth overstates the fill rate by 1.5 points on average.
 - **Competition.** A lone market maker quotes a 124-tick spread; one identical rival brings it to 13.8, next to the zero-profit 13.0. Competition removes the rent, not the cost of trading against informed flow.
 - **Volatility premium.** VIX sat above the volatility that followed 86% of the time since 1990, but the textbook Kelly formula asks for 3.0x the growth-optimal size, and every Kelly fraction fitted on 1993–2007 was wiped out after 2008. Selling delta-hedged straddles instead of variance cuts the worst month from 79 to 41 per $1 of vega, though at-the-money options carry less of the premium.
 - **Contest sizing.** In a simulated 1,000-player contest that pays only the top 3, 1x Kelly never finishes in the money over 10,000 runs. The best policy tried (0.5x Kelly, all-in in the last 80% of rounds if outside top 3) gets there 2.4% of the time, 8x a random player's odds, and busts in 96% of runs.
@@ -28,6 +29,8 @@ The name comes from the *markout*, the price move right after a trade, which mar
 | [04 Options](reports/04_options.md) | What does delta hedging actually earn, and how often should you hedge? | Simulation, plus one SPY option chain |
 | [05 Predictions Cup](reports/05_predictions_cup.md) | How should you size bets when only the top three places get paid? | Simulation of SIG's student contest |
 | [06 Volatility premium](reports/06_vol_premium.md) | How big is the premium in S&P options, when does selling it blow up, and how much should you sell? | S&P 500, VIX and VIX3M daily closes, 1990 onward |
+| [07 Many days](reports/07_many_days.md) | Does the fill gap from 02 hold across days and stocks? | NASDAQ TotalView-ITCH 5.0 sample days, 2019–2021: ten days, ten stocks |
+| [08 L2 and latency](reports/08_l2_and_latency.md) | How wrong is a backtest that only sees aggregated depth, and what does latency cost? | The days of 07 |
 
 There is also a trading desk for SIG's Predictions Cup, and a C++ version of the order-book replay from part 02.
 
@@ -73,6 +76,20 @@ The paragraphs below are copied from the reports.
   <img alt="Kelly sizing chosen before 2008, lived through it" src="reports/figures/h_kelly.png" width="720">
 </picture>
 
+**07 · Many days.** Does the gap from 02 survive ten more days and ten stocks? Across 100 stock-days, the touch-fill markout ten seconds after a fill is higher than the FIFO-queue markout on 100% of them. The median stock's gap is +0.34 bps; averaged across the stocks each day it is +1.21 [+1.10, +1.31] bps (mean, and a 95% interval that resamples days), pulled up by SIRI, a $6 stock whose one-cent tick is worth about 16 bps. On these days a touch-fill backtest already shows a loss after the fill for 8 of 10 stocks, so the sign flip of report 02 (INTC in 2012: +0.33 bps under touch fills, -1.64 under FIFO, a gap of 1.97; here +0.39) is not the general case. What holds on every stock-day is the direction: the real queue makes the markout worse.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="reports/figures/g_gap_heatmap_dark.png">
+  <img alt="Touch-minus-FIFO markout gap for every day and stock" src="reports/figures/g_gap_heatmap.png" width="720">
+</picture>
+
+**08 · L2 backtests and latency.** An L2-only backtest is optimistic: it overstates the fill probability by 1.5 [1.3, 1.6] percentage points against the order-level answer. 1.5% of orders fill under the L2 estimate but not in the queue, against 0.0% the other way round; the two agree on whether an order fills for 98.4% of orders. Latency matters less than queue position: compared with no delay, 20 ms costs 0.2 pp of fill probability and 500 ms costs 2.7 pp, mostly through orders rejected because the market moved before they arrived.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="reports/figures/i_l2_error_dark.png">
+  <img alt="Fill-probability and markout errors of an L2-only backtest, by stock" src="reports/figures/i_l2_error.png" width="720">
+</picture>
+
 **C++.** The order-book replay and queue simulator from part 02 is sequential and keeps state, so it was the one piece worth porting. `cpp/queue_sim.cpp` (C++17 with pybind11) runs 26–47× faster than the Python version and gives identical output, checked on all five stocks and on randomized event streams.
 
 <picture>
@@ -97,12 +114,25 @@ The [demo](docs/demo/DEMO.md) runs the whole loop offline on made-up markets (`m
 
 ## How I tried to keep it honest
 
-- 410 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
+- 429 tests (`make test`). One of them corrupts every future row of the auction data and checks that no feature of the past changes; a deliberately leaky feature fails it, so the test does catch leaks.
 - Walk-forward splits by day, never random rows. Labels never cross a day, so there is nothing to purge; `src/markout/auction/cv.py` explains why.
 - Every variant I tried is logged with its config, daily PnL and git commit, including the losers, so the Deflated Sharpe and PBO count all of the searching. (The 32 auction trials were logged from a working copy whose commit predates this repository's public history, so their SHAs don't resolve on GitHub.)
 - The auction holdout sits behind a guard that refuses a second look (it has been opened 1 time).
-- Replications are checked against known answers: the worked example in the Deflated Sharpe paper, the Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks.
+- The tests check known answers from theory: the Glosten–Milgrom spread, Kyle's λ, the value of Kuhn poker, put–call parity and the Greeks. Published empirical results are in the table below.
 - `make report` regenerates every report and figure from fixed seeds, so the numbers in the text are never typed by hand.
+
+### Replications
+
+Published numbers next to the ones this code gets on its own data (`python -m markout.replications`). Where the setups differ, the last column says how.
+
+| result | published | here | setup |
+|---|---|---|---|
+| Deflated Sharpe worked example ([Bailey & López de Prado (2014), *J. Portfolio Management* 40(5), the numerical example](https://www.davidhbailey.com/dhbpapers/deflated-sharpe.pdf)) | SR₀ 0.1132; DSR 0.9004 at N = 100, 0.9505 at N = 46, 0.9505 for normal returns at N = 88 | 0.1132; 0.9004, 0.9505, 0.9505 ([tests](tests/test_evaluation_dsr.py)) | Same inputs; equal to the printed four decimals. |
+| Order-flow imbalance explains the same 10 s price change ([Cont, Kukanov & Stoikov (2014), *J. Financial Econometrics* 12(1), Tables 2 and 3](https://arxiv.org/abs/1011.6402)) | average R² 0.65 (50 NYSE stocks, TAQ quotes and trades, April 2010) | 0.63, from 0.41–0.87 by stock ([report 02](reports/02_microstructure.md)) | Five NASDAQ stocks on one LOBSTER day (2012); same buckets and half-hour windows. |
+| Price impact is inversely proportional to depth (same paper) | λ = 0.98 [0.88–1.08] in log β = a − λ log depth, fitted stock by stock | 0.90 [0.45–1.36] within stocks; 1.27 [1.20–1.34] pooled across them ([report 02](reports/02_microstructure.md)) | They fit each stock across its windows, so the within-stock slope is the comparable one: its interval and theirs contain 1, the pooled one does not. |
+| Queue imbalance predicts the next mid-price move, better for large-tick stocks ([Gould & Bonart (2016), *Market Microstructure and Liquidity* 2(2), Tables 2 and 4](https://arxiv.org/abs/1512.03492)) | out-of-sample AUC 0.752–0.805 large-tick, 0.581–0.642 small-tick; logistic slope 2.03–2.73 vs 0.50–0.85 (10 Nasdaq stocks, LOBSTER, all of 2014) | AUC 0.652–0.661 vs 0.531–0.569; slope 1.12–1.33 vs 0.23–0.35 ([report 02](reports/02_microstructure.md)) | Same imbalance and target. One 2012 day, sampled every second and split by time of day; the ordering holds, the levels are lower. |
+| Optiver *Trading at the Close*, MAE on the same holdout days ([a public repository](https://github.com/andrew-somerset/optiver-trading-at-the-close)) | median baseline 5.815, gradient boosting 5.708 bps | median 5.818, LightGBM 5.693 ([report 01](reports/01_auction.md)) | The matching baseline checks the data and the split. |
+| S&P 500 variance risk premium, 1996-01 to 2003-02 ([Carr & Wu, *Variance Risk Premia*, May 2004 working paper (published in *RFS* 22(3), 2009), Tables 4 and 5, SPX row](https://econwpa.ub.uni-muenchen.de/econ-wp/fin/papers/0409/0409015.pdf)) | realized vol 18.82 vs swap rate 24.41; mean 100·(RV − SW) -2.279 (t = -7.19); mean ln(RV/SW) -0.594 (t = -9.48) | 18.96 vs 23.73; -1.857 (t = -6.42); -0.525 (t = -9.61) ([code](src/markout/replications.py), data of [report 06](reports/06_vol_premium.md)) | VIX² stands in for their option-built swap rate; realized variance over the next 21 trading days; Newey–West t with 30 lags, as theirs. |
 
 ## Use it on your own data
 
@@ -124,6 +154,7 @@ make install     # editable install into .venv
 make lobster     # LOBSTER sample day (5 stocks, 10 levels)
 make optiver     # Optiver data (needs a Kaggle login and the competition rules accepted)
 make vol         # S&P 500 and VIX history for report 06
+make itch        # ten NASDAQ ITCH sample days (about 45 GB) for reports 07 and 08
 make cpp         # C++ extension (optional; there is a pure-Python fallback)
 make test
 make report      # regenerate every report, figure and results file
@@ -173,10 +204,11 @@ tests/                   pytest suite; tests/e2e/ drives a browser, tests/js/ ru
 - **LOBSTER sample files** for AAPL, AMZN, GOOG, INTC and MSFT on 2012-06-21. The official download links stopped working when lobsterdata.com was rebuilt, so the script tries them first and otherwise uses a pinned, hash-checked mirror. A replay that checks every message against the book is the authenticity check. Not committed.
 - **One SPY option chain**, saved with yfinance on 2026-09-29 after the close.
 - **S&P 500, VIX and VIX3M daily closes** from Yahoo Finance (`make vol`). Not committed.
+- **NASDAQ TotalView-ITCH 5.0 sample days** from emi.nasdaq.com: ten full days of 2019–2021 (`make itch`, about 45 GB), converted to LOBSTER format for ten stocks by `markout.lob.itch`, with every execution, cancel, delete and replace matched to an earlier order (checked for every symbol in the files too: 1.9 billion references, none unmatched). Not committed.
 
 ## Limitations
 
-Each report ends with its own. The main ones: the auction target is measured against a synthetic index, so the PnL assumes a hedge I can't observe; the microstructure study is a single day from 2012 and my own orders have no market impact; the arena is a stylized dealer market where everyone shares one belief; and the contest study has to assume the field size and the number of markets.
+Each report ends with its own. The main ones: the auction target is measured against a synthetic index, so the PnL assumes a hedge I can't observe; report 02 is a single day from 2012 (07 adds ten NASDAQ sample days of 2019–2021, on NASDAQ's book only) and my own orders have no market impact; the arena is a stylized dealer market where everyone shares one belief; and the contest study has to assume the field size and the number of markets.
 
 ## License
 

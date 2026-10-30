@@ -32,6 +32,7 @@ REPORTS = {
     "options": "markout.options.report",
     "contest": "markout.decision.contest",
     "vol": "markout.vol.report",
+    "many-days": "markout.lob.multiday",  # reports 07 and 08
 }
 
 
