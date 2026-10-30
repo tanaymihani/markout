@@ -3,6 +3,7 @@
     markout status                               what is on disk: data, the C++ extension, results
     markout fills MESSAGES.csv BOOK.csv          queue-position fills and markouts for any LOBSTER day
     markout fills --ticker INTC                  ... or one of the bundled sample days (make lobster)
+    markout fills --ticker INTC --date 2019-01-30   ... or a NASDAQ ITCH day (python -m markout.lob.itch)
     markout sharpe pnl.csv --trials 40 --sr-var 0.0004
                                                  Sharpe with a bootstrap CI, PSR and the Deflated Sharpe
     markout pbo trials.csv                       probability of backtest overfitting (CSCV)
@@ -98,6 +99,7 @@ def cmd_status(a) -> int:
     out: dict[str, Any] = {
         "version": __version__,
         "lobster_sample": lobster.available(),
+        "itch_days": lobster.itch_days(),
         "optiver_auction": (PROCESSED / "optiver" / "train.parquet").exists(),
         "sp500_vix_history": (RAW / "vol" / "spx.parquet").exists(),
         "cpp_extension": cpp_available(),
@@ -106,6 +108,7 @@ def cmd_status(a) -> int:
     rows = [
         ("markout", out["version"]),
         ("LOBSTER sample days (make lobster)", out["lobster_sample"]),
+        ("NASDAQ ITCH days (markout.lob.itch)", ", ".join(out["itch_days"]) or "none"),
         ("Optiver auction data (make optiver)", out["optiver_auction"]),
         ("S&P 500 and VIX history (make vol)", out["sp500_vix_history"]),
         ("C++ fill simulator (make cpp)", out["cpp_extension"]),
@@ -125,9 +128,12 @@ def cmd_fills(a) -> int:
         raise SystemExit(f"unknown fill model {bad[0]!r}; choose from {', '.join(MODELS)}")
     if a.ticker:
         t = a.ticker.upper()
-        if not lobster.available((t,)):
+        if a.date and not lobster.available((t,), a.date):
+            days = ", ".join(lobster.itch_days()) or "none converted yet"
+            raise SystemExit(f"no ITCH day {a.date} for {t} (converted days: {days})")
+        if not a.date and not lobster.available((t,)):
             raise SystemExit(f"no sample day for {t}: run `make lobster` (bundled: {', '.join(lobster.TICKERS)})")
-        day = lobster.load_day(t)
+        day = lobster.load_day(t, a.date)
     elif a.messages and a.book:
         day = lobster.read_csv(a.messages, a.book)
     else:
@@ -316,6 +322,7 @@ def parser() -> argparse.ArgumentParser:
     f.add_argument("messages", nargs="?", help="LOBSTER message file (CSV)")
     f.add_argument("book", nargs="?", help="LOBSTER order-book file (CSV), row-aligned with the messages")
     f.add_argument("--ticker", help="a bundled sample day instead (AAPL, AMZN, GOOG, INTC, MSFT)")
+    f.add_argument("--date", help="with --ticker: a converted NASDAQ ITCH day, YYYY-MM-DD (default: the 2012 sample)")
     f.add_argument("--models", default="touch,fifo,through", help="comma-separated: touch, fifo, through")
     f.add_argument("--every", type=float, default=5.0, help="seconds between decision times (default 5)")
     f.add_argument("--wait", type=float, default=60.0, help="seconds an order may rest (default 60)")

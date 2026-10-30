@@ -1,4 +1,8 @@
-"""LOBSTER sample files: constants, loaders and the message/book consistency check.
+"""LOBSTER-format days: constants, loaders and the message/book consistency check.
+
+Two sources share the format. The LOBSTER sample (five stocks on 2012-06-21, `make lobster`) is
+the default day; NASDAQ ITCH sample days converted by `markout.lob.itch` are loaded by date:
+`load_day("INTC")` and `load_day("INTC", "2019-01-30")`.
 
 LOBSTER (Huang & Polak 2011) rebuilds the Nasdaq book from TotalView-ITCH. Each sample
 has two row-aligned files:
@@ -38,6 +42,7 @@ SESSION = (OPEN + TRIM, CLOSE - TRIM)  # 09:35:00 - 15:55:00: every analysis use
 SPLIT = 45_900.0  # 12:45:00: fit before, test after
 
 LOBSTER_DIR = PROCESSED / "lobster"
+ITCH_DIR = PROCESSED / "itch"  # <YYYY-MM-DD>/<T>_{messages,book}.parquet, written by markout.lob.itch
 
 
 class MsgType(IntEnum):
@@ -56,17 +61,26 @@ BOOK_COLUMNS: tuple[str, ...] = tuple(
 )
 
 
-def message_path(ticker: str) -> Path:
-    return LOBSTER_DIR / f"{ticker}_messages.parquet"
+def _dir(day: str | None) -> Path:
+    return LOBSTER_DIR if day is None or str(day) == DATE else ITCH_DIR / str(day)
 
 
-def book_path(ticker: str) -> Path:
-    return LOBSTER_DIR / f"{ticker}_book.parquet"
+def message_path(ticker: str, day: str | None = None) -> Path:
+    return _dir(day) / f"{ticker}_messages.parquet"
 
 
-def available(tickers: tuple[str, ...] = TICKERS) -> bool:
-    """True when the Parquet files for every ticker are on disk."""
-    return all(message_path(t).exists() and book_path(t).exists() for t in tickers)
+def book_path(ticker: str, day: str | None = None) -> Path:
+    return _dir(day) / f"{ticker}_book.parquet"
+
+
+def available(tickers: tuple[str, ...] = TICKERS, day: str | None = None) -> bool:
+    """True when the Parquet files for every ticker are on disk (day None: the 2012 LOBSTER sample)."""
+    return all(message_path(t, day).exists() and book_path(t, day).exists() for t in tickers)
+
+
+def itch_days() -> list[str]:
+    """The converted ITCH days on disk, oldest first."""
+    return sorted(d.name for d in ITCH_DIR.glob("????-??-??") if (d / "stats.json").exists())
 
 
 @dataclass(frozen=True)
@@ -144,23 +158,24 @@ def messages_from_frame(df: pl.DataFrame) -> Messages:
     )
 
 
-def load_messages(ticker: str) -> Messages:
-    return messages_from_frame(pl.read_parquet(message_path(ticker)))
+def load_messages(ticker: str, day: str | None = None) -> Messages:
+    return messages_from_frame(pl.read_parquet(message_path(ticker, day)))
 
 
-def load_book(ticker: str, levels: int = LEVELS) -> Book:
+def load_book(ticker: str, levels: int = LEVELS, day: str | None = None) -> Book:
     """Read one (n, levels) block at a time, so peak memory stays near the final arrays."""
 
     def block(field: str) -> np.ndarray:
         cols = [f"{field}_{i}" for i in range(1, levels + 1)]
-        frame = pl.read_parquet(book_path(ticker), columns=cols)
+        frame = pl.read_parquet(book_path(ticker, day), columns=cols)
         return np.ascontiguousarray(frame.to_numpy().astype(np.int64, copy=False))
 
     return Book(block("ask_price"), block("ask_size"), block("bid_price"), block("bid_size"))
 
 
-def load_day(ticker: str, levels: int = LEVELS) -> Day:
-    return Day(ticker, load_messages(ticker), load_book(ticker, levels))
+def load_day(ticker: str, day: str | None = None, levels: int = LEVELS) -> Day:
+    """A stock's day: the 2012 LOBSTER sample by default, or a converted ITCH day ("2019-01-30")."""
+    return Day(ticker, load_messages(ticker, day), load_book(ticker, levels, day))
 
 
 def read_csv(message_csv: str | Path, book_csv: str | Path, ticker: str = "") -> Day:

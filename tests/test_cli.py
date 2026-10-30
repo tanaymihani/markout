@@ -77,6 +77,8 @@ def test_fills_explains_bad_input(lobster_csv):
         cli.main(["fills", str(msg), str(book), "--start", "0", "--end", "34230"])
     with pytest.raises(SystemExit, match="MESSAGES.csv BOOK.csv"):
         cli.main(["fills"])
+    with pytest.raises(SystemExit, match="no ITCH day 1999-01-04"):
+        cli.main(["fills", "--ticker", "INTC", "--date", "1999-01-04"])
 
 
 def test_sharpe_matches_the_library(capsys, tmp_path):
@@ -134,7 +136,7 @@ def test_kelly(capsys):
 
 def test_status_and_clock(capsys):
     out = run(capsys, "status", "--json")
-    assert set(out) >= {"version", "lobster_sample", "cpp_extension", "results"}
+    assert set(out) >= {"version", "lobster_sample", "itch_days", "cpp_extension", "results"}
     assert cli._clock("09:35") == 34_500 and cli._clock("15:55:30") == 57_330 and cli._clock("34500") == 34_500
 
 
