@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use Markout in your work, please cite it as below."
+type: software
+title: "Markout: does a short-horizon trading edge survive costs, fills and competition?"
+abstract: >-
+  Research code and tools for testing whether a short-horizon trading edge survives
+  the spread, realistic queue-position fills, competing traders and the bias of
+  trying many strategies: a LOBSTER and NASDAQ ITCH fill simulator in Python and
+  C++17, honest-evaluation statistics (Deflated Sharpe ratio, PBO, stationary
+  bootstrap, a run-once holdout guard) and the studies built on them.
+authors:
+  - family-names: Mihani
+    given-names: Tanay
+    affiliation: Northeastern University
+repository-code: "https://github.com/tanaymihani/markout"
+url: "https://tanaymihani.github.io/markout/"
+license: MIT
+version: 1.1.0
+date-released: 2026-10-25
+keywords:
+  - market microstructure
+  - limit order book
+  - queue position
+  - fill simulation
+  - backtesting
+  - deflated Sharpe ratio

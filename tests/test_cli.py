@@ -145,4 +145,6 @@ def test_version_is_defined_once(capsys):
     from markout.paths import ROOT
 
     assert tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"] == __version__
+    cff = (ROOT / "CITATION.cff").read_text()
+    assert f"\nversion: {__version__}\n" in cff  # GitHub's "Cite this repository" and Zenodo read it
     assert cli.main(["--version"]) == 0 and capsys.readouterr().out.strip() == __version__
